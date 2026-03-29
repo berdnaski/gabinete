@@ -1,0 +1,211 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  MEMBER
+}
+
+enum CabinetRole {
+  OWNER
+  STAFF
+}
+
+enum DemandStatus {
+  SUBMITTED
+  IN_ANALYSIS
+  IN_PROGRESS
+  RESOLVED
+  REJECTED
+  CANCELED
+}
+
+enum DemandPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ResultType {
+  INFRASTRUCTURE
+  SOCIAL
+  LEGISLATIVE
+  OTHER
+}
+
+enum ResultImageType {
+  BEFORE
+  AFTER
+  GENERAL
+}
+
+// ─── Authentication & Users ───────────────────────────────────────────────────
+
+model User {
+  id         String    @id @default(cuid())
+  name       String
+  email      String    @unique
+  password   String?
+  avatarUrl  String?
+  role       UserRole  @default(MEMBER)
+  disabledAt DateTime?
+
+  accounts        Account[]
+  cabinetMembers  CabinetMember[]
+  reportedDemands Demand[]        @relation("DemandReporter")
+  demandLikes     DemandLike[]
+  demandComments  DemandComment[]
+}
+
+model Account {
+  id                String @id @default(cuid())
+  userId            String
+  provider          String
+  providerAccountId String
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerAccountId])
+}
+
+// ─── Cabinet Management ───────────────────────────────────────────────────────
+
+model Cabinet {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  avatarUrl   String?
+  disabledAt  DateTime?
+
+  members CabinetMember[]
+  demands Demand[]
+  results Result[]
+}
+
+model CabinetMember {
+  id        String      @id @default(cuid())
+  userId    String
+  cabinetId String
+  role      CabinetRole @default(STAFF)
+
+  user            User     @relation(fields: [userId], references: [id])
+  cabinet         Cabinet  @relation(fields: [cabinetId], references: [id])
+  assignedDemands Demand[] @relation("DemandAssignee")
+
+  @@unique([userId, cabinetId])
+}
+
+model Category {
+  id         String    @id @default(cuid())
+  name       String
+  slug       String
+  disabledAt DateTime?
+
+  demands Demand[]
+}
+
+// ─── Demand (Core Entity) ─────────────────────────────────────────────────────
+
+model Demand {
+  id               String         @id @default(cuid())
+  title            String
+  description      String
+  status           DemandStatus   @default(SUBMITTED)
+  priority         DemandPriority @default(LOW)
+  address          String
+  zipcode          String
+  lat              Float?
+  long             Float?
+  neighborhood     String
+  city             String
+  state            String
+  reporterId       String?
+  guestEmail       String?
+  cabinetId        String?
+  categoryId       String?
+  assigneeMemberId String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  disabledAt       DateTime?
+
+  reporter       User?            @relation("DemandReporter", fields: [reporterId], references: [id])
+  cabinet        Cabinet?         @relation(fields: [cabinetId], references: [id])
+  category       Category?        @relation(fields: [categoryId], references: [id])
+  assigneeMember CabinetMember?   @relation("DemandAssignee", fields: [assigneeMemberId], references: [id])
+  evidences      DemandEvidence[]
+  likes          DemandLike[]
+  comments       DemandComment[]
+  results        Result[]
+}
+
+model DemandEvidence {
+  id         String @id @default(cuid())
+  storageKey String
+  url        String
+  mimeType   String
+  size       Int?
+  demandId   String
+
+  demand Demand @relation(fields: [demandId], references: [id])
+}
+
+model DemandLike {
+  id        String   @id @default(cuid())
+  userId    String
+  demandId  String
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  demand Demand @relation(fields: [demandId], references: [id])
+
+  @@unique([userId, demandId])
+}
+
+model DemandComment {
+  id                String   @id @default(cuid())
+  content           String
+  isCabinetResponse Boolean  @default(false)
+  demandId          String
+  authorId          String
+  createdAt         DateTime @default(now())
+
+  demand Demand @relation(fields: [demandId], references: [id])
+  author User   @relation(fields: [authorId], references: [id])
+}
+
+// ─── Resolution & Results ─────────────────────────────────────────────────────
+
+model Result {
+  id          String     @id @default(cuid())
+  title       String
+  description String
+  type        ResultType
+  isPublic    Boolean    @default(false)
+  cabinetId   String
+  demandId    String?
+  createdAt   DateTime   @default(now())
+  disabledAt  DateTime?
+
+  cabinet Cabinet       @relation(fields: [cabinetId], references: [id])
+  demand  Demand?       @relation(fields: [demandId], references: [id])
+  images  ResultImage[]
+}
+
+model ResultImage {
+  id         String          @id @default(cuid())
+  url        String
+  storageKey String
+  type       ResultImageType
+  resultId   String
+
+  result Result @relation(fields: [resultId], references: [id])
+}
