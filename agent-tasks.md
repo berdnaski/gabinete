@@ -56,7 +56,7 @@ This file serves as your roadmap and execution log.
 > Slug logic extracted to `src/shared/utils/slug.util.ts` (two pure functions: `toBaseSlug` + `resolveUniqueSlug`) so both modules share the algorithm without coupling. `findSlugsByBaseName` uses Prisma `startsWith` filter to fetch all slug candidates in one query. `CabinetMemberEntity` uses the Prisma compound unique key `userId_cabinetId` for `findUnique`. P2002 is caught in `CabinetMembersRepository.add()` and rethrown as `ConflictException` (409); application layer stays clean. `CreateCabinetUseCase.execute()` auto-assigns the creating user as `OWNER` via two sequential writes (not a transaction — ownerless cabinet edge case noted). `UpdateCabinetDto` extends `PartialType` from `@nestjs/swagger` (not mapped-types) to preserve `@ApiProperty` metadata. Controllers resolve slug → UUID via `FindCabinetBySlugUseCase` before mutation calls. 18 unit tests across 4 spec files all pass; `tsc --noEmit` clean.
 
 ## Task 4: Rename all columns tables using snake_case
-**Status:** 🔴 TODO
+**Status:** 🟢 DONE
 **Description:** Change all columns tables switching the names in postgresql to use snake_case instead pascalCase
 **Agent Remarks (Fill upon completion):**
 > *[Agent: Leave your technical notes here...]*
