@@ -54,26 +54,29 @@ model User {
   name       String
   email      String    @unique
   password   String?
-  avatarUrl  String?
+  avatarUrl  String?   @map("avatar_url")
   role       UserRole  @default(MEMBER)
-  disabledAt DateTime?
+  disabledAt DateTime? @map("disabled_at")
 
   accounts        Account[]
   cabinetMembers  CabinetMember[]
   reportedDemands Demand[]        @relation("DemandReporter")
   demandLikes     DemandLike[]
   demandComments  DemandComment[]
+
+  @@map("users")
 }
 
 model Account {
   id                String @id @default(cuid())
-  userId            String
+  userId            String @map("user_id")
   provider          String
-  providerAccountId String
+  providerAccountId String @map("provider_account_id")
 
   user User @relation(fields: [userId], references: [id])
 
   @@unique([provider, providerAccountId])
+  @@map("accounts")
 }
 
 // ─── Cabinet Management ───────────────────────────────────────────────────────
@@ -83,18 +86,20 @@ model Cabinet {
   name        String
   slug        String    @unique
   description String?
-  avatarUrl   String?
-  disabledAt  DateTime?
+  avatarUrl   String?   @map("avatar_url")
+  disabledAt  DateTime? @map("disabled_at")
 
   members CabinetMember[]
   demands Demand[]
   results Result[]
+
+  @@map("cabinets")
 }
 
 model CabinetMember {
   id        String      @id @default(cuid())
-  userId    String
-  cabinetId String
+  userId    String      @map("user_id")
+  cabinetId String      @map("cabinet_id")
   role      CabinetRole @default(STAFF)
 
   user            User     @relation(fields: [userId], references: [id])
@@ -102,15 +107,18 @@ model CabinetMember {
   assignedDemands Demand[] @relation("DemandAssignee")
 
   @@unique([userId, cabinetId])
+  @@map("cabinet_members")
 }
 
 model Category {
   id         String    @id @default(cuid())
   name       String
   slug       String
-  disabledAt DateTime?
+  disabledAt DateTime? @map("disabled_at")
 
   demands Demand[]
+
+  @@map("categories")
 }
 
 // ─── Demand (Core Entity) ─────────────────────────────────────────────────────
@@ -128,14 +136,14 @@ model Demand {
   neighborhood     String
   city             String
   state            String
-  reporterId       String?
-  guestEmail       String?
-  cabinetId        String?
-  categoryId       String?
-  assigneeMemberId String?
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  disabledAt       DateTime?
+  reporterId       String?        @map("reporter_id")
+  guestEmail       String?        @map("guest_email")
+  cabinetId        String?        @map("cabinet_id")
+  categoryId       String?        @map("category_id")
+  assigneeMemberId String?        @map("assignee_member_id")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+  disabledAt       DateTime?      @map("disabled_at")
 
   reporter       User?            @relation("DemandReporter", fields: [reporterId], references: [id])
   cabinet        Cabinet?         @relation(fields: [cabinetId], references: [id])
@@ -145,41 +153,48 @@ model Demand {
   likes          DemandLike[]
   comments       DemandComment[]
   results        Result[]
+
+  @@map("demands")
 }
 
 model DemandEvidence {
   id         String @id @default(cuid())
-  storageKey String
+  storageKey String @map("storage_key")
   url        String
-  mimeType   String
+  mimeType   String @map("mime_type")
   size       Int?
-  demandId   String
+  demandId   String @map("demand_id")
 
   demand Demand @relation(fields: [demandId], references: [id])
+
+  @@map("demand_evidences")
 }
 
 model DemandLike {
   id        String   @id @default(cuid())
-  userId    String
-  demandId  String
-  createdAt DateTime @default(now())
+  userId    String   @map("user_id")
+  demandId  String   @map("demand_id")
+  createdAt DateTime @default(now()) @map("created_at")
 
   user   User   @relation(fields: [userId], references: [id])
   demand Demand @relation(fields: [demandId], references: [id])
 
   @@unique([userId, demandId])
+  @@map("demand_likes")
 }
 
 model DemandComment {
   id                String   @id @default(cuid())
   content           String
-  isCabinetResponse Boolean  @default(false)
-  demandId          String
-  authorId          String
-  createdAt         DateTime @default(now())
+  isCabinetResponse Boolean  @default(false) @map("is_cabinet_response")
+  demandId          String   @map("demand_id")
+  authorId          String   @map("author_id")
+  createdAt         DateTime @default(now()) @map("created_at")
 
   demand Demand @relation(fields: [demandId], references: [id])
   author User   @relation(fields: [authorId], references: [id])
+
+  @@map("demand_comments")
 }
 
 // ─── Resolution & Results ─────────────────────────────────────────────────────
@@ -189,23 +204,27 @@ model Result {
   title       String
   description String
   type        ResultType
-  isPublic    Boolean    @default(false)
-  cabinetId   String
-  demandId    String?
-  createdAt   DateTime   @default(now())
-  disabledAt  DateTime?
+  isPublic    Boolean    @default(false) @map("is_public")
+  cabinetId   String     @map("cabinet_id")
+  demandId    String?    @map("demand_id")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  disabledAt  DateTime?  @map("disabled_at")
 
   cabinet Cabinet       @relation(fields: [cabinetId], references: [id])
   demand  Demand?       @relation(fields: [demandId], references: [id])
   images  ResultImage[]
+
+  @@map("results")
 }
 
 model ResultImage {
   id         String          @id @default(cuid())
   url        String
-  storageKey String
+  storageKey String          @map("storage_key")
   type       ResultImageType
-  resultId   String
+  resultId   String          @map("result_id")
 
   result Result @relation(fields: [resultId], references: [id])
+
+  @@map("result_images")
 }

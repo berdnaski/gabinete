@@ -125,6 +125,10 @@ The project strictly follows a modularized Clean Architecture approach. Code AI 
 
 ## CHANGELOG
 
+### 2026-03-30 — Refactor: Renamed All DB Tables and Columns to snake_case (Task 4)
+**What:** Added `@@map()` directives to all 11 models (`users`, `accounts`, `cabinets`, `cabinet_members`, `categories`, `demands`, `demand_evidences`, `demand_likes`, `demand_comments`, `results`, `result_images`) and `@map()` directives to all 36 compound camelCase columns (`avatar_url`, `disabled_at`, `user_id`, `provider_account_id`, `cabinet_id`, `reporter_id`, `guest_email`, `category_id`, `assignee_member_id`, `created_at`, `updated_at`, `storage_key`, `mime_type`, `demand_id`, `is_cabinet_response`, `author_id`, `is_public`, `result_id`). Created migration `rename_tables_columns_to_snake_case`. No repository or application-layer code was modified — Prisma's `@map`/`@@map` directives keep the TypeScript client API unchanged.
+**Why:** PostgreSQL convention is snake_case for identifiers. The initial migration used Prisma's default behavior (PascalCase table names, camelCase column names). This normalizes the physical schema to idiomatic SQL naming without breaking the application layer.
+
 ### 2026-03-29 — Refactor: Services Decomposed into Use-Cases
 **What:** Replaced `UsersService` and `AuthService` monolithic classes with individual use-case classes each having a single `execute()` method. New files in `users/application/`: `FindUserByEmailUseCase`, `FindUserByIdUseCase`, `CreateUserUseCase`, `ValidatePasswordUseCase`. New files in `auth/application/`: `JwtTokenService`, `RegisterUseCase`, `LoginUseCase`. Updated `AuthController`, `JwtStrategy`, `UsersModule`, and `AuthModule`. Deleted old service files. Updated Rule #1 in Section 4 and `application/` layer descriptions in Section 5.
 **Why:** Enforces single-responsibility at the use-case level. Each operation is independently testable and discoverable. `JwtTokenService` extracted as a shared injectable to avoid duplicating `signToken` logic across `RegisterUseCase` and `LoginUseCase`.

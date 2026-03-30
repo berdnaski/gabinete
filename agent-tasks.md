@@ -55,9 +55,14 @@ This file serves as your roadmap and execution log.
 **Agent Remarks (Fill upon completion):**
 > Slug logic extracted to `src/shared/utils/slug.util.ts` (two pure functions: `toBaseSlug` + `resolveUniqueSlug`) so both modules share the algorithm without coupling. `findSlugsByBaseName` uses Prisma `startsWith` filter to fetch all slug candidates in one query. `CabinetMemberEntity` uses the Prisma compound unique key `userId_cabinetId` for `findUnique`. P2002 is caught in `CabinetMembersRepository.add()` and rethrown as `ConflictException` (409); application layer stays clean. `CreateCabinetUseCase.execute()` auto-assigns the creating user as `OWNER` via two sequential writes (not a transaction — ownerless cabinet edge case noted). `UpdateCabinetDto` extends `PartialType` from `@nestjs/swagger` (not mapped-types) to preserve `@ApiProperty` metadata. Controllers resolve slug → UUID via `FindCabinetBySlugUseCase` before mutation calls. 18 unit tests across 4 spec files all pass; `tsc --noEmit` clean.
 
+## Task 4: Rename all columns tables using snake_case
+**Status:** 🔴 TODO
+**Description:** Change all columns tables switching the names in postgresql to use snake_case instead pascalCase
+**Agent Remarks (Fill upon completion):**
+> *[Agent: Leave your technical notes here...]*
 ---
 
-## Task 4: Demand Creation with Guest Flow & Geolocation
+## Task 5: Demand Creation with Guest Flow & Geolocation
 **Status:** 🔴 TODO
 **Description:** Implement the `DemandsModule` and the `POST /demands` route handling both authenticated users and the Guest Flow.
 **Acceptance Criteria:**
@@ -73,7 +78,7 @@ This file serves as your roadmap and execution log.
 
 ---
 
-## Task 5: AWS S3 Storage Integration for Evidences
+## Task 6: AWS S3 Storage Integration for Evidences
 **Status:** 🔴 TODO
 **Description:** Integrate Nest.js with AWS S3 to handle file uploads for `DemandEvidence` and `ResultImage`.
 **Acceptance Criteria:**
@@ -89,7 +94,7 @@ This file serves as your roadmap and execution log.
 
 ---
 
-## Task 6: Demand Interactions (Likes & Comments)
+## Task 7: Demand Interactions (Likes & Comments)
 **Status:** 🔴 TODO
 **Description:** Implement the social features of the demands, utilizing Nest.js Exception Filters for robust error handling.
 **Acceptance Criteria:**
@@ -105,7 +110,7 @@ This file serves as your roadmap and execution log.
 
 ---
 
-## Task 7: Results and Demand Resolution
+## Task 8: Results and Demand Resolution
 **Status:** 🔴 TODO
 **Description:** Build the `ResultsModule` allowing Cabinets to post results and update the Demand status.
 **Acceptance Criteria:**
@@ -120,7 +125,7 @@ This file serves as your roadmap and execution log.
 
 ---
 
-## Task 8: Account Claiming Routine (Guest to User)
+## Task 9: Account Claiming Routine (Guest to User)
 **Status:** 🔴 TODO
 **Description:** Automate the process of merging guest demands into a newly created user account to maximize user retention.
 **Acceptance Criteria:**
