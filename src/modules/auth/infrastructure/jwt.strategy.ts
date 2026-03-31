@@ -1,4 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { FindUserByIdUseCase } from '../../users/application/find-user-by-id.use-case';
@@ -6,11 +7,14 @@ import { JwtPayload } from '../application/jwt-token.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private readonly findUserByIdUseCase: FindUserByIdUseCase) {
+  constructor(
+    private readonly findUserByIdUseCase: FindUserByIdUseCase,
+    config: ConfigService,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET ?? 'changeme',
+      secretOrKey: config.get<string>('JWT_SECRET', 'changeme'),
     });
   }
 
