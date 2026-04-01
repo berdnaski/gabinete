@@ -8,7 +8,9 @@ export class FindCategoryBySlugUseCase {
 
   async execute(slug: string): Promise<CategoryEntity> {
     const category = await this.categoriesRepository.findBySlug(slug);
-    if (!category) throw new NotFoundException(`Category with slug "${slug}" not found`);
+    if (!category) {
+      throw new NotFoundException(`Category with slug "${slug}" not found`);
+    }
     return category;
   }
 }

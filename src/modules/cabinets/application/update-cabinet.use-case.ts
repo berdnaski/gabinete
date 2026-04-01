@@ -16,7 +16,9 @@ export class UpdateCabinetUseCase {
 
   async execute(input: UpdateCabinetInput): Promise<CabinetEntity> {
     const existing = await this.cabinetsRepository.findById(input.id);
-    if (!existing) throw new NotFoundException('Cabinet not found');
+    if (!existing) {
+      throw new NotFoundException('Cabinet not found');
+    }
 
     let slug: string | undefined;
     if (input.name && input.name !== existing.name) {

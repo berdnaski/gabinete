@@ -7,7 +7,9 @@ export class DeleteCategoryUseCase {
 
   async execute(id: string): Promise<void> {
     const existing = await this.categoriesRepository.findById(id);
-    if (!existing) throw new NotFoundException('Category not found');
+    if (!existing) {
+      throw new NotFoundException('Category not found');
+    }
     await this.categoriesRepository.softDelete(id);
   }
 }

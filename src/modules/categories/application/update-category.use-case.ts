@@ -14,7 +14,9 @@ export class UpdateCategoryUseCase {
 
   async execute(input: UpdateCategoryInput): Promise<CategoryEntity> {
     const existing = await this.categoriesRepository.findById(input.id);
-    if (!existing) throw new NotFoundException('Category not found');
+    if (!existing) {
+      throw new NotFoundException('Category not found');
+    }
 
     let slug: string | undefined;
     if (input.name && input.name !== existing.name) {
