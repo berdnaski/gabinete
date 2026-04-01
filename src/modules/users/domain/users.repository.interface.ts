@@ -9,4 +9,16 @@ export abstract class IUsersRepository {
     password: string;
   }): Promise<UserEntity>;
   abstract claimGuestDemands(userId: string, email: string): Promise<void>;
+  abstract findByProvider(provider: string, providerAccountId: string): Promise<UserEntity | null>;
+  abstract createWithAccount(data: {
+    name: string;
+    email: string;
+    provider: string;
+    providerAccountId: string;
+  }): Promise<UserEntity>;
+  abstract linkAccount(data: {
+    userId: string;
+    provider: string;
+    providerAccountId: string;
+  }): Promise<void>;
 }

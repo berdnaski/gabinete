@@ -5,7 +5,7 @@ import { UserEntity, UserRole } from '../domain/user.entity';
 
 @Injectable()
 export class UsersRepository implements IUsersRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async findByEmail(email: string): Promise<UserEntity | null> {
     const record = await this.prisma.user.findFirst({
@@ -34,6 +34,45 @@ export class UsersRepository implements IUsersRepository {
     await this.prisma.demand.updateMany({
       where: { guestEmail: email, reporterId: null },
       data: { reporterId: userId, guestEmail: null },
+    });
+  }
+
+  async findByProvider(provider: string, providerAccountId: string): Promise<UserEntity | null> {
+    const account = await this.prisma.account.findUnique({
+      where: {
+        provider_providerAccountId: {
+          provider,
+          providerAccountId,
+        },
+      },
+      include: { user: true },
+    });
+    return account?.user ? this.toEntity(account.user) : null;
+  }
+
+  async createWithAccount(data: { name: string; email: string; provider: string; providerAccountId: string; }): Promise<UserEntity> {
+    const record = await this.prisma.user.create({
+      data: {
+        name: data.name,
+        email: data.email,
+        accounts: {
+          create: {
+            provider: data.provider,
+            providerAccountId: data.providerAccountId,
+          },
+        },
+      },
+    });
+    return this.toEntity(record);
+  }
+
+  async linkAccount(data: { userId: string; provider: string; providerAccountId: string; }): Promise<void> {
+    await this.prisma.account.create({
+      data: {
+        userId: data.userId,
+        provider: data.provider,
+        providerAccountId: data.providerAccountId,
+      },
     });
   }
 

@@ -13,6 +13,6 @@ export class RegisterUseCase {
 
   async execute(dto: RegisterDto): Promise<AuthTokenEntity> {
     const user = await this.createUserUseCase.execute(dto);
-    return this.jwtTokenService.sign(user.id, user.email);
+    return this.jwtTokenService.sign(user);
   }
 }

@@ -2,11 +2,13 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { GoogleLoginUseCase } from '../application/google-login.use-case';
 import { JwtTokenService } from '../application/jwt-token.service';
 import { LoginUseCase } from '../application/login.use-case';
 import { RegisterUseCase } from '../application/register.use-case';
 import { UsersModule } from '../../users/infrastructure/users.module';
 import { AuthController } from './auth.controller';
+import { GoogleStrategy } from './google.strategy';
 import { JwtStrategy } from './jwt.strategy';
 
 @Module({
@@ -24,7 +26,7 @@ import { JwtStrategy } from './jwt.strategy';
       }),
     }),
   ],
-  providers: [JwtTokenService, RegisterUseCase, LoginUseCase, JwtStrategy],
+  providers: [JwtTokenService, RegisterUseCase, LoginUseCase, JwtStrategy, GoogleStrategy, GoogleLoginUseCase],
   controllers: [AuthController],
   exports: [JwtModule],
 })

@@ -23,6 +23,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!user || user.disabledAt !== null) {
       throw new UnauthorizedException('User not found or disabled');
     }
-    return { id: user.id, email: user.email, role: user.role };
+    return { id: user.id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl };
   }
 }

@@ -22,6 +22,6 @@ export class LoginUseCase {
     if (!valid) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    return this.jwtTokenService.sign(user.id, user.email);
+    return this.jwtTokenService.sign(user);
   }
 }

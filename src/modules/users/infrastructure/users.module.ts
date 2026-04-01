@@ -15,6 +15,7 @@ import { UsersRepository } from './users.repository';
     ValidatePasswordUseCase,
   ],
   exports: [
+    IUsersRepository,
     FindUserByEmailUseCase,
     FindUserByIdUseCase,
     CreateUserUseCase,
