@@ -18,7 +18,10 @@ import {
 } from '@nestjs/swagger';
 import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
+import { CabinetRolesGuard } from '../../../shared/guards/cabinet-roles.guard';
+import { CabinetRoles } from '../../../shared/decorators/cabinet-roles.decorator';
 import { UserEntity } from '../../users/domain/user.entity';
+import { CabinetRole } from '../domain/cabinet-role.enum';
 import { AddCabinetMemberUseCase } from '../application/add-cabinet-member.use-case';
 import { CreateCabinetUseCase } from '../application/create-cabinet.use-case';
 import { DeleteCabinetUseCase } from '../application/delete-cabinet.use-case';
@@ -84,7 +87,8 @@ export class CabinetsController {
   }
 
   @Patch(':slug')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, CabinetRolesGuard)
+  @CabinetRoles(CabinetRole.OWNER)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update cabinet by slug' })
   @ApiResponse({ status: 200, type: CabinetResponseDto })
@@ -99,7 +103,8 @@ export class CabinetsController {
   }
 
   @Delete(':slug')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, CabinetRolesGuard)
+  @CabinetRoles(CabinetRole.OWNER)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Soft-delete cabinet by slug' })
@@ -111,7 +116,8 @@ export class CabinetsController {
   }
 
   @Post(':slug/members')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, CabinetRolesGuard)
+  @CabinetRoles(CabinetRole.OWNER)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Add a member to a cabinet' })
   @ApiResponse({ status: 201, type: CabinetMemberResponseDto })
@@ -141,7 +147,8 @@ export class CabinetsController {
   }
 
   @Delete(':slug/members/:userId')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, CabinetRolesGuard)
+  @CabinetRoles(CabinetRole.OWNER)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Remove a member from a cabinet' })

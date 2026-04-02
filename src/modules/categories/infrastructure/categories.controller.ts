@@ -17,6 +17,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../shared/guards/roles.guard';
+import { Roles } from '../../../shared/decorators/roles.decorator';
+import { UserRole } from '../../users/domain/user.entity';
 import { CreateCategoryUseCase } from '../application/create-category.use-case';
 import { DeleteCategoryUseCase } from '../application/delete-category.use-case';
 import { FindCategoryBySlugUseCase } from '../application/find-category-by-slug.use-case';
@@ -39,7 +42,8 @@ export class CategoriesController {
   ) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new category' })
   @ApiResponse({ status: 201, type: CategoryResponseDto })
@@ -67,7 +71,8 @@ export class CategoriesController {
   }
 
   @Patch(':slug')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update category by slug' })
   @ApiResponse({ status: 200, type: CategoryResponseDto })
@@ -82,7 +87,8 @@ export class CategoriesController {
   }
 
   @Delete(':slug')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Soft-delete category by slug' })

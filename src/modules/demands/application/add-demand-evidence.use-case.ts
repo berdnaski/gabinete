@@ -4,7 +4,6 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { StorageService } from '../../../shared/domain/services/storage.service';
-import { validateImageMimeType } from '../../../shared/utils/file-validation.util';
 import { IDemandsRepository } from '../domain/demands.repository.interface';
 import { UserRole } from '../../users/domain/user.entity';
 
@@ -30,18 +29,8 @@ export class AddDemandEvidenceUseCase {
       throw new NotFoundException('Demand not found');
     }
 
-    const isElevated =
-      userRole === UserRole.MEMBER || userRole === UserRole.ADMIN;
-    if (!isElevated && demand.reporterId !== userId) {
-      throw new ForbiddenException(
-        'You can only add evidences to your own demands',
-      );
-    }
-
     if (files && files.length > 0) {
       for (const file of files) {
-        validateImageMimeType(file.mimetype);
-
         const uploaded = await this.storageService.upload({
           buffer: file.buffer,
           filename: file.originalname,

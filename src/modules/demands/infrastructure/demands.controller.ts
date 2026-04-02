@@ -22,11 +22,13 @@ import {
 import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 import { OptionalJwtAuthGuard } from '../../../shared/guards/optional-jwt-auth.guard';
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
+import { DemandAccessGuard } from '../../../shared/guards/demand-access.guard';
 import { UserEntity, UserRole } from '../../users/domain/user.entity';
 import { CreateDemandUseCase } from '../application/create-demand.use-case';
 import { AddDemandEvidenceUseCase } from '../application/add-demand-evidence.use-case';
 import { CreateDemandDto } from '../dto/create-demand.dto';
 import { DemandEntity } from '../domain/demand.entity';
+import { MagicBytesValidator } from '../../../shared/validators/magic-bytes.validator';
 
 @ApiTags('demands')
 @Controller('demands')
@@ -55,7 +57,7 @@ export class DemandsController {
   }
 
   @Post(':id/evidences')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, DemandAccessGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Add evidences to an existing demand' })
   @ApiConsumes('multipart/form-data')
@@ -68,6 +70,9 @@ export class DemandsController {
         validators: [
           new MaxFileSizeValidator({ maxSize: 5000000 }), // 5MB
           new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
+          new MagicBytesValidator({
+            allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg'],
+          }),
         ],
       }),
     ) files: Express.Multer.File[],
