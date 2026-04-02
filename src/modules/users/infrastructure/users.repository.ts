@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
-import { IUsersRepository } from '../domain/users.repository.interface';
 import { UserEntity, UserRole } from '../domain/user.entity';
+import { CreateUserWithAccountData, IUsersRepository } from '../domain/users.repository.interface';
+import { PrismaService } from 'src/modules/database/prisma.service';
 
 @Injectable()
 export class UsersRepository implements IUsersRepository {
@@ -37,7 +37,10 @@ export class UsersRepository implements IUsersRepository {
     });
   }
 
-  async findByProvider(provider: string, providerAccountId: string): Promise<UserEntity | null> {
+  async findByProvider(
+    provider: string,
+    providerAccountId: string,
+  ): Promise<UserEntity | null> {
     const account = await this.prisma.account.findUnique({
       where: {
         provider_providerAccountId: {
@@ -50,11 +53,12 @@ export class UsersRepository implements IUsersRepository {
     return account?.user ? this.toEntity(account.user) : null;
   }
 
-  async createWithAccount(data: { name: string; email: string; provider: string; providerAccountId: string; }): Promise<UserEntity> {
+  async createWithAccount(data: CreateUserWithAccountData): Promise<UserEntity> {
     const record = await this.prisma.user.create({
       data: {
         name: data.name,
         email: data.email,
+        password: data.password || 'none',
         accounts: {
           create: {
             provider: data.provider,
@@ -66,7 +70,11 @@ export class UsersRepository implements IUsersRepository {
     return this.toEntity(record);
   }
 
-  async linkAccount(data: { userId: string; provider: string; providerAccountId: string; }): Promise<void> {
+  async linkAccount(data: {
+    userId: string;
+    provider: string;
+    providerAccountId: string;
+  }): Promise<void> {
     await this.prisma.account.create({
       data: {
         userId: data.userId,

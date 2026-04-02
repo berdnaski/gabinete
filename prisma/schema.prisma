@@ -49,7 +49,7 @@ model User {
   id         String    @id @default(cuid())
   name       String
   email      String    @unique
-  password   String?
+  password   String
   avatarUrl  String?   @map("avatar_url")
   role       UserRole  @default(MEMBER)
   disabledAt DateTime? @map("disabled_at")

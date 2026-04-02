@@ -26,7 +26,14 @@ import { JwtStrategy } from './jwt.strategy';
       }),
     }),
   ],
-  providers: [JwtTokenService, RegisterUseCase, LoginUseCase, JwtStrategy, GoogleStrategy, GoogleLoginUseCase],
+  providers: [
+    JwtTokenService,
+    RegisterUseCase,
+    LoginUseCase,
+    JwtStrategy,
+    GoogleStrategy,
+    GoogleLoginUseCase,
+  ],
   controllers: [AuthController],
   exports: [JwtModule],
 })

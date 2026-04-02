@@ -1,8 +1,9 @@
-import { Injectable } from "@nestjs/common";
-import { IUsersRepository } from "../../users/domain/users.repository.interface";
-import { GoogleUser } from "../infrastructure/google.strategy";
-import { JwtTokenService } from "./jwt-token.service";
-import { AuthResponseDto } from "../dto/auth-response.dto";
+import { Injectable } from '@nestjs/common';
+import { IUsersRepository } from '../../users/domain/users.repository.interface';
+import { GoogleUser } from '../infrastructure/google.strategy';
+import { JwtTokenService } from './jwt-token.service';
+import { AuthResponseDto } from '../dto/auth-response.dto';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class GoogleLoginUseCase {
@@ -12,7 +13,7 @@ export class GoogleLoginUseCase {
     ) { }
 
     async execute(googleUser: GoogleUser): Promise<AuthResponseDto> {
-        let user = await this.usersRepository.findByProvider(
+        const user = await this.usersRepository.findByProvider(
             googleUser.provider,
             googleUser.providerAccountId
         );
@@ -39,9 +40,13 @@ export class GoogleLoginUseCase {
             });
         }
 
+        const randomValue = crypto.randomUUID();
+        const hashedPassword = await bcrypt.hash(randomValue, 10);
+
         const newUser = await this.usersRepository.createWithAccount({
             name: googleUser.name,
             email: googleUser.email,
+            password: hashedPassword,
             provider: googleUser.provider,
             providerAccountId: googleUser.providerAccountId,
         });

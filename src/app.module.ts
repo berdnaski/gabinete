@@ -5,10 +5,21 @@ import { CategoriesModule } from './modules/categories/infrastructure/categories
 import { DatabaseModule } from './modules/database/database.module';
 import { ConfigModule } from '@nestjs/config';
 
+import { SharedModule } from './shared/shared.module';
+import { DemandsModule } from './modules/demands/infrastructure/demands.module';
+
 @Module({
-  imports: [ConfigModule.forRoot({
-    isGlobal: true,
-  }), DatabaseModule, AuthModule, CabinetsModule, CategoriesModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    DatabaseModule,
+    AuthModule,
+    CabinetsModule,
+    CategoriesModule,
+    SharedModule,
+    DemandsModule,
+  ],
   controllers: [],
   providers: [],
 })
