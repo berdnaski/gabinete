@@ -10,5 +10,6 @@ export class UserEntity {
   password: string | null;
   avatarUrl: string | null;
   role: UserRole;
+  isVerified: boolean;
   disabledAt: Date | null;
 }

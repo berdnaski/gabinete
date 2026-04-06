@@ -1,0 +1,80 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { Resend } from 'resend';
+import { MailService } from '../application/mail.service';
+
+@Injectable()
+export class ResendMailService implements MailService {
+  private readonly resend: Resend;
+  private readonly logger = new Logger(ResendMailService.name);
+  private readonly fromEmail: string;
+  private readonly frontendUrl: string;
+
+  constructor() {
+    const apiKey = process.env.RESEND_API_KEY;
+    this.resend = new Resend(apiKey);
+
+    this.fromEmail = process.env.MAIL_FROM || 'onboarding@resend.dev';
+    this.frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  }
+
+  async sendVerificationEmail(email: string, token: string): Promise<void> {
+    const verificationLink = `${this.frontendUrl}/auth/verify-email?token=${token}`;
+
+    try {
+      await this.resend.emails.send({
+        from: this.fromEmail,
+        to: email,
+        subject: 'Gabinete - Confirme seu e-mail',
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2>Bem-vindo(a) ao Gabinete!</h2>
+            <p>Ficamos felizes em ter você a bordo.</p>
+            <p>Para ativar sua conta e provar que você é dono(a) deste e-mail, por favor clique no link abaixo:</p>
+            <p style="margin: 30px 0;">
+              <a href="${verificationLink}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                Confirmar meu e-mail
+              </a>
+            </p>
+            <p>Se o botão não funcionar, cole este link em seu navegador:</p>
+            <p><a href="${verificationLink}">${verificationLink}</a></p>
+            <br/>
+            <p>Se você não criou essa conta, apenas ignore este e-mail.</p>
+          </div>
+        `,
+      });
+      this.logger.log(`Verification email sent to ${email}`);
+    } catch (error) {
+      this.logger.error(`Failed to send verification email to ${email}`, error);
+      throw error;
+    }
+  }
+
+  async sendPasswordResetEmail(email: string, token: string): Promise<void> {
+    const resetLink = `${this.frontendUrl}/auth/reset-password?token=${token}`;
+
+    try {
+      await this.resend.emails.send({
+        from: this.fromEmail,
+        to: email,
+        subject: 'Gabinete - Recuperação de Senha',
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2>Recuperação de Senha</h2>
+            <p>Recebemos um pedido para alterar sua senha no Gabinete.</p>
+            <p>Clique no botão abaixo para escolher uma nova senha. O link é válido por breve momento.</p>
+            <p style="margin: 30px 0;">
+              <a href="${resetLink}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                Renovar minha senha
+              </a>
+            </p>
+            <p>Se você não fez essa solicitação, pode ignorar este e-mail tranquilamente.</p>
+          </div>
+        `,
+      });
+      this.logger.log(`Password reset email sent to ${email}`);
+    } catch (error) {
+      this.logger.error(`Failed to send password reset email to ${email}`, error);
+      throw error;
+    }
+  }
+}

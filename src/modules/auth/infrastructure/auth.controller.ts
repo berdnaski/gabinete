@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
@@ -9,8 +9,13 @@ import { GoogleLoginUseCase } from '../application/google-login.use-case';
 import { LoginUseCase } from '../application/login.use-case';
 import { RegisterUseCase } from '../application/register.use-case';
 import { AuthResponseDto } from '../dto/auth-response.dto';
+import { VerifyEmailUseCase } from '../application/verify-email.use-case';
 import { LoginDto } from '../dto/login.dto';
 import { RegisterDto } from '../dto/register.dto';
+import { ForgotPasswordDto } from '../dto/forgot-password.dto';
+import { ResetPasswordDto } from '../dto/reset-password.dto';
+import { ForgotPasswordUseCase } from '../application/forgot-password.use-case';
+import { ResetPasswordUseCase } from '../application/reset-password.use-case';
 import { GoogleUser } from './google.strategy';
 
 @ApiTags('auth')
@@ -19,15 +24,26 @@ export class AuthController {
   constructor(
     private readonly registerUseCase: RegisterUseCase,
     private readonly loginUseCase: LoginUseCase,
+    private readonly verifyEmailUseCase: VerifyEmailUseCase,
+    private readonly forgotPasswordUseCase: ForgotPasswordUseCase,
+    private readonly resetPasswordUseCase: ResetPasswordUseCase,
     private readonly googleLoginUseCase: GoogleLoginUseCase,
   ) { }
 
   @Post('register')
   @ApiOperation({ summary: 'Register a new citizen account' })
-  @ApiResponse({ status: 201, description: 'JWT token pair', type: AuthResponseDto })
+  @ApiResponse({ status: 201, description: 'User created' })
   @ApiResponse({ status: 409, description: 'Email already in use' })
-  async register(@Body() dto: RegisterDto): Promise<AuthResponseDto> {
+  async register(@Body() dto: RegisterDto): Promise<{ message: string }> {
     return this.registerUseCase.execute(dto);
+  }
+
+  @Get('verify-email')
+  @ApiOperation({ summary: 'Verify user email using token' })
+  @ApiResponse({ status: 200, description: 'Email verified' })
+  @ApiResponse({ status: 400, description: 'Invalid token' })
+  async verifyEmail(@Query('token') token: string): Promise<{ message: string }> {
+    return this.verifyEmailUseCase.execute(token);
   }
 
   @Post('login')
@@ -37,6 +53,23 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(@Body() dto: LoginDto): Promise<AuthResponseDto> {
     return this.loginUseCase.execute(dto);
+  }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Request password reset email' })
+  @ApiResponse({ status: 200, description: 'Email sent successfully context message' })
+  async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<{ message: string }> {
+    return this.forgotPasswordUseCase.execute(dto);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update password using reset token' })
+  @ApiResponse({ status: 200, description: 'Password updated' })
+  @ApiResponse({ status: 400, description: 'Invalid token' })
+  async resetPassword(@Body() dto: ResetPasswordDto): Promise<{ message: string }> {
+    return this.resetPasswordUseCase.execute(dto);
   }
 
   @Get('me')

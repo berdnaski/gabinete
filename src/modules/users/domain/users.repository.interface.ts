@@ -27,4 +27,5 @@ export abstract class IUsersRepository {
     provider: string;
     providerAccountId: string;
   }): Promise<void>;
+  abstract update(id: string, data: Partial<UserEntity>): Promise<UserEntity>;
 }

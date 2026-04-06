@@ -52,6 +52,7 @@ model User {
   password   String
   avatarUrl  String?   @map("avatar_url")
   role       UserRole  @default(MEMBER)
+  isVerified Boolean   @default(false) @map("is_verified")
   disabledAt DateTime? @map("disabled_at")
 
   accounts        Account[]
@@ -59,6 +60,7 @@ model User {
   reportedDemands Demand[]        @relation("DemandReporter")
   demandLikes     DemandLike[]
   demandComments  DemandComment[]
+  tokens          Token[]
 
   @@map("users")
 }
@@ -217,4 +219,22 @@ model ResultImage {
   result Result @relation(fields: [resultId], references: [id])
 
   @@map("result_images")
+}
+
+enum TokenType {
+  PASSWORD_RESET
+  EMAIL_VERIFICATION
+}
+
+model Token {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  type      TokenType
+  expiresAt DateTime  @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type])
+  @@map("tokens")
 }

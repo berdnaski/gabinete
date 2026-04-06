@@ -6,10 +6,14 @@ import { GoogleLoginUseCase } from '../application/google-login.use-case';
 import { JwtTokenService } from '../application/jwt-token.service';
 import { LoginUseCase } from '../application/login.use-case';
 import { RegisterUseCase } from '../application/register.use-case';
+import { VerifyEmailUseCase } from '../application/verify-email.use-case';
+import { ForgotPasswordUseCase } from '../application/forgot-password.use-case';
+import { ResetPasswordUseCase } from '../application/reset-password.use-case';
 import { UsersModule } from '../../users/infrastructure/users.module';
 import { AuthController } from './auth.controller';
 import { GoogleStrategy } from './google.strategy';
 import { JwtStrategy } from './jwt.strategy';
+import { TokenService } from '../application/token.service';
 
 @Module({
   imports: [
@@ -28,8 +32,12 @@ import { JwtStrategy } from './jwt.strategy';
   ],
   providers: [
     JwtTokenService,
+    TokenService,
     RegisterUseCase,
     LoginUseCase,
+    VerifyEmailUseCase,
+    ForgotPasswordUseCase,
+    ResetPasswordUseCase,
     JwtStrategy,
     GoogleStrategy,
     GoogleLoginUseCase,

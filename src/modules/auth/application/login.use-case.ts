@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { FindUserByEmailUseCase } from '../../users/application/find-user-by-email.use-case';
 import { ValidatePasswordUseCase } from '../../users/application/validate-password.use-case';
 import { AuthTokenEntity } from '../domain/auth-token.entity';
@@ -15,13 +15,20 @@ export class LoginUseCase {
 
   async execute(dto: LoginDto): Promise<AuthTokenEntity> {
     const user = await this.findUserByEmailUseCase.execute(dto.email);
+    
     if (!user || !user.password) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Credenciais inválidas');
     }
+
     const valid = await this.validatePasswordUseCase.execute(dto.password, user.password);
     if (!valid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Credenciais inválidas');
     }
+
+    if (!user.isVerified) {
+      throw new ForbiddenException('Por favor, confirme seu e-mail antes de acessar a plataforma.');
+    }
+
     return this.jwtTokenService.sign(user);
   }
 }

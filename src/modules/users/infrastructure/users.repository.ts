@@ -84,6 +84,22 @@ export class UsersRepository implements IUsersRepository {
     });
   }
 
+  async update(id: string, data: Partial<UserEntity>): Promise<UserEntity> {
+    const record = await this.prisma.user.update({
+      where: { id },
+      data: {
+        name: data.name,
+        email: data.email,
+        password: data.password || undefined,
+        avatarUrl: data.avatarUrl,
+        role: data.role,
+        isVerified: data.isVerified,
+        disabledAt: data.disabledAt,
+      },
+    });
+    return this.toEntity(record);
+  }
+
   private toEntity(record: {
     id: string;
     name: string;
@@ -91,6 +107,7 @@ export class UsersRepository implements IUsersRepository {
     password: string | null;
     avatarUrl: string | null;
     role: string;
+    isVerified: boolean;
     disabledAt: Date | null;
   }): UserEntity {
     const entity = new UserEntity();
@@ -100,6 +117,7 @@ export class UsersRepository implements IUsersRepository {
     entity.password = record.password;
     entity.avatarUrl = record.avatarUrl;
     entity.role = record.role as UserRole;
+    entity.isVerified = record.isVerified;
     entity.disabledAt = record.disabledAt;
     return entity;
   }
