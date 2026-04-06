@@ -7,6 +7,7 @@ import { DemandsController } from './demands.controller';
 import { DemandsRepository } from './demands.repository';
 
 import { AuthModule } from '../../auth/infrastructure/auth.module';
+import { FindDemandUseCase } from '../application/find-demand-use-case';
 
 @Module({
   imports: [AuthModule],
@@ -19,6 +20,7 @@ import { AuthModule } from '../../auth/infrastructure/auth.module';
     CreateDemandUseCase,
     AddDemandEvidenceUseCase,
     ListDemandsUseCase,
+    FindDemandUseCase
   ],
 })
-export class DemandsModule {}
+export class DemandsModule { }

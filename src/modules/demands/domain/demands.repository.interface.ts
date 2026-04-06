@@ -1,5 +1,6 @@
-import { DemandEntity } from './demand.entity';
 import { DemandStatus, DemandPriority } from '@prisma/client';
+import { DemandEntity } from './demand.entity';
+import { PaginatedResult, PaginationParams } from 'src/shared/domain/pagination.interface';
 
 export interface CreateDemandInfo {
   title: string;
@@ -26,15 +27,20 @@ export interface CreateEvidenceInfo {
   size?: number | null;
 }
 
+export interface ListDemandsFilters extends PaginationParams {
+  cabinetId?: string;
+  status?: DemandStatus;
+  priority?: DemandPriority;
+  categoryId?: string;
+  search?: string;
+}
+
 export abstract class IDemandsRepository {
   abstract createWithEvidences(
     demand: CreateDemandInfo,
     evidences: CreateEvidenceInfo[],
   ): Promise<DemandEntity>;
-
   abstract findById(id: string): Promise<DemandEntity | null>;
-  abstract addEvidence(
-    demandId: string,
-    evidence: CreateEvidenceInfo,
-  ): Promise<void>;
+  abstract addEvidence(demandId: string, evidence: CreateEvidenceInfo): Promise<void>;
+  abstract findAll(filters: ListDemandsFilters): Promise<PaginatedResult<DemandEntity>>;
 }

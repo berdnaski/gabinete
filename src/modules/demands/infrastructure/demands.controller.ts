@@ -2,6 +2,8 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
+  Query,
   Param,
   Post,
   UploadedFiles,
@@ -23,12 +25,15 @@ import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 import { OptionalJwtAuthGuard } from '../../../shared/guards/optional-jwt-auth.guard';
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
 import { DemandAccessGuard } from '../../../shared/guards/demand-access.guard';
-import { UserEntity, UserRole } from '../../users/domain/user.entity';
+import { UserEntity } from '../../users/domain/user.entity';
 import { CreateDemandUseCase } from '../application/create-demand.use-case';
 import { AddDemandEvidenceUseCase } from '../application/add-demand-evidence.use-case';
+import { ListDemandsUseCase } from '../application/list-demands.use-case';
 import { CreateDemandDto } from '../dto/create-demand.dto';
+import { ListDemandsDto } from '../dto/list-demands.dto';
 import { DemandEntity } from '../domain/demand.entity';
 import { MagicBytesValidator } from '../../../shared/validators/magic-bytes.validator';
+import { FindDemandUseCase } from '../application/find-demand-use-case';
 
 @ApiTags('demands')
 @Controller('demands')
@@ -36,24 +41,38 @@ export class DemandsController {
   constructor(
     private readonly createDemandUseCase: CreateDemandUseCase,
     private readonly addDemandEvidenceUseCase: AddDemandEvidenceUseCase,
-  ) {}
+    private readonly listDemandsUseCase: ListDemandsUseCase,
+    private readonly findDemandUseCase: FindDemandUseCase,
+  ) { }
 
   @Post()
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Creates a new Demand (Authenticated or Guest Flow) - JSON only',
+    summary: 'Creates a new Demand (Authenticated or Guest Flow)',
   })
   @ApiResponse({ status: 201, description: 'Demand successfully created' })
-  @ApiResponse({
-    status: 400,
-    description: 'Validation error (missing guestEmail)',
-  })
   async create(
     @Body() dto: CreateDemandDto,
     @CurrentUser() user: UserEntity | null,
   ): Promise<DemandEntity> {
     return this.createDemandUseCase.execute({ dto, userId: user?.id });
+  }
+
+  @Get()
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List demands with filters and pagination' })
+  async list(@Query() query: ListDemandsDto) {
+    return this.listDemandsUseCase.execute(query);
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Find a demand by ID' })
+  async findById(@Param('id') id: string) {
+    return this.findDemandUseCase.execute(id);
   }
 
   @Post(':id/evidences')
