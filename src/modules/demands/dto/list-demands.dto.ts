@@ -1,13 +1,18 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { DemandPriority, DemandStatus } from '@prisma/client';
-import { IsEnum, IsOptional, IsString, IsInt, Min } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsEnum, IsOptional, IsString, IsInt, Min, IsBoolean } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
 
 export class ListDemandsDto {
   @ApiPropertyOptional({ example: 'cl...id' })
   @IsString()
   @IsOptional()
   cabinetId: string;
+
+  @ApiPropertyOptional({ example: true })
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsOptional()
+  unassignedOnly?: boolean;
 
   @ApiPropertyOptional({ enum: DemandStatus })
   @IsEnum(DemandStatus)

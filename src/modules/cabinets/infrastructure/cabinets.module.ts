@@ -27,5 +27,6 @@ import { CabinetsRepository } from './cabinets.repository';
     RemoveCabinetMemberUseCase,
   ],
   controllers: [CabinetsController],
+  exports: [ICabinetMembersRepository],
 })
 export class CabinetsModule {}

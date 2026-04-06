@@ -16,4 +16,6 @@ export abstract class ICabinetMembersRepository {
     userId: string,
     cabinetId: string,
   ): Promise<CabinetMemberEntity | null>;
+
+  abstract findByUserId(userId: string): Promise<CabinetMemberEntity[]>;
 }

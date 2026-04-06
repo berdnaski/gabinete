@@ -38,6 +38,32 @@ export class DemandsRepository implements IDemandsRepository {
     });
   }
 
+  async update(id: string, data: Partial<DemandEntity>): Promise<DemandEntity> {
+    const updated = await this.prisma.demand.update({
+      where: { id },
+      data: {
+        title: data.title,
+        description: data.description,
+        status: data.status,
+        priority: data.priority,
+        address: data.address,
+        zipcode: data.zipcode,
+        lat: data.lat,
+        long: data.long,
+        neighborhood: data.neighborhood,
+        city: data.city,
+        state: data.state,
+        categoryId: data.categoryId,
+        cabinetId: data.cabinetId,
+        assigneeMemberId: data.assigneeMemberId,
+        disabledAt: data.disabledAt,
+      },
+      include: { evidences: true },
+    });
+
+    return DemandEntityMapper.toDomain(updated);
+  }
+
   async createWithEvidences(
     data: CreateDemandInfo,
     evidences: CreateEvidenceInfo[],
@@ -78,13 +104,18 @@ export class DemandsRepository implements IDemandsRepository {
 
   async findAll(filters: ListDemandsFilters): Promise<PaginatedResult<DemandEntity>> {
     const { skip, take } = PaginationHelper.getSkipTake(filters);
-    const { cabinetId, categoryId, status, priority, search } = filters;
+    const { cabinetId, unassignedOnly, categoryId, status, priority, search } = filters;
 
     const where: Prisma.DemandWhereInput = {
       disabledAt: null,
     };
 
-    if (cabinetId) where.cabinetId = cabinetId;
+    if (unassignedOnly) {
+      where.cabinetId = null;
+    } else if (cabinetId) {
+      where.cabinetId = cabinetId;
+    }
+
     if (categoryId) where.categoryId = categoryId;
     if (status) where.status = status;
     if (priority) where.priority = priority;

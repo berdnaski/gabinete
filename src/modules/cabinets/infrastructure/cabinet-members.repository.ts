@@ -30,6 +30,13 @@ export class CabinetMembersRepository implements ICabinetMembersRepository {
     });
   }
 
+  async findByUserId(userId: string): Promise<CabinetMemberEntity[]> {
+    const records = await this.prisma.cabinetMember.findMany({
+      where: { userId },
+    });
+    return records.map((r) => this.toEntity(r));
+  }
+
   async findByCabinetId(cabinetId: string): Promise<CabinetMemberEntity[]> {
     const records = await this.prisma.cabinetMember.findMany({
       where: { cabinetId },

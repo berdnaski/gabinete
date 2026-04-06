@@ -2,7 +2,9 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
+  Patch,
   Query,
   Param,
   Post,
@@ -34,6 +36,10 @@ import { ListDemandsDto } from '../dto/list-demands.dto';
 import { DemandEntity } from '../domain/demand.entity';
 import { MagicBytesValidator } from '../../../shared/validators/magic-bytes.validator';
 import { FindDemandUseCase } from '../application/find-demand-use-case';
+import { UpdateDemandUseCase } from '../application/update-demand.use-case';
+import { DeleteDemandUseCase } from '../application/delete-demand.use-case';
+import { ClaimDemandUseCase } from '../application/claim-demand.use-case';
+import { UpdateDemandDto } from '../dto/update-demand.dto';
 
 @ApiTags('demands')
 @Controller('demands')
@@ -43,6 +49,9 @@ export class DemandsController {
     private readonly addDemandEvidenceUseCase: AddDemandEvidenceUseCase,
     private readonly listDemandsUseCase: ListDemandsUseCase,
     private readonly findDemandUseCase: FindDemandUseCase,
+    private readonly updateDemandUseCase: UpdateDemandUseCase,
+    private readonly deleteDemandUseCase: DeleteDemandUseCase,
+    private readonly claimDemandUseCase: ClaimDemandUseCase,
   ) { }
 
   @Post()
@@ -73,6 +82,41 @@ export class DemandsController {
   @ApiOperation({ summary: 'Find a demand by ID' })
   async findById(@Param('id') id: string) {
     return this.findDemandUseCase.execute(id);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, DemandAccessGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update a demand' })
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateDemandDto,
+  ) {
+    return this.updateDemandUseCase.execute(id, dto);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, DemandAccessGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Soft delete a demand' })
+  async delete(@Param('id') id: string) {
+    return this.deleteDemandUseCase.execute(id);
+  }
+
+  @Post(':id/claim')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Claim a global demand for your cabinet' })
+  async claim(
+    @Param('id') id: string,
+    @CurrentUser() user: UserEntity,
+    @Body('cabinetId') cabinetId?: string,
+  ) {
+    return this.claimDemandUseCase.execute({
+      demandId: id,
+      userId: user.id,
+      cabinetId,
+    });
   }
 
   @Post(':id/evidences')

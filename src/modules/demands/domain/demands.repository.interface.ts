@@ -29,6 +29,7 @@ export interface CreateEvidenceInfo {
 
 export interface ListDemandsFilters extends PaginationParams {
   cabinetId?: string;
+  unassignedOnly?: boolean;
   status?: DemandStatus;
   priority?: DemandPriority;
   categoryId?: string;
@@ -41,6 +42,7 @@ export abstract class IDemandsRepository {
     evidences: CreateEvidenceInfo[],
   ): Promise<DemandEntity>;
   abstract findById(id: string): Promise<DemandEntity | null>;
+  abstract update(id: string, data: Partial<DemandEntity>): Promise<DemandEntity>;
   abstract addEvidence(demandId: string, evidence: CreateEvidenceInfo): Promise<void>;
   abstract findAll(filters: ListDemandsFilters): Promise<PaginatedResult<DemandEntity>>;
 }

@@ -1,10 +1,21 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { UserRole } from '../../modules/users/domain/user.entity';
-import { PrismaService } from '../../modules/database/prisma.service';
+import { IDemandsRepository } from '../../modules/demands/domain/demands.repository.interface';
+import { ICabinetMembersRepository } from '../../modules/cabinets/domain/cabinet-members.repository.interface';
+import { CabinetRole } from '../../modules/cabinets/domain/cabinet-role.enum';
 
 @Injectable()
 export class DemandAccessGuard implements CanActivate {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly demandsRepository: IDemandsRepository,
+    private readonly cabinetMembersRepository: ICabinetMembersRepository,
+  ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -23,36 +34,38 @@ export class DemandAccessGuard implements CanActivate {
       return true;
     }
 
-    const demand = await this.prisma.demand.findUnique({
-      where: { id: demandId }
-    });
-
+    const demand = await this.demandsRepository.findById(demandId);
     if (!demand) {
-      return true;
+      throw new NotFoundException('Demand not found');
     }
 
-    // Reporter always allowed
-    if (demand.reporterId === user.id) {
-      return true;
-    }
+    request.demand = demand;
 
-    // If demand doesn't belong to a cabinet, and not reporter, forbidden.
     if (!demand.cabinetId) {
-      throw new ForbiddenException('Acesso negado. Você só pode adicionar evidências nas suas próprias demandas.');
+      throw new ForbiddenException(
+        'Management of global demands is restricted to administrators. Claim it for a cabinet first.',
+      );
     }
 
-    // Check if user is STAFF/OWNER in the cabinet
-    const membership = await this.prisma.cabinetMember.findUnique({
-      where: {
-        userId_cabinetId: {
-          userId: user.id,
-          cabinetId: demand.cabinetId,
-        }
-      }
-    });
+    const membership = await this.cabinetMembersRepository.findMembership(
+      user.id,
+      demand.cabinetId,
+    );
 
     if (!membership) {
-      throw new ForbiddenException('Você não tem permissão para adicionar evidências a esta demanda.');
+      throw new ForbiddenException(
+        'You do not have permission to manage demands from another cabinet.',
+      );
+    }
+
+    const isManager =
+      membership.role === CabinetRole.OWNER ||
+      membership.role === CabinetRole.STAFF;
+
+    if (!isManager) {
+      throw new ForbiddenException(
+        'Only cabinet owners or staff members can perform this action.',
+      );
     }
 
     return true;

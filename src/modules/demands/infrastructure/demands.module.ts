@@ -8,9 +8,14 @@ import { DemandsRepository } from './demands.repository';
 
 import { AuthModule } from '../../auth/infrastructure/auth.module';
 import { FindDemandUseCase } from '../application/find-demand-use-case';
+import { UpdateDemandUseCase } from '../application/update-demand.use-case';
+import { DeleteDemandUseCase } from '../application/delete-demand.use-case';
+import { ClaimDemandUseCase } from '../application/claim-demand.use-case';
+import { CabinetsModule } from '../../cabinets/infrastructure/cabinets.module';
+import { DemandAccessGuard } from '../../../shared/guards/demand-access.guard';
 
 @Module({
-  imports: [AuthModule],
+  imports: [AuthModule, CabinetsModule],
   controllers: [DemandsController],
   providers: [
     {
@@ -20,7 +25,11 @@ import { FindDemandUseCase } from '../application/find-demand-use-case';
     CreateDemandUseCase,
     AddDemandEvidenceUseCase,
     ListDemandsUseCase,
-    FindDemandUseCase
+    FindDemandUseCase,
+    UpdateDemandUseCase,
+    DeleteDemandUseCase,
+    ClaimDemandUseCase,
+    DemandAccessGuard,
   ],
 })
 export class DemandsModule { }
