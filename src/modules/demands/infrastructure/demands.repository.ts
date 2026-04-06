@@ -1,15 +1,19 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { DemandEntity } from '../domain/demand.entity';
 import {
   CreateDemandInfo,
   CreateEvidenceInfo,
   IDemandsRepository,
+  ListDemandsFilters,
 } from '../domain/demands.repository.interface';
+import { PaginatedResult } from 'src/shared/domain/pagination.interface';
+import { PaginationHelper } from 'src/shared/application/pagination.helper';
 
 @Injectable()
 export class DemandsRepository implements IDemandsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async findById(id: string): Promise<DemandEntity | null> {
     const demand = await this.prisma.demand.findUnique({
@@ -70,6 +74,42 @@ export class DemandsRepository implements IDemandsRepository {
     });
 
     return DemandEntityMapper.toDomain(demand);
+  }
+
+  async findAll(filters: ListDemandsFilters): Promise<PaginatedResult<DemandEntity>> {
+    const { skip, take } = PaginationHelper.getSkipTake(filters);
+    const { cabinetId, categoryId, status, priority, search } = filters;
+
+    const where: Prisma.DemandWhereInput = {
+      disabledAt: null,
+    };
+
+    if (cabinetId) where.cabinetId = cabinetId;
+    if (categoryId) where.categoryId = categoryId;
+    if (status) where.status = status;
+    if (priority) where.priority = priority;
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    const [items, total] = await Promise.all([
+      this.prisma.demand.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+        include: { evidences: true },
+      }),
+      this.prisma.demand.count({ where }),
+    ]);
+
+    return {
+      items: items.map((item) => DemandEntityMapper.toDomain(item)),
+      total,
+    };
   }
 }
 
