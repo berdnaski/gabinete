@@ -1,10 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsString } from 'class-validator';
+import { IsEnum, IsUUID } from 'class-validator';
 import { CabinetRole } from '../domain/cabinet-role.enum';
 
 export class AddCabinetMemberDto {
-  @ApiProperty({ example: 'clx5678efgh' })
-  @IsString()
+  @ApiProperty({ description: 'UUID do usuário a ser adicionado' })
+  @IsUUID()
   userId: string;
 
   @ApiProperty({ enum: CabinetRole, example: CabinetRole.STAFF })

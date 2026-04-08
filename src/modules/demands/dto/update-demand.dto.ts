@@ -1,79 +1,82 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsLatitude, IsLongitude, IsNumber, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 import { DemandPriority, DemandStatus } from '@prisma/client';
 
 export class UpdateDemandDto {
-  @ApiProperty({
-    example: 'Buraco na rua principal (Atualizado)',
-    required: false,
-  })
+  @ApiPropertyOptional({ example: 'Pothole on Main Street (Updated)', maxLength: 150 })
   @IsString()
   @IsOptional()
+  @MaxLength(150)
   title?: string;
 
-  @ApiProperty({
-    example: 'Descrição detalhada atualizada...',
-    required: false,
-  })
+  @ApiPropertyOptional({ example: 'Updated detailed description of the issue...', maxLength: 5000 })
   @IsString()
   @IsOptional()
+  @MaxLength(5000)
   description?: string;
 
-  @ApiProperty({ enum: DemandStatus, required: false })
+  @ApiPropertyOptional({ enum: DemandStatus })
   @IsEnum(DemandStatus)
   @IsOptional()
   status?: DemandStatus;
 
-  @ApiProperty({ enum: DemandPriority, required: false })
+  @ApiPropertyOptional({ enum: DemandPriority })
   @IsEnum(DemandPriority)
   @IsOptional()
   priority?: DemandPriority;
 
-  @ApiProperty({ example: 'Rua Principal, 123', required: false })
+  @ApiPropertyOptional({ example: 'Main Street, 123', maxLength: 300 })
   @IsString()
   @IsOptional()
+  @MaxLength(300)
   address?: string;
 
-  @ApiProperty({ example: '12345-678', required: false })
+  @ApiPropertyOptional({ example: '12345-678', maxLength: 9 })
   @IsString()
   @IsOptional()
+  @MaxLength(9)
   zipcode?: string;
 
-  @ApiProperty({ example: -23.55052, required: false })
+  @ApiPropertyOptional({ example: -23.55052 })
   @Type(() => Number)
   @IsNumber()
+  @IsLatitude()
   @IsOptional()
   lat?: number;
 
-  @ApiProperty({ example: -46.633308, required: false })
+  @ApiPropertyOptional({ example: -46.633308 })
   @Type(() => Number)
   @IsNumber()
+  @IsLongitude()
   @IsOptional()
   long?: number;
 
-  @ApiProperty({ example: 'Centro', required: false })
+  @ApiPropertyOptional({ example: 'Downtown', maxLength: 100 })
   @IsString()
   @IsOptional()
+  @MaxLength(100)
   neighborhood?: string;
 
-  @ApiProperty({ example: 'São Paulo', required: false })
+  @ApiPropertyOptional({ example: 'São Paulo', maxLength: 100 })
   @IsString()
   @IsOptional()
+  @MaxLength(100)
   city?: string;
 
-  @ApiProperty({ example: 'SP', required: false })
+  @ApiPropertyOptional({ example: 'SP', maxLength: 2, description: 'Two-letter state code' })
   @IsString()
   @IsOptional()
+  @MaxLength(2)
   state?: string;
 
-  @ApiProperty({ example: 'categoryId...', required: false })
-  @IsString()
+  @ApiPropertyOptional({ example: 'cm...id UUID' })
+  @IsUUID()
   @IsOptional()
   categoryId?: string;
 
-  @ApiProperty({ example: 'assigneeMemberId...', required: false })
-  @IsString()
+  @ApiPropertyOptional({ example: 'cm...id UUID' })
+  @IsUUID()
   @IsOptional()
   assigneeMemberId?: string;
 }

@@ -45,6 +45,8 @@ import { CreateDemandCommentUseCase } from '../application/create-demand-comment
 import { ListDemandCommentsUseCase } from '../application/list-demand-comments.use-case';
 import { ToggleDemandLikeUseCase } from '../application/toggle-demand-like.use-case';
 import { ListCommentsDto } from '../dto/list-comments.dto';
+import { CreateDemandCommentDto } from '../dto/create-demand-comment.dto';
+import { AssignDemandDto } from '../dto/assign-demand.dto';
 
 @ApiTags('demands')
 @Controller('demands')
@@ -156,10 +158,10 @@ export class DemandsController {
   @ApiOperation({ summary: 'Assign a demand to a specific cabinet member' })
   async assign(
     @Param('id') id: string,
-    @Body('assigneeMemberId') assigneeMemberId: string,
+    @Body() dto: AssignDemandDto,
     @CurrentUser() user: UserEntity,
   ) {
-    return this.assignDemandUseCase.execute(id, assigneeMemberId, user.id);
+    return this.assignDemandUseCase.execute(id, dto.assigneeMemberId, user.id);
   }
 
   @Post(':id/comments')
@@ -169,9 +171,9 @@ export class DemandsController {
   async addComment(
     @Param('id') id: string,
     @CurrentUser() user: UserEntity,
-    @Body('content') content: string,
+    @Body() dto: CreateDemandCommentDto,
   ) {
-    return this.createDemandCommentUseCase.execute(id, user.id, content);
+    return this.createDemandCommentUseCase.execute(id, user.id, dto.content);
   }
 
   @Get(':id/comments')

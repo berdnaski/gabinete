@@ -1,15 +1,15 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { DemandPriority, DemandStatus } from '@prisma/client';
-import { IsEnum, IsOptional, IsString, IsInt, Min } from 'class-validator';
+import { IsEnum, IsOptional, IsString, IsUUID, IsInt, Min, Max, MaxLength } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 
 export class ListDemandsDto {
-  @ApiPropertyOptional({ example: 'cl...id' })
-  @IsString()
+  @ApiPropertyOptional({ description: 'Filter by cabinet ID' })
+  @IsUUID()
   @IsOptional()
-  cabinetId: string;
+  cabinetId?: string;
 
-  @ApiPropertyOptional({ example: true })
+  @ApiPropertyOptional({ description: 'Return only unassigned demands', default: false })
   @Transform(({ value }) => value === 'true' || value === true)
   @IsOptional()
   unassignedOnly?: boolean;
@@ -24,14 +24,15 @@ export class ListDemandsDto {
   @IsOptional()
   priority?: DemandPriority;
 
-  @ApiPropertyOptional({ example: 'cl...id' })
-  @IsString()
+  @ApiPropertyOptional({ description: 'Filter by category ID' })
+  @IsUUID()
   @IsOptional()
   categoryId?: string;
 
-  @ApiPropertyOptional({ example: 'Buraco na rua' })
+  @ApiPropertyOptional({ example: 'Pothole on main street', maxLength: 100 })
   @IsString()
   @IsOptional()
+  @MaxLength(100)
   search?: string;
 
   @ApiPropertyOptional({ minimum: 1, default: 1 })
@@ -41,10 +42,11 @@ export class ListDemandsDto {
   @IsOptional()
   page?: number;
 
-  @ApiPropertyOptional({ minimum: 1, default: 10 })
+  @ApiPropertyOptional({ minimum: 1, maximum: 100, default: 10 })
   @Type(() => Number)
   @IsInt()
   @Min(1)
+  @Max(100)
   @IsOptional()
   limit?: number;
 }
