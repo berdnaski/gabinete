@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { DemandPriority, DemandStatus, Prisma } from '@prisma/client';
+import { addMonths, startOfMonth, subHours } from 'date-fns';
 import { PrismaService } from '../../database/prisma.service';
 import { DemandEntity } from '../domain/demand.entity';
 import {
+  CabinetDemandMetrics,
   CreateDemandInfo,
   CreateEvidenceInfo,
   DemandCommentInfo,
@@ -225,6 +227,73 @@ export class DemandsRepository implements IDemandsRepository {
     });
 
     return !!existing;
+  }
+
+  async getCabinetDemandMetrics(
+    cabinetId: string,
+  ): Promise<CabinetDemandMetrics> {
+    const now = new Date();
+    const last24Hours = subHours(now, 24);
+    const startOfMonthUtc = startOfMonth(now);
+    const startOfNextMonthUtc = addMonths(startOfMonthUtc, 1);
+
+    const [
+      newDemandsLast24HoursCount,
+      urgentOpenDemandsTotalCount,
+      totalDemandsThisMonth,
+      resolvedDemandsThisMonth,
+    ] = await this.prisma.$transaction([
+      this.prisma.demand.count({
+        where: {
+          cabinetId,
+          disabledAt: null,
+          createdAt: { gte: last24Hours },
+        },
+      }),
+      this.prisma.demand.count({
+        where: {
+          cabinetId,
+          disabledAt: null,
+          priority: DemandPriority.URGENT,
+          status: {
+            notIn: [
+              DemandStatus.RESOLVED,
+              DemandStatus.REJECTED,
+              DemandStatus.CANCELED,
+            ],
+          },
+        },
+      }),
+      this.prisma.demand.count({
+        where: {
+          cabinetId,
+          disabledAt: null,
+          createdAt: { gte: startOfMonthUtc, lt: startOfNextMonthUtc },
+        },
+      }),
+      this.prisma.demand.count({
+        where: {
+          cabinetId,
+          disabledAt: null,
+          status: DemandStatus.RESOLVED,
+          createdAt: { gte: startOfMonthUtc, lt: startOfNextMonthUtc },
+        },
+      }),
+    ]);
+
+    console.log({
+      newDemandsLast24HoursCount,
+      urgentOpenDemandsTotalCount,
+      totalDemandsThisMonth,
+      resolvedDemandsThisMonth,
+      cabinetId,
+    })
+    return {
+      new: newDemandsLast24HoursCount,
+      urgent: urgentOpenDemandsTotalCount,
+      total: totalDemandsThisMonth,
+      resolved: resolvedDemandsThisMonth,
+    };
   }
 }
 

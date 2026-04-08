@@ -48,6 +48,8 @@ import { ToggleDemandLikeUseCase } from '../application/toggle-demand-like.use-c
 import { ListCommentsDto } from '../dto/list-comments.dto';
 import { CreateDemandCommentDto } from '../dto/create-demand-comment.dto';
 import { AssignDemandDto } from '../dto/assign-demand.dto';
+import { GetCabinetDemandMetricsUseCase } from '../application/get-cabinet-demand-metrics.use-case';
+import { GetCabinetDemandMetricsResponseDto } from '../dto/get-cabinet-demand-metrics-response.dto';
 
 @ApiTags('demands')
 @Controller('demands')
@@ -64,6 +66,7 @@ export class DemandsController {
     private readonly createDemandCommentUseCase: CreateDemandCommentUseCase,
     private readonly listDemandCommentsUseCase: ListDemandCommentsUseCase,
     private readonly toggleDemandLikeUseCase: ToggleDemandLikeUseCase,
+    private readonly getCabinetDemandMetricsUseCase: GetCabinetDemandMetricsUseCase,
   ) {}
 
   @Post()
@@ -86,6 +89,24 @@ export class DemandsController {
   @ApiOperation({ summary: 'List demands with filters and pagination' })
   async list(@Query() query: ListDemandsDto) {
     return this.listDemandsUseCase.execute(query);
+  }
+
+  @Get('cabinet/:slug/metrics')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get demand metrics for a cabinet by slug' })
+  @ApiResponse({ status: 200, type: GetCabinetDemandMetricsResponseDto })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Cabinet not found' })
+  async getCabinetMetrics(
+    @Param('slug') slug: string,
+    @CurrentUser() user: UserEntity,
+  ): Promise<GetCabinetDemandMetricsResponseDto> {
+    return this.getCabinetDemandMetricsUseCase.execute({
+      cabinetSlug: slug,
+      userId: user.id,
+    });
   }
 
   @Get(':id')

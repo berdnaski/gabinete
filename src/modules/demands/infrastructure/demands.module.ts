@@ -18,6 +18,7 @@ import { ToggleDemandLikeUseCase } from '../application/toggle-demand-like.use-c
 import { CabinetsModule } from '../../cabinets/infrastructure/cabinets.module';
 import { UsersModule } from '../../users/infrastructure/users.module';
 import { DemandAccessGuard } from '../../../shared/guards/demand-access.guard';
+import { GetCabinetDemandMetricsUseCase } from '../application/get-cabinet-demand-metrics.use-case';
 
 @Module({
   imports: [AuthModule, CabinetsModule, UsersModule],
@@ -38,6 +39,7 @@ import { DemandAccessGuard } from '../../../shared/guards/demand-access.guard';
     CreateDemandCommentUseCase,
     ListDemandCommentsUseCase,
     ToggleDemandLikeUseCase,
+    GetCabinetDemandMetricsUseCase,
     DemandAccessGuard,
   ],
 })
