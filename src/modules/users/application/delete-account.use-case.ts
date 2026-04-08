@@ -1,16 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { UserEntity } from '../domain/user.entity';
 import { IUsersRepository } from '../domain/users.repository.interface';
 
 @Injectable()
-export class FindUserByIdUseCase {
+export class DeleteAccountUseCase {
   constructor(private readonly usersRepository: IUsersRepository) {}
 
-  async execute(id: string): Promise<UserEntity> {
+  async execute(id: string) {
     const user = await this.usersRepository.findById(id);
+
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    return user;
+
+    // Perform soft delete by setting disabledAt
+    await this.usersRepository.update(id, { disabledAt: new Date() });
   }
 }

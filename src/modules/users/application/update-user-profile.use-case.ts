@@ -1,0 +1,33 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { IUsersRepository } from '../domain/users.repository.interface';
+import { UpdateUserDto } from '../dto/update-user.dto';
+import { StorageService } from '../../../shared/domain/services/storage.service';
+
+@Injectable()
+export class UpdateUserProfileUseCase {
+  constructor(
+    private readonly usersRepository: IUsersRepository,
+    private readonly storageService: StorageService,
+  ) {}
+
+  async execute(id: string, data: UpdateUserDto, file?: Express.Multer.File) {
+    const user = await this.usersRepository.findById(id);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (file) {
+      const uploaded = await this.storageService.upload({
+        buffer: file.buffer,
+        filename: file.originalname,
+        mimetype: file.mimetype,
+        folder: `avatars/${id}`,
+      });
+      const generated = await this.storageService.getUrl(uploaded.path);
+      data.avatarUrl = generated.signedUrl;
+    }
+
+    return this.usersRepository.update(id, data);
+  }
+}

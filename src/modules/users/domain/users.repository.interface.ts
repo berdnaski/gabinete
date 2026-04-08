@@ -1,4 +1,12 @@
 import { UserEntity } from './user.entity';
+import {
+  PaginatedResult,
+  PaginationParams,
+} from 'src/shared/domain/pagination.interface';
+
+export interface ListUsersFilters extends PaginationParams {
+  search?: string;
+}
 
 export interface CreateUserWithAccountData {
   name: string;
@@ -30,4 +38,7 @@ export abstract class IUsersRepository {
     providerAccountId: string;
   }): Promise<void>;
   abstract update(id: string, data: Partial<UserEntity>): Promise<UserEntity>;
+  abstract findAll(
+    filters: ListUsersFilters,
+  ): Promise<PaginatedResult<UserEntity>>;
 }

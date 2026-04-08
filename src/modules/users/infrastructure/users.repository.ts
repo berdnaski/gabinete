@@ -4,7 +4,10 @@ import {
   CreateUserWithAccountData,
   IUsersRepository,
 } from '../domain/users.repository.interface';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
+import { PaginationHelper } from 'src/shared/application/pagination.helper';
+import { PaginatedResult } from 'src/shared/domain/pagination.interface';
 
 @Injectable()
 export class UsersRepository implements IUsersRepository {
@@ -103,6 +106,40 @@ export class UsersRepository implements IUsersRepository {
       },
     });
     return this.toEntity(record);
+  }
+
+  async findAll(filters: {
+    search?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<PaginatedResult<UserEntity>> {
+    const { skip, take } = PaginationHelper.getSkipTake(filters);
+
+    const where: Prisma.UserWhereInput = {
+      disabledAt: null,
+    };
+
+    if (filters.search) {
+      where.OR = [
+        { name: { contains: filters.search, mode: 'insensitive' } },
+        { email: { contains: filters.search, mode: 'insensitive' } },
+      ];
+    }
+
+    const [items, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { name: 'asc' },
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return {
+      items: items.map((item) => this.toEntity(item)),
+      total,
+    };
   }
 
   private toEntity(record: {
