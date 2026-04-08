@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -29,6 +30,7 @@ import { CategoryEntity } from '../domain/category.entity';
 import { CategoryResponseDto } from '../dto/category-response.dto';
 import { CreateCategoryDto } from '../dto/create-category.dto';
 import { UpdateCategoryDto } from '../dto/update-category.dto';
+import { PaginationQueryDto } from '../../../shared/dto/pagination-query.dto';
 
 @ApiTags('categories')
 @Controller('categories')
@@ -56,11 +58,14 @@ export class CategoriesController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'List all categories' })
-  @ApiResponse({ status: 200, type: [CategoryResponseDto] })
-  async list(): Promise<CategoryResponseDto[]> {
-    const categories = await this.listCategoriesUseCase.execute();
-    return categories.map((c) => this.toDto(c));
+  @ApiOperation({ summary: 'List all categories (paginated)' })
+  @ApiResponse({ status: 200 })
+  async list(@Query() query: PaginationQueryDto) {
+    const result = await this.listCategoriesUseCase.execute(query);
+    return {
+      items: result.items.map((c) => this.toDto(c)),
+      meta: result.meta,
+    };
   }
 
   @Get(':slug')

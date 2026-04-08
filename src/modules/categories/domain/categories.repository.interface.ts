@@ -1,4 +1,8 @@
 import { CategoryEntity } from './category.entity';
+import {
+  PaginatedResult,
+  PaginationParams,
+} from '../../../shared/domain/pagination.interface';
 
 export abstract class ICategoriesRepository {
   abstract create(data: {
@@ -12,7 +16,7 @@ export abstract class ICategoriesRepository {
 
   abstract findSlugsByBaseName(baseSlug: string): Promise<string[]>;
 
-  abstract list(): Promise<CategoryEntity[]>;
+  abstract list(params: PaginationParams): Promise<PaginatedResult<CategoryEntity>>;
 
   abstract update(
     id: string,

@@ -1,4 +1,7 @@
-import { PaginationParams } from '../domain/pagination.interface';
+import {
+  PaginatedResponse,
+  PaginationParams,
+} from '../domain/pagination.interface';
 
 export class PaginationHelper {
   private static readonly DEFAULT_PAGE = 1;
@@ -18,6 +21,22 @@ export class PaginationHelper {
       take: limit,
       page,
       limit,
+    };
+  }
+
+  static buildResponse<T>(
+    items: T[],
+    total: number,
+    params: Pick<ReturnType<typeof PaginationHelper.getSkipTake>, 'page' | 'limit'>,
+  ): PaginatedResponse<T> {
+    return {
+      items,
+      meta: {
+        total,
+        page: params.page,
+        limit: params.limit,
+        totalPages: Math.ceil(total / params.limit),
+      },
     };
   }
 }

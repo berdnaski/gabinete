@@ -3,17 +3,17 @@ import {
   Body,
   Controller,
   Delete,
+  FileTypeValidator,
   Get,
-  Patch,
-  Query,
+  MaxFileSizeValidator,
   Param,
+  ParseFilePipe,
+  Patch,
   Post,
+  Query,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
-  FileTypeValidator,
-  MaxFileSizeValidator,
-  ParseFilePipe,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import {
@@ -24,31 +24,31 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
-import { OptionalJwtAuthGuard } from '../../../shared/guards/optional-jwt-auth.guard';
-import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
 import { DemandAccessGuard } from '../../../shared/guards/demand-access.guard';
-import { UserEntity } from '../../users/domain/user.entity';
-import { CreateDemandUseCase } from '../application/create-demand.use-case';
-import { AddDemandEvidenceUseCase } from '../application/add-demand-evidence.use-case';
-import { ListDemandsUseCase } from '../application/list-demands.use-case';
-import { CreateDemandDto } from '../dto/create-demand.dto';
-import { ListDemandsDto } from '../dto/list-demands.dto';
-import { DemandEntity } from '../domain/demand.entity';
+import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../../../shared/guards/optional-jwt-auth.guard';
 import { MagicBytesValidator } from '../../../shared/validators/magic-bytes.validator';
-import { FindDemandUseCase } from '../application/find-demand.use-case';
-import { UpdateDemandUseCase } from '../application/update-demand.use-case';
-import { DeleteDemandUseCase } from '../application/delete-demand.use-case';
-import { ClaimDemandUseCase } from '../application/claim-demand.use-case';
-import { UpdateDemandDto } from '../dto/update-demand.dto';
+import { UserEntity } from '../../users/domain/user.entity';
+import { AddDemandEvidenceUseCase } from '../application/add-demand-evidence.use-case';
 import { AssignDemandUseCase } from '../application/assign-demand.use-case';
+import { ClaimDemandUseCase } from '../application/claim-demand.use-case';
 import { CreateDemandCommentUseCase } from '../application/create-demand-comment.use-case';
-import { ListDemandCommentsUseCase } from '../application/list-demand-comments.use-case';
-import { ToggleDemandLikeUseCase } from '../application/toggle-demand-like.use-case';
-import { ListCommentsDto } from '../dto/list-comments.dto';
-import { CreateDemandCommentDto } from '../dto/create-demand-comment.dto';
-import { AssignDemandDto } from '../dto/assign-demand.dto';
+import { CreateDemandUseCase } from '../application/create-demand.use-case';
+import { DeleteDemandUseCase } from '../application/delete-demand.use-case';
+import { FindDemandUseCase } from '../application/find-demand.use-case';
 import { GetCabinetDemandMetricsUseCase } from '../application/get-cabinet-demand-metrics.use-case';
+import { ListDemandCommentsUseCase } from '../application/list-demand-comments.use-case';
+import { ListDemandsUseCase } from '../application/list-demands.use-case';
+import { ToggleDemandLikeUseCase } from '../application/toggle-demand-like.use-case';
+import { UpdateDemandUseCase } from '../application/update-demand.use-case';
+import { DemandEntity } from '../domain/demand.entity';
+import { AssignDemandDto } from '../dto/assign-demand.dto';
+import { CreateDemandCommentDto } from '../dto/create-demand-comment.dto';
+import { CreateDemandDto } from '../dto/create-demand.dto';
 import { GetCabinetDemandMetricsResponseDto } from '../dto/get-cabinet-demand-metrics-response.dto';
+import { ListCommentsDto } from '../dto/list-comments.dto';
+import { ListDemandsDto } from '../dto/list-demands.dto';
+import { UpdateDemandDto } from '../dto/update-demand.dto';
 
 @ApiTags('demands')
 @Controller('demands')
@@ -66,7 +66,7 @@ export class DemandsController {
     private readonly listDemandCommentsUseCase: ListDemandCommentsUseCase,
     private readonly toggleDemandLikeUseCase: ToggleDemandLikeUseCase,
     private readonly getCabinetDemandMetricsUseCase: GetCabinetDemandMetricsUseCase,
-  ) {}
+  ) { }
 
   @Post()
   @UseGuards(OptionalJwtAuthGuard)
@@ -141,7 +141,7 @@ export class DemandsController {
   }
 
   @Post(':id/evidences')
-  @UseGuards(JwtAuthGuard, DemandAccessGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Add evidences to an existing demand' })
   @ApiConsumes('multipart/form-data')

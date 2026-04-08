@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { DemandPriority } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsEmail,
@@ -13,7 +14,6 @@ import {
   MaxLength,
   ValidateIf,
 } from 'class-validator';
-import { DemandPriority } from '@prisma/client';
 
 export class CreateDemandDto {
   @ApiProperty({ example: 'Pothole on Main Street', maxLength: 150 })
@@ -105,7 +105,6 @@ export class CreateDemandDto {
   cabinetId?: string;
 
   @ApiProperty({ example: 'cm...id', required: false })
-  @IsUUID()
   @IsOptional()
   categoryId?: string;
 }
