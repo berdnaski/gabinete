@@ -7,18 +7,11 @@ import {
 import { CreateDemandDto } from '../dto/create-demand.dto';
 import { DemandPriority } from '@prisma/client';
 
-export interface CreateDemandCommand {
-  dto: CreateDemandDto;
-  userId?: string;
-}
-
 @Injectable()
 export class CreateDemandUseCase {
   constructor(private readonly demandsRepository: IDemandsRepository) {}
 
-  async execute(command: CreateDemandCommand): Promise<DemandEntity> {
-    const { dto, userId } = command;
-
+  async execute(dto: CreateDemandDto, userId?: string): Promise<DemandEntity> {
     if (!userId && !dto.guestEmail) {
       throw new BadRequestException(
         'A user ID or guest email must be provided',

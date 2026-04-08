@@ -1,14 +1,27 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsUrl, MaxLength, MinLength } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsUrl,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class CreateCabinetDto {
-  @ApiProperty({ example: 'Councilman Silva\'s Cabinet', minLength: 2, maxLength: 100 })
+  @ApiProperty({
+    example: "Councilman Silva's Cabinet",
+    minLength: 2,
+    maxLength: 100,
+  })
   @IsString()
   @MinLength(2)
   @MaxLength(100)
   name: string;
 
-  @ApiPropertyOptional({ example: 'Cabinet focused on urban infrastructure issues', maxLength: 1000 })
+  @ApiPropertyOptional({
+    example: 'Cabinet focused on urban infrastructure issues',
+    maxLength: 1000,
+  })
   @IsOptional()
   @IsString()
   @MaxLength(1000)

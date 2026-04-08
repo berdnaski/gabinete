@@ -1,16 +1,31 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsEnum, IsLatitude, IsLongitude, IsNumber, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import {
+  IsEnum,
+  IsLatitude,
+  IsLongitude,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+} from 'class-validator';
 import { DemandPriority, DemandStatus } from '@prisma/client';
 
 export class UpdateDemandDto {
-  @ApiPropertyOptional({ example: 'Pothole on Main Street (Updated)', maxLength: 150 })
+  @ApiPropertyOptional({
+    example: 'Pothole on Main Street (Updated)',
+    maxLength: 150,
+  })
   @IsString()
   @IsOptional()
   @MaxLength(150)
   title?: string;
 
-  @ApiPropertyOptional({ example: 'Updated detailed description of the issue...', maxLength: 5000 })
+  @ApiPropertyOptional({
+    example: 'Updated detailed description of the issue...',
+    maxLength: 5000,
+  })
   @IsString()
   @IsOptional()
   @MaxLength(5000)
@@ -64,7 +79,11 @@ export class UpdateDemandDto {
   @MaxLength(100)
   city?: string;
 
-  @ApiPropertyOptional({ example: 'SP', maxLength: 2, description: 'Two-letter state code' })
+  @ApiPropertyOptional({
+    example: 'SP',
+    maxLength: 2,
+    description: 'Two-letter state code',
+  })
   @IsString()
   @IsOptional()
   @MaxLength(2)

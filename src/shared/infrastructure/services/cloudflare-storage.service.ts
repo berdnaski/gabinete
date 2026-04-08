@@ -61,7 +61,7 @@ export class CloudflareStorageService implements StorageService {
       });
 
       const signedUrl = await getSignedUrl(this.s3, command, {
-        expiresIn: 3600, // 1h
+        expiresIn: 3600,
       });
 
       return {
