@@ -5,7 +5,7 @@ import { SendNotificationUseCase } from './send-notification.use-case';
 
 @Injectable()
 export class NotificationListener {
-  constructor(private readonly sendNotification: SendNotificationUseCase) {}
+  constructor(private readonly sendNotification: SendNotificationUseCase) { }
 
   @OnEvent('demand.status-changed')
   async handleDemandStatusChanged(payload: {
@@ -45,7 +45,7 @@ export class NotificationListener {
     await this.sendNotification.execute({
       userId: payload.userId,
       title: 'Demanda Resolvida!',
-      message: `A demanda "${payload.demandTitle}" foi marcada como resolvida pelo gabinete do vereador ${payload.cabinetName}.`,
+      message: `A demanda "${payload.demandTitle}" foi marcada como resolvida pelo gabinete ${payload.cabinetName}.`,
       type: NotificationType.SUCCESS,
     });
   }
