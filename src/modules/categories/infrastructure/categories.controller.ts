@@ -49,7 +49,9 @@ export class CategoriesController {
   @ApiResponse({ status: 201, type: CategoryResponseDto })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async create(@Body() dto: CreateCategoryDto): Promise<CategoryResponseDto> {
-    const category = await this.createCategoryUseCase.execute({ name: dto.name });
+    const category = await this.createCategoryUseCase.execute({
+      name: dto.name,
+    });
     return this.toDto(category);
   }
 
@@ -82,7 +84,10 @@ export class CategoriesController {
     @Body() dto: UpdateCategoryDto,
   ): Promise<CategoryResponseDto> {
     const category = await this.findCategoryBySlugUseCase.execute(slug);
-    const updated = await this.updateCategoryUseCase.execute({ id: category.id, ...dto });
+    const updated = await this.updateCategoryUseCase.execute({
+      id: category.id,
+      ...dto,
+    });
     return this.toDto(updated);
   }
 

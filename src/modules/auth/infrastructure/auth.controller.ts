@@ -1,5 +1,21 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Query,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 import { GoogleAuthGuard } from '../../../shared/guards/google-auth.guard';
@@ -28,7 +44,7 @@ export class AuthController {
     private readonly forgotPasswordUseCase: ForgotPasswordUseCase,
     private readonly resetPasswordUseCase: ResetPasswordUseCase,
     private readonly googleLoginUseCase: GoogleLoginUseCase,
-  ) { }
+  ) {}
 
   @Post('register')
   @ApiOperation({ summary: 'Register a new citizen account' })
@@ -42,14 +58,20 @@ export class AuthController {
   @ApiOperation({ summary: 'Verify user email using token' })
   @ApiResponse({ status: 200, description: 'Email verified' })
   @ApiResponse({ status: 400, description: 'Invalid token' })
-  async verifyEmail(@Query('token') token: string): Promise<{ message: string }> {
+  async verifyEmail(
+    @Query('token') token: string,
+  ): Promise<{ message: string }> {
     return this.verifyEmailUseCase.execute(token);
   }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Authenticate and receive a JWT' })
-  @ApiResponse({ status: 200, description: 'JWT token pair', type: AuthResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'JWT token pair',
+    type: AuthResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(@Body() dto: LoginDto): Promise<AuthResponseDto> {
     return this.loginUseCase.execute(dto);
@@ -58,8 +80,13 @@ export class AuthController {
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Request password reset email' })
-  @ApiResponse({ status: 200, description: 'Email sent successfully context message' })
-  async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<{ message: string }> {
+  @ApiResponse({
+    status: 200,
+    description: 'Email sent successfully context message',
+  })
+  async forgotPassword(
+    @Body() dto: ForgotPasswordDto,
+  ): Promise<{ message: string }> {
     return this.forgotPasswordUseCase.execute(dto);
   }
 
@@ -68,7 +95,9 @@ export class AuthController {
   @ApiOperation({ summary: 'Update password using reset token' })
   @ApiResponse({ status: 200, description: 'Password updated' })
   @ApiResponse({ status: 400, description: 'Invalid token' })
-  async resetPassword(@Body() dto: ResetPasswordDto): Promise<{ message: string }> {
+  async resetPassword(
+    @Body() dto: ResetPasswordDto,
+  ): Promise<{ message: string }> {
     return this.resetPasswordUseCase.execute(dto);
   }
 
@@ -76,7 +105,11 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get the currently authenticated user' })
-  @ApiResponse({ status: 200, description: 'Authenticated user profile', type: UserResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Authenticated user profile',
+    type: UserResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   me(@CurrentUser() user: UserResponseDto): UserResponseDto {
     return user;
@@ -85,16 +118,26 @@ export class AuthController {
   @Get('google')
   @UseGuards(GoogleAuthGuard)
   @ApiOperation({ summary: 'Inicia o fluxo OAuth com o Google' })
-  @ApiResponse({ status: 302, description: 'Redireciona para a página de autorização do Google' })
-  googleAuth() {
-  }
+  @ApiResponse({
+    status: 302,
+    description: 'Redireciona para a página de autorização do Google',
+  })
+  googleAuth() {}
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
   @ApiOperation({ summary: 'Callback do Google após autorização' })
-  @ApiResponse({ status: 302, description: 'Redireciona para o frontend com o accessToken na query' })
-  async googleAuthCallback(@Req() req: Request, @Res() res: Response): Promise<void> {
-    const { accessToken } = await this.googleLoginUseCase.execute(req.user as GoogleUser);
+  @ApiResponse({
+    status: 302,
+    description: 'Redireciona para o frontend com o accessToken na query',
+  })
+  async googleAuthCallback(
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<void> {
+    const { accessToken } = await this.googleLoginUseCase.execute(
+      req.user as GoogleUser,
+    );
     res.json({ accessToken });
   }
 }

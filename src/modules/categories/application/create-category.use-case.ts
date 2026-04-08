@@ -13,7 +13,8 @@ export class CreateCategoryUseCase {
 
   async execute(input: CreateCategoryInput): Promise<CategoryEntity> {
     const baseSlug = toBaseSlug(input.name);
-    const existingSlugs = await this.categoriesRepository.findSlugsByBaseName(baseSlug);
+    const existingSlugs =
+      await this.categoriesRepository.findSlugsByBaseName(baseSlug);
     const slug = resolveUniqueSlug(baseSlug, existingSlugs);
 
     return this.categoriesRepository.create({ name: input.name, slug });

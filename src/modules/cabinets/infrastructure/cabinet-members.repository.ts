@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CabinetMemberEntity } from '../domain/cabinet-member.entity';
 import { ICabinetMembersRepository } from '../domain/cabinet-members.repository.interface';
@@ -13,15 +13,8 @@ export class CabinetMembersRepository implements ICabinetMembersRepository {
     cabinetId: string;
     role: CabinetRole;
   }): Promise<CabinetMemberEntity> {
-    try {
-      const record = await this.prisma.cabinetMember.create({ data });
-      return this.toEntity(record);
-    } catch (err: any) {
-      if (err?.code === 'P2002') {
-        throw new ConflictException('User is already a member of this cabinet');
-      }
-      throw err;
-    }
+    const record = await this.prisma.cabinetMember.create({ data });
+    return this.toEntity(record);
   }
 
   async remove(cabinetId: string, userId: string): Promise<void> {
@@ -30,9 +23,15 @@ export class CabinetMembersRepository implements ICabinetMembersRepository {
     });
   }
 
-  async findByUserId(userId: string): Promise<CabinetMemberEntity[]> {
+  async findByUserId(
+    userId: string,
+    roles?: CabinetRole[],
+  ): Promise<CabinetMemberEntity[]> {
     const records = await this.prisma.cabinetMember.findMany({
-      where: { userId },
+      where: {
+        userId,
+        role: roles?.length ? { in: roles } : undefined,
+      },
     });
     return records.map((r) => this.toEntity(r));
   }
@@ -42,6 +41,13 @@ export class CabinetMembersRepository implements ICabinetMembersRepository {
       where: { cabinetId },
     });
     return records.map((r) => this.toEntity(r));
+  }
+
+  async findById(id: string): Promise<CabinetMemberEntity | null> {
+    const record = await this.prisma.cabinetMember.findUnique({
+      where: { id },
+    });
+    return record ? this.toEntity(record) : null;
   }
 
   async findMembership(

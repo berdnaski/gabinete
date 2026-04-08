@@ -13,20 +13,26 @@ export class ResetPasswordUseCase {
   ) {}
 
   async execute(dto: ResetPasswordDto): Promise<{ message: string }> {
-    const userId = await this.tokenService.validateToken(dto.token, TokenType.PASSWORD_RESET);
+    const userId = await this.tokenService.validateToken(
+      dto.token,
+      TokenType.PASSWORD_RESET,
+    );
 
     if (!userId) {
       throw new BadRequestException('Token expirado ou inválido.');
     }
 
     const hashedPassword = await bcryptjs.hash(dto.password, 10);
-    
+
     await this.usersRepository.update(userId, {
       password: hashedPassword,
     });
 
     await this.tokenService.deleteToken(dto.token);
 
-    return { message: 'Senha alterada com sucesso! Você já pode usar a nova credencial.' };
+    return {
+      message:
+        'Senha alterada com sucesso! Você já pode usar a nova credencial.',
+    };
   }
 }

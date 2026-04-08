@@ -1,7 +1,7 @@
-import { Injectable } from "@nestjs/common";
-import { DemandPriority, DemandStatus } from "@prisma/client";
-import { PaginationHelper } from "../../../shared/application/pagination.helper";
-import { IDemandsRepository } from "../domain/demands.repository.interface";
+import { Injectable } from '@nestjs/common';
+import { DemandPriority, DemandStatus } from '@prisma/client';
+import { PaginationHelper } from '../../../shared/application/pagination.helper';
+import { IDemandsRepository } from '../domain/demands.repository.interface';
 
 export interface ListDemandsInput {
   cabinetId?: string;
@@ -15,9 +15,7 @@ export interface ListDemandsInput {
 
 @Injectable()
 export class ListDemandsUseCase {
-  constructor(
-    private readonly demandsRepository: IDemandsRepository,
-  ) { }
+  constructor(private readonly demandsRepository: IDemandsRepository) {}
 
   async execute(input: ListDemandsInput) {
     const { page, limit } = PaginationHelper.getSkipTake(input);

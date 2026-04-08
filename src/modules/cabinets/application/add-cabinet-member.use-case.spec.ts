@@ -61,7 +61,11 @@ describe('AddCabinetMemberUseCase', () => {
     cabinetsRepo.findById.mockResolvedValue(null);
 
     await expect(
-      useCase.execute({ cabinetId: 'nonexistent', userId: 'u1', role: CabinetRole.STAFF }),
+      useCase.execute({
+        cabinetId: 'nonexistent',
+        userId: 'u1',
+        role: CabinetRole.STAFF,
+      }),
     ).rejects.toThrow(NotFoundException);
   });
 
@@ -72,7 +76,11 @@ describe('AddCabinetMemberUseCase', () => {
     );
 
     await expect(
-      useCase.execute({ cabinetId: 'cab-1', userId: 'u1', role: CabinetRole.STAFF }),
+      useCase.execute({
+        cabinetId: 'cab-1',
+        userId: 'u1',
+        role: CabinetRole.STAFF,
+      }),
     ).rejects.toThrow(ConflictException);
   });
 });

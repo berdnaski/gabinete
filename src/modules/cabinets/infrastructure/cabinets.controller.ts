@@ -98,7 +98,10 @@ export class CabinetsController {
     @Body() dto: UpdateCabinetDto,
   ): Promise<CabinetResponseDto> {
     const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
-    const updated = await this.updateCabinetUseCase.execute({ id: cabinet.id, ...dto });
+    const updated = await this.updateCabinetUseCase.execute({
+      id: cabinet.id,
+      ...dto,
+    });
     return this.toCabinetDto(updated);
   }
 
@@ -140,7 +143,9 @@ export class CabinetsController {
   @ApiOperation({ summary: 'List members of a cabinet' })
   @ApiResponse({ status: 200, type: [CabinetMemberResponseDto] })
   @ApiResponse({ status: 404, description: 'Cabinet not found' })
-  async listMembers(@Param('slug') slug: string): Promise<CabinetMemberResponseDto[]> {
+  async listMembers(
+    @Param('slug') slug: string,
+  ): Promise<CabinetMemberResponseDto[]> {
     const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
     const members = await this.listCabinetMembersUseCase.execute(cabinet.id);
     return members.map((m) => this.toMemberDto(m));

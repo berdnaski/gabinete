@@ -9,7 +9,10 @@ export function toBaseSlug(name: string): string {
     .replace(/-+/g, '-');
 }
 
-export function resolveUniqueSlug(baseSlug: string, existingSlugs: string[]): string {
+export function resolveUniqueSlug(
+  baseSlug: string,
+  existingSlugs: string[],
+): string {
   if (!existingSlugs.includes(baseSlug)) {
     return baseSlug;
   }

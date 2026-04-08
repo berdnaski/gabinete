@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { UserEntity, UserRole } from '../domain/user.entity';
-import { CreateUserWithAccountData, IUsersRepository } from '../domain/users.repository.interface';
+import {
+  CreateUserWithAccountData,
+  IUsersRepository,
+} from '../domain/users.repository.interface';
 import { PrismaService } from '../../database/prisma.service';
 
 @Injectable()
 export class UsersRepository implements IUsersRepository {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async findByEmail(email: string): Promise<UserEntity | null> {
     const record = await this.prisma.user.findFirst({
@@ -53,7 +56,9 @@ export class UsersRepository implements IUsersRepository {
     return account?.user ? this.toEntity(account.user) : null;
   }
 
-  async createWithAccount(data: CreateUserWithAccountData): Promise<UserEntity> {
+  async createWithAccount(
+    data: CreateUserWithAccountData,
+  ): Promise<UserEntity> {
     const record = await this.prisma.user.create({
       data: {
         name: data.name,

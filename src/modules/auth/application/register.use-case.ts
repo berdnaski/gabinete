@@ -13,20 +13,27 @@ export class RegisterUseCase {
     private readonly createUserUseCase: CreateUserUseCase,
     private readonly tokenService: TokenService,
     private readonly mailService: MailService,
-  ) { }
+  ) {}
 
   async execute(dto: RegisterDto): Promise<{ message: string }> {
     const user = await this.createUserUseCase.execute(dto);
 
     try {
-      const token = await this.tokenService.generateToken(user.id, TokenType.EMAIL_VERIFICATION);
+      const token = await this.tokenService.generateToken(
+        user.id,
+        TokenType.EMAIL_VERIFICATION,
+      );
       await this.mailService.sendVerificationEmail(user.email, token);
     } catch (error) {
-      this.logger.error(`Falha ao processar e-mail de verificação para ${user.email}`, error);
+      this.logger.error(
+        `Falha ao processar e-mail de verificação para ${user.email}`,
+        error,
+      );
     }
 
     return {
-      message: 'Usuário registrado com sucesso. Por favor, verifique sua caixa de e-mail para ativar sua conta.',
+      message:
+        'Usuário registrado com sucesso. Por favor, verifique sua caixa de e-mail para ativar sua conta.',
     };
   }
 }

@@ -40,6 +40,11 @@ import { UpdateDemandUseCase } from '../application/update-demand.use-case';
 import { DeleteDemandUseCase } from '../application/delete-demand.use-case';
 import { ClaimDemandUseCase } from '../application/claim-demand.use-case';
 import { UpdateDemandDto } from '../dto/update-demand.dto';
+import { AssignDemandUseCase } from '../application/assign-demand.use-case';
+import { CreateDemandCommentUseCase } from '../application/create-demand-comment.use-case';
+import { ListDemandCommentsUseCase } from '../application/list-demand-comments.use-case';
+import { ToggleDemandLikeUseCase } from '../application/toggle-demand-like.use-case';
+import { ListCommentsDto } from '../dto/list-comments.dto';
 
 @ApiTags('demands')
 @Controller('demands')
@@ -52,7 +57,11 @@ export class DemandsController {
     private readonly updateDemandUseCase: UpdateDemandUseCase,
     private readonly deleteDemandUseCase: DeleteDemandUseCase,
     private readonly claimDemandUseCase: ClaimDemandUseCase,
-  ) { }
+    private readonly assignDemandUseCase: AssignDemandUseCase,
+    private readonly createDemandCommentUseCase: CreateDemandCommentUseCase,
+    private readonly listDemandCommentsUseCase: ListDemandCommentsUseCase,
+    private readonly toggleDemandLikeUseCase: ToggleDemandLikeUseCase,
+  ) {}
 
   @Post()
   @UseGuards(OptionalJwtAuthGuard)
@@ -88,10 +97,7 @@ export class DemandsController {
   @UseGuards(JwtAuthGuard, DemandAccessGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a demand' })
-  async update(
-    @Param('id') id: string,
-    @Body() dto: UpdateDemandDto,
-  ) {
+  async update(@Param('id') id: string, @Body() dto: UpdateDemandDto) {
     return this.updateDemandUseCase.execute(id, dto);
   }
 
@@ -107,16 +113,8 @@ export class DemandsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Claim a global demand for your cabinet' })
-  async claim(
-    @Param('id') id: string,
-    @CurrentUser() user: UserEntity,
-    @Body('cabinetId') cabinetId?: string,
-  ) {
-    return this.claimDemandUseCase.execute({
-      demandId: id,
-      userId: user.id,
-      cabinetId,
-    });
+  async claim(@Param('id') id: string, @CurrentUser() user: UserEntity) {
+    return this.claimDemandUseCase.execute(id, user.id);
   }
 
   @Post(':id/evidences')
@@ -138,7 +136,8 @@ export class DemandsController {
           }),
         ],
       }),
-    ) files: Express.Multer.File[],
+    )
+    files: Express.Multer.File[],
   ): Promise<void> {
     if (!files || files.length === 0) {
       throw new BadRequestException('No files provided');
@@ -149,5 +148,45 @@ export class DemandsController {
       userRole: user?.role,
       files,
     });
+  }
+
+  @Patch(':id/assign')
+  @UseGuards(JwtAuthGuard, DemandAccessGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Assign a demand to a specific cabinet member' })
+  async assign(
+    @Param('id') id: string,
+    @Body('assigneeMemberId') assigneeMemberId: string,
+    @CurrentUser() user: UserEntity,
+  ) {
+    return this.assignDemandUseCase.execute(id, assigneeMemberId, user.id);
+  }
+
+  @Post(':id/comments')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Post a comment on a demand' })
+  async addComment(
+    @Param('id') id: string,
+    @CurrentUser() user: UserEntity,
+    @Body('content') content: string,
+  ) {
+    return this.createDemandCommentUseCase.execute(id, user.id, content);
+  }
+
+  @Get(':id/comments')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List comments for a demand' })
+  async listComments(@Param('id') id: string, @Query() query: ListCommentsDto) {
+    return this.listDemandCommentsUseCase.execute(id, query);
+  }
+
+  @Post(':id/like')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Toggle like status for a demand' })
+  async toggleLike(@Param('id') id: string, @CurrentUser() user: UserEntity) {
+    return this.toggleDemandLikeUseCase.execute(id, user.id);
   }
 }

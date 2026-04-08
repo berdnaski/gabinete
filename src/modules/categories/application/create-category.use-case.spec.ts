@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Test } from '@nestjs/testing';
 import { ICategoriesRepository } from '../domain/categories.repository.interface';
 import { CreateCategoryUseCase } from './create-category.use-case';
@@ -33,7 +34,9 @@ describe('CreateCategoryUseCase', () => {
 
   it('generates a clean slug from name', async () => {
     categoriesRepo.findSlugsByBaseName.mockResolvedValue([]);
-    categoriesRepo.create.mockResolvedValue(makeCategoryRecord('infraestrutura'));
+    categoriesRepo.create.mockResolvedValue(
+      makeCategoryRecord('infraestrutura'),
+    );
 
     await useCase.execute({ name: 'Infraestrutura' });
 

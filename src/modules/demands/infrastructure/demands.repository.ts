@@ -5,15 +5,19 @@ import { DemandEntity } from '../domain/demand.entity';
 import {
   CreateDemandInfo,
   CreateEvidenceInfo,
+  DemandCommentInfo,
   IDemandsRepository,
   ListDemandsFilters,
 } from '../domain/demands.repository.interface';
-import { PaginatedResult } from 'src/shared/domain/pagination.interface';
+import {
+  PaginatedResult,
+  PaginationParams,
+} from 'src/shared/domain/pagination.interface';
 import { PaginationHelper } from 'src/shared/application/pagination.helper';
 
 @Injectable()
 export class DemandsRepository implements IDemandsRepository {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async findById(id: string): Promise<DemandEntity | null> {
     const demand = await this.prisma.demand.findUnique({
@@ -102,29 +106,26 @@ export class DemandsRepository implements IDemandsRepository {
     return DemandEntityMapper.toDomain(demand);
   }
 
-  async findAll(filters: ListDemandsFilters): Promise<PaginatedResult<DemandEntity>> {
+  async findAll(
+    filters: ListDemandsFilters,
+  ): Promise<PaginatedResult<DemandEntity>> {
     const { skip, take } = PaginationHelper.getSkipTake(filters);
-    const { cabinetId, unassignedOnly, categoryId, status, priority, search } = filters;
+    const { cabinetId, unassignedOnly, categoryId, status, priority, search } =
+      filters;
 
     const where: Prisma.DemandWhereInput = {
       disabledAt: null,
+      cabinetId: unassignedOnly ? null : cabinetId || undefined,
+      categoryId: categoryId || undefined,
+      status: status || undefined,
+      priority: priority || undefined,
+      OR: search
+        ? [
+            { title: { contains: search, mode: 'insensitive' } },
+            { description: { contains: search, mode: 'insensitive' } },
+          ]
+        : undefined,
     };
-
-    if (unassignedOnly) {
-      where.cabinetId = null;
-    } else if (cabinetId) {
-      where.cabinetId = cabinetId;
-    }
-
-    if (categoryId) where.categoryId = categoryId;
-    if (status) where.status = status;
-    if (priority) where.priority = priority;
-    if (search) {
-      where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-      ];
-    }
 
     const [items, total] = await Promise.all([
       this.prisma.demand.findMany({
@@ -142,10 +143,95 @@ export class DemandsRepository implements IDemandsRepository {
       total,
     };
   }
+
+  async addComment(data: {
+    demandId: string;
+    authorId: string;
+    content: string;
+    isCabinetResponse: boolean;
+  }): Promise<void> {
+    await this.prisma.demandComment.create({
+      data: {
+        demandId: data.demandId,
+        authorId: data.authorId,
+        content: data.content,
+        isCabinetResponse: data.isCabinetResponse,
+      },
+    });
+  }
+
+  async listComments(
+    demandId: string,
+    params: PaginationParams,
+  ): Promise<PaginatedResult<DemandCommentInfo>> {
+    const { skip, take } = PaginationHelper.getSkipTake(params);
+
+    const [items, total] = await Promise.all([
+      this.prisma.demandComment.findMany({
+        where: { demandId },
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          author: {
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+            },
+          },
+        },
+      }),
+      this.prisma.demandComment.count({ where: { demandId } }),
+    ]);
+
+    return {
+      items: items.map((item) => ({
+        id: item.id,
+        content: item.content,
+        isCabinetResponse: item.isCabinetResponse,
+        demandId: item.demandId,
+        authorId: item.authorId,
+        authorName: item.author.name,
+        authorAvatarUrl: item.author.avatarUrl,
+        createdAt: item.createdAt,
+      })),
+      total,
+    };
+  }
+
+  async toggleLike(demandId: string, userId: string): Promise<boolean> {
+    const existing = await this.prisma.demandLike.findUnique({
+      where: { userId_demandId: { userId, demandId } },
+    });
+
+    if (existing) {
+      await this.prisma.demandLike.delete({ where: { id: existing.id } });
+      return false;
+    }
+
+    await this.prisma.demandLike.create({ data: { userId, demandId } });
+    return true;
+  }
+
+  async getLikeStatus(demandId: string, userId: string): Promise<boolean> {
+    const existing = await this.prisma.demandLike.findUnique({
+      where: {
+        userId_demandId: {
+          userId,
+          demandId,
+        },
+      },
+    });
+
+    return !!existing;
+  }
 }
 
 export class DemandEntityMapper {
-  static toDomain(prismaModel: any): DemandEntity {
+  static toDomain(
+    prismaModel: Prisma.DemandGetPayload<{ include: { evidences: true } }>,
+  ): DemandEntity {
     const entity = new DemandEntity();
     entity.id = prismaModel.id;
     entity.title = prismaModel.title;
@@ -169,7 +255,7 @@ export class DemandEntityMapper {
     entity.disabledAt = prismaModel.disabledAt;
 
     if (prismaModel.evidences) {
-      entity.evidences = prismaModel.evidences.map((e: any) => {
+      entity.evidences = prismaModel.evidences.map((e) => {
         return {
           id: e.id,
           storageKey: e.storageKey,

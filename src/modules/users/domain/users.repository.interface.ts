@@ -21,7 +21,9 @@ export abstract class IUsersRepository {
     provider: string,
     providerAccountId: string,
   ): Promise<UserEntity | null>;
-  abstract createWithAccount(data: CreateUserWithAccountData): Promise<UserEntity>;
+  abstract createWithAccount(
+    data: CreateUserWithAccountData,
+  ): Promise<UserEntity>;
   abstract linkAccount(data: {
     userId: string;
     provider: string;

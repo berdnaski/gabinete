@@ -1,4 +1,4 @@
-import { PaginationParams } from "../domain/pagination.interface";
+import { PaginationParams } from '../domain/pagination.interface';
 
 export class PaginationHelper {
   private static readonly DEFAULT_PAGE = 1;
@@ -7,7 +7,10 @@ export class PaginationHelper {
 
   static getSkipTake(params: Partial<PaginationParams>) {
     const page = Math.max(1, params.page || this.DEFAULT_PAGE);
-    const limit = Math.max(1, Math.min(params.limit || this.DEFAULT_LIMIT, this.MAX_LIMIT));
+    const limit = Math.max(
+      1,
+      Math.min(params.limit || this.DEFAULT_LIMIT, this.MAX_LIMIT),
+    );
     const skip = (page - 1) * limit;
 
     return {

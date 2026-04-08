@@ -23,7 +23,8 @@ export class UpdateCabinetUseCase {
     let slug: string | undefined;
     if (input.name && input.name !== existing.name) {
       const baseSlug = toBaseSlug(input.name);
-      const existingSlugs = await this.cabinetsRepository.findSlugsByBaseName(baseSlug);
+      const existingSlugs =
+        await this.cabinetsRepository.findSlugsByBaseName(baseSlug);
       slug = resolveUniqueSlug(baseSlug, existingSlugs);
     }
 

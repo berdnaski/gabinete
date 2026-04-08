@@ -1,7 +1,10 @@
 import { CategoryEntity } from './category.entity';
 
 export abstract class ICategoriesRepository {
-  abstract create(data: { name: string; slug: string }): Promise<CategoryEntity>;
+  abstract create(data: {
+    name: string;
+    slug: string;
+  }): Promise<CategoryEntity>;
 
   abstract findById(id: string): Promise<CategoryEntity | null>;
 

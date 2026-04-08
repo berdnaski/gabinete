@@ -1,4 +1,4 @@
-import { ConflictException } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Test } from '@nestjs/testing';
 import { ICabinetMembersRepository } from '../domain/cabinet-members.repository.interface';
 import { CabinetRole } from '../domain/cabinet-role.enum';
@@ -75,7 +75,9 @@ describe('CreateCabinetUseCase', () => {
 
   it('appends -1 when base slug already exists', async () => {
     cabinetsRepo.findSlugsByBaseName.mockResolvedValue(['gabinete-silva']);
-    cabinetsRepo.create.mockResolvedValue(makeCabinetRecord('gabinete-silva-1'));
+    cabinetsRepo.create.mockResolvedValue(
+      makeCabinetRecord('gabinete-silva-1'),
+    );
     membersRepo.add.mockResolvedValue(makeMemberRecord());
 
     await useCase.execute({ name: 'Gabinete Silva', ownerUserId: 'u1' });
@@ -86,8 +88,13 @@ describe('CreateCabinetUseCase', () => {
   });
 
   it('appends -2 when base slug and -1 are both taken', async () => {
-    cabinetsRepo.findSlugsByBaseName.mockResolvedValue(['gabinete-silva', 'gabinete-silva-1']);
-    cabinetsRepo.create.mockResolvedValue(makeCabinetRecord('gabinete-silva-2'));
+    cabinetsRepo.findSlugsByBaseName.mockResolvedValue([
+      'gabinete-silva',
+      'gabinete-silva-1',
+    ]);
+    cabinetsRepo.create.mockResolvedValue(
+      makeCabinetRecord('gabinete-silva-2'),
+    );
     membersRepo.add.mockResolvedValue(makeMemberRecord());
 
     await useCase.execute({ name: 'Gabinete Silva', ownerUserId: 'u1' });

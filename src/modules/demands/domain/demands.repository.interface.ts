@@ -1,6 +1,9 @@
 import { DemandStatus, DemandPriority } from '@prisma/client';
 import { DemandEntity } from './demand.entity';
-import { PaginatedResult, PaginationParams } from 'src/shared/domain/pagination.interface';
+import {
+  PaginatedResult,
+  PaginationParams,
+} from 'src/shared/domain/pagination.interface';
 
 export interface CreateDemandInfo {
   title: string;
@@ -36,13 +39,44 @@ export interface ListDemandsFilters extends PaginationParams {
   search?: string;
 }
 
+export interface DemandCommentInfo {
+  id: string;
+  content: string;
+  isCabinetResponse: boolean;
+  demandId: string;
+  authorId: string;
+  authorName: string;
+  authorAvatarUrl?: string | null;
+  createdAt: Date;
+}
+
 export abstract class IDemandsRepository {
   abstract createWithEvidences(
     demand: CreateDemandInfo,
     evidences: CreateEvidenceInfo[],
   ): Promise<DemandEntity>;
   abstract findById(id: string): Promise<DemandEntity | null>;
-  abstract update(id: string, data: Partial<DemandEntity>): Promise<DemandEntity>;
-  abstract addEvidence(demandId: string, evidence: CreateEvidenceInfo): Promise<void>;
-  abstract findAll(filters: ListDemandsFilters): Promise<PaginatedResult<DemandEntity>>;
+  abstract update(
+    id: string,
+    data: Partial<DemandEntity>,
+  ): Promise<DemandEntity>;
+  abstract addEvidence(
+    demandId: string,
+    evidence: CreateEvidenceInfo,
+  ): Promise<void>;
+  abstract findAll(
+    filters: ListDemandsFilters,
+  ): Promise<PaginatedResult<DemandEntity>>;
+  abstract addComment(data: {
+    demandId: string;
+    authorId: string;
+    content: string;
+    isCabinetResponse: boolean;
+  }): Promise<void>;
+  abstract listComments(
+    demandId: string,
+    params: PaginationParams,
+  ): Promise<PaginatedResult<DemandCommentInfo>>;
+  abstract toggleLike(demandId: string, userId: string): Promise<boolean>;
+  abstract getLikeStatus(demandId: string, userId: string): Promise<boolean>;
 }

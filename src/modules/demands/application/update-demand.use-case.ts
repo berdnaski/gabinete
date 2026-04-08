@@ -1,15 +1,10 @@
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { IDemandsRepository } from '../domain/demands.repository.interface';
 import { UpdateDemandDto } from '../dto/update-demand.dto';
 
 @Injectable()
 export class UpdateDemandUseCase {
-  constructor(
-    private readonly demandsRepository: IDemandsRepository,
-  ) {}
+  constructor(private readonly demandsRepository: IDemandsRepository) {}
 
   async execute(id: string, dto: UpdateDemandDto) {
     const demand = await this.demandsRepository.findById(id);

@@ -1,21 +1,21 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import {
-  IsEnum,
-  IsNumber,
-  IsOptional,
-  IsString,
-  IsUUID,
-} from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 import { DemandPriority, DemandStatus } from '@prisma/client';
 
 export class UpdateDemandDto {
-  @ApiProperty({ example: 'Buraco na rua principal (Atualizado)', required: false })
+  @ApiProperty({
+    example: 'Buraco na rua principal (Atualizado)',
+    required: false,
+  })
   @IsString()
   @IsOptional()
   title?: string;
 
-  @ApiProperty({ example: 'Descrição detalhada atualizada...', required: false })
+  @ApiProperty({
+    example: 'Descrição detalhada atualizada...',
+    required: false,
+  })
   @IsString()
   @IsOptional()
   description?: string;

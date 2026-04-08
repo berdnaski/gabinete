@@ -11,10 +11,15 @@ export class VerifyEmailUseCase {
   ) {}
 
   async execute(token: string): Promise<{ message: string }> {
-    const userId = await this.tokenService.validateToken(token, TokenType.EMAIL_VERIFICATION);
+    const userId = await this.tokenService.validateToken(
+      token,
+      TokenType.EMAIL_VERIFICATION,
+    );
 
     if (!userId) {
-      throw new BadRequestException('Token de verificação inválido ou expirado.');
+      throw new BadRequestException(
+        'Token de verificação inválido ou expirado.',
+      );
     }
 
     await this.prisma.$transaction([
@@ -27,6 +32,8 @@ export class VerifyEmailUseCase {
       }),
     ]);
 
-    return { message: 'E-mail verificado com sucesso! Agora você já pode fazer login.' };
+    return {
+      message: 'E-mail verificado com sucesso! Agora você já pode fazer login.',
+    };
   }
 }

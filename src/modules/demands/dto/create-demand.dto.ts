@@ -7,7 +7,6 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsUUID,
   ValidateIf,
 } from 'class-validator';
 import { DemandPriority } from '@prisma/client';
@@ -69,7 +68,8 @@ export class CreateDemandDto {
   @IsEmail()
   @IsOptional()
   @ValidateIf(
-    (o) => typeof o.reporterId === 'undefined' || o.reporterId === null,
+    (o: Record<string, unknown>) =>
+      typeof o.reporterId === 'undefined' || o.reporterId === null,
   )
   guestEmail?: string;
 

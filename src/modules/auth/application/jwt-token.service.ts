@@ -9,7 +9,7 @@ export interface JwtPayload {
 
 @Injectable()
 export class JwtTokenService {
-  constructor(private readonly jwtService: JwtService) { }
+  constructor(private readonly jwtService: JwtService) {}
 
   sign(user: { id: string; email: string }): AuthTokenEntity {
     const expiresIn = parseInt(process.env.JWT_EXPIRES_IN ?? '3600', 10);

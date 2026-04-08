@@ -5,7 +5,7 @@ import {
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
-import { UserRole } from '../../modules/users/domain/user.entity';
+import { UserRole, UserEntity } from '../../modules/users/domain/user.entity';
 import { IDemandsRepository } from '../../modules/demands/domain/demands.repository.interface';
 import { ICabinetMembersRepository } from '../../modules/cabinets/domain/cabinet-members.repository.interface';
 import { CabinetRole } from '../../modules/cabinets/domain/cabinet-role.enum';
@@ -15,10 +15,14 @@ export class DemandAccessGuard implements CanActivate {
   constructor(
     private readonly demandsRepository: IDemandsRepository,
     private readonly cabinetMembersRepository: ICabinetMembersRepository,
-  ) { }
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<{
+      user: UserEntity;
+      params: Record<string, string>;
+      demand?: any;
+    }>();
     const { user, params } = request;
 
     if (!user) {

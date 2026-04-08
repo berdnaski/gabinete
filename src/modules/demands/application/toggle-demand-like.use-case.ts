@@ -2,16 +2,16 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { IDemandsRepository } from '../domain/demands.repository.interface';
 
 @Injectable()
-export class DeleteDemandUseCase {
+export class ToggleDemandLikeUseCase {
   constructor(private readonly demandsRepository: IDemandsRepository) {}
 
-  async execute(id: string) {
-    const demand = await this.demandsRepository.findById(id);
-
+  async execute(demandId: string, userId: string): Promise<{ liked: boolean }> {
+    const demand = await this.demandsRepository.findById(demandId);
     if (!demand) {
       throw new NotFoundException('Demand not found');
     }
 
-    await this.demandsRepository.update(id, { disabledAt: new Date() });
+    const liked = await this.demandsRepository.toggleLike(demandId, userId);
+    return { liked };
   }
 }

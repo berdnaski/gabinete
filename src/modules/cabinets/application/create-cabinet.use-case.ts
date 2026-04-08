@@ -27,7 +27,8 @@ export class CreateCabinetUseCase {
 
   async execute(input: CreateCabinetInput): Promise<CreateCabinetOutput> {
     const baseSlug = toBaseSlug(input.name);
-    const existingSlugs = await this.cabinetsRepository.findSlugsByBaseName(baseSlug);
+    const existingSlugs =
+      await this.cabinetsRepository.findSlugsByBaseName(baseSlug);
     const slug = resolveUniqueSlug(baseSlug, existingSlugs);
 
     const cabinet = await this.cabinetsRepository.create({

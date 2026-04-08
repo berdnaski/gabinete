@@ -11,6 +11,10 @@ import { FindDemandUseCase } from '../application/find-demand-use-case';
 import { UpdateDemandUseCase } from '../application/update-demand.use-case';
 import { DeleteDemandUseCase } from '../application/delete-demand.use-case';
 import { ClaimDemandUseCase } from '../application/claim-demand.use-case';
+import { AssignDemandUseCase } from '../application/assign-demand.use-case';
+import { CreateDemandCommentUseCase } from '../application/create-demand-comment.use-case';
+import { ListDemandCommentsUseCase } from '../application/list-demand-comments.use-case';
+import { ToggleDemandLikeUseCase } from '../application/toggle-demand-like.use-case';
 import { CabinetsModule } from '../../cabinets/infrastructure/cabinets.module';
 import { DemandAccessGuard } from '../../../shared/guards/demand-access.guard';
 
@@ -29,7 +33,11 @@ import { DemandAccessGuard } from '../../../shared/guards/demand-access.guard';
     UpdateDemandUseCase,
     DeleteDemandUseCase,
     ClaimDemandUseCase,
+    AssignDemandUseCase,
+    CreateDemandCommentUseCase,
+    ListDemandCommentsUseCase,
+    ToggleDemandLikeUseCase,
     DemandAccessGuard,
   ],
 })
-export class DemandsModule { }
+export class DemandsModule {}

@@ -6,7 +6,10 @@ export class RemoveCabinetMemberUseCase {
   constructor(private readonly membersRepository: ICabinetMembersRepository) {}
 
   async execute(cabinetId: string, userId: string): Promise<void> {
-    const membership = await this.membersRepository.findMembership(userId, cabinetId);
+    const membership = await this.membersRepository.findMembership(
+      userId,
+      cabinetId,
+    );
     if (!membership) {
       throw new NotFoundException('Membership not found');
     }

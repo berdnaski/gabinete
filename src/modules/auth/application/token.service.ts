@@ -6,7 +6,11 @@ import { TokenType } from '@prisma/client';
 export class TokenService {
   constructor(private prisma: PrismaService) {}
 
-  async generateToken(userId: string, type: TokenType, expiresInMinutes = 1440): Promise<string> {
+  async generateToken(
+    userId: string,
+    type: TokenType,
+    expiresInMinutes = 1440,
+  ): Promise<string> {
     const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000);
 
     const { id } = await this.prisma.token.upsert({
@@ -20,10 +24,10 @@ export class TokenService {
 
   async validateToken(id: string, type: TokenType): Promise<string | null> {
     const record = await this.prisma.token.findFirst({
-      where: { 
-        id, 
-        type, 
-        expiresAt: { gt: new Date() } 
+      where: {
+        id,
+        type,
+        expiresAt: { gt: new Date() },
       },
       select: { userId: true },
     });

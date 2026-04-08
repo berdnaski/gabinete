@@ -14,4 +14,4 @@ import { MailModule } from './mail/mail.module';
   ],
   exports: [StorageService, MailModule],
 })
-export class SharedModule { }
+export class SharedModule {}

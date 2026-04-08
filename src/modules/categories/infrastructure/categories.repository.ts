@@ -44,7 +44,10 @@ export class CategoriesRepository implements ICategoriesRepository {
     return records.map((r) => this.toEntity(r));
   }
 
-  async update(id: string, data: { name?: string; slug?: string }): Promise<CategoryEntity> {
+  async update(
+    id: string,
+    data: { name?: string; slug?: string },
+  ): Promise<CategoryEntity> {
     const record = await this.prisma.category.update({ where: { id }, data });
     return this.toEntity(record);
   }

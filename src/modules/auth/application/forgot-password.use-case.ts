@@ -20,13 +20,22 @@ export class ForgotPasswordUseCase {
 
     if (user) {
       try {
-        const token = await this.tokenService.generateToken(user.id, TokenType.PASSWORD_RESET);
+        const token = await this.tokenService.generateToken(
+          user.id,
+          TokenType.PASSWORD_RESET,
+        );
         await this.mailService.sendPasswordResetEmail(user.email, token);
       } catch (error) {
-        this.logger.error(`Falha ao disparar e-mail de reset de senha para ${dto.email}`, error);
+        this.logger.error(
+          `Falha ao disparar e-mail de reset de senha para ${dto.email}`,
+          error,
+        );
       }
     }
 
-    return { message: 'Se o e-mail existir em nossa base, você receberá um link de recuperação em breve.' };
+    return {
+      message:
+        'Se o e-mail existir em nossa base, você receberá um link de recuperação em breve.',
+    };
   }
 }

@@ -24,7 +24,7 @@ export class MagicBytesValidator extends FileValidator<MagicBytesValidatorOption
         return false;
       }
       return this.validationOptions.allowedMimeTypes.includes(type.mime);
-    } catch (e) {
+    } catch {
       return false;
     }
   }

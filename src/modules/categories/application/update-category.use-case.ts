@@ -21,10 +21,14 @@ export class UpdateCategoryUseCase {
     let slug: string | undefined;
     if (input.name && input.name !== existing.name) {
       const baseSlug = toBaseSlug(input.name);
-      const existingSlugs = await this.categoriesRepository.findSlugsByBaseName(baseSlug);
+      const existingSlugs =
+        await this.categoriesRepository.findSlugsByBaseName(baseSlug);
       slug = resolveUniqueSlug(baseSlug, existingSlugs);
     }
 
-    return this.categoriesRepository.update(input.id, { name: input.name, slug });
+    return this.categoriesRepository.update(input.id, {
+      name: input.name,
+      slug,
+    });
   }
 }

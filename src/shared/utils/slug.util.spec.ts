@@ -27,12 +27,17 @@ describe('resolveUniqueSlug', () => {
   });
 
   it('returns baseSlug-1 on first conflict', () => {
-    expect(resolveUniqueSlug('gabinete-silva', ['gabinete-silva'])).toBe('gabinete-silva-1');
+    expect(resolveUniqueSlug('gabinete-silva', ['gabinete-silva'])).toBe(
+      'gabinete-silva-1',
+    );
   });
 
   it('returns baseSlug-2 when base and -1 are taken', () => {
-    expect(resolveUniqueSlug('gabinete-silva', ['gabinete-silva', 'gabinete-silva-1'])).toBe(
-      'gabinete-silva-2',
-    );
+    expect(
+      resolveUniqueSlug('gabinete-silva', [
+        'gabinete-silva',
+        'gabinete-silva-1',
+      ]),
+    ).toBe('gabinete-silva-2');
   });
 });

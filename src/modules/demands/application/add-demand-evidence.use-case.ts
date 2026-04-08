@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { StorageService } from '../../../shared/domain/services/storage.service';
 import { IDemandsRepository } from '../domain/demands.repository.interface';
 import { UserRole } from '../../users/domain/user.entity';
@@ -19,10 +15,10 @@ export class AddDemandEvidenceUseCase {
   constructor(
     private readonly demandsRepository: IDemandsRepository,
     private readonly storageService: StorageService,
-  ) { }
+  ) {}
 
   async execute(command: AddDemandEvidenceCommand): Promise<void> {
-    const { demandId, userId, userRole, files } = command;
+    const { demandId, files } = command;
 
     const demand = await this.demandsRepository.findById(demandId);
     if (!demand) {

@@ -6,14 +6,6 @@ import {
 } from '@nestjs/common';
 import { IDemandsRepository } from '../domain/demands.repository.interface';
 import { ICabinetMembersRepository } from '../../cabinets/domain/cabinet-members.repository.interface';
-import { CabinetRole } from '../../cabinets/domain/cabinet-role.enum';
-import { DemandStatus } from '@prisma/client';
-
-export interface ClaimDemandInput {
-  demandId: string;
-  userId: string;
-  cabinetId?: string;
-}
 
 @Injectable()
 export class ClaimDemandUseCase {
@@ -22,11 +14,8 @@ export class ClaimDemandUseCase {
     private readonly cabinetMembersRepository: ICabinetMembersRepository,
   ) {}
 
-  async execute(input: ClaimDemandInput) {
-    const { demandId, userId, cabinetId: inputCabinetId } = input;
-
+  async execute(demandId: string, userId: string) {
     const demand = await this.demandsRepository.findById(demandId);
-
     if (!demand) {
       throw new NotFoundException('Demand not found');
     }
@@ -35,49 +24,18 @@ export class ClaimDemandUseCase {
       throw new BadRequestException('Demand is already assigned to a cabinet');
     }
 
-    let targetCabinetId = inputCabinetId;
+    const memberships =
+      await this.cabinetMembersRepository.findByUserId(userId);
+    const membership = memberships[0];
 
-    if (targetCabinetId) {
-      const membership = await this.cabinetMembersRepository.findMembership(
-        userId,
-        targetCabinetId,
+    if (!membership) {
+      throw new ForbiddenException(
+        'You must belong to a cabinet to claim demands',
       );
-
-      if (!membership || !this.isManager(membership.role)) {
-        throw new ForbiddenException(
-          'You do not have permission to claim demands for this cabinet',
-        );
-      }
-    } else {
-      const memberships = await this.cabinetMembersRepository.findByUserId(
-        userId,
-      );
-      const managerMemberships = memberships.filter((m) =>
-        this.isManager(m.role),
-      );
-
-      if (managerMemberships.length === 0) {
-        throw new ForbiddenException(
-          'You must be an OWNER or STAFF of a cabinet to claim demands',
-        );
-      }
-
-      if (managerMemberships.length > 1) {
-        throw new BadRequestException(
-          'You belong to multiple cabinets. Please specify a cabinetId.',
-        );
-      }
-
-      targetCabinetId = managerMemberships[0].cabinetId;
     }
 
     return this.demandsRepository.update(demandId, {
-      cabinetId: targetCabinetId,
-      status: DemandStatus.IN_PROGRESS,
+      cabinetId: membership.cabinetId,
     });
-  }
-
-  private isManager(role: CabinetRole): boolean {
-    return role === CabinetRole.OWNER || role === CabinetRole.STAFF;
   }
 }

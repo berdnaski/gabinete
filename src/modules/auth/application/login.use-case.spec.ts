@@ -26,14 +26,17 @@ describe('JwtTokenService', () => {
   });
 
   it('should sign a token with sub set to the user ID', () => {
-    const token = jwtTokenService.sign('user-123', 'test@example.com');
+    const token = jwtTokenService.sign({
+      id: 'user-123',
+      email: 'test@example.com',
+    });
     const decoded = jwtService.verify<JwtPayload>(token.accessToken);
     expect(decoded.sub).toBe('user-123');
     expect(decoded.email).toBe('test@example.com');
   });
 
   it('should return an AuthTokenEntity with accessToken and expiresIn', () => {
-    const token = jwtTokenService.sign('user-abc', 'a@b.com');
+    const token = jwtTokenService.sign({ id: 'user-abc', email: 'a@b.com' });
     expect(token).toHaveProperty('accessToken');
     expect(token).toHaveProperty('expiresIn');
     expect(typeof token.accessToken).toBe('string');
@@ -86,12 +89,24 @@ describe('LoginUseCase', () => {
       id: 'user-1',
       email: 'x@x.com',
       password: 'hashed',
+      isVerified: true,
     });
     mockValidatePassword.execute.mockResolvedValue(true);
-    mockJwtTokenService.sign.mockReturnValue({ accessToken: 'tok', expiresIn: 3600 });
+    mockJwtTokenService.sign.mockReturnValue({
+      accessToken: 'tok',
+      expiresIn: 3600,
+    });
 
-    const result = await loginUseCase.execute({ email: 'x@x.com', password: 'correct' });
+    const result = await loginUseCase.execute({
+      email: 'x@x.com',
+      password: 'correct',
+    });
     expect(result).toEqual({ accessToken: 'tok', expiresIn: 3600 });
-    expect(mockJwtTokenService.sign).toHaveBeenCalledWith('user-1', 'x@x.com');
+    expect(mockJwtTokenService.sign).toHaveBeenCalledWith({
+      id: 'user-1',
+      email: 'x@x.com',
+      password: 'hashed',
+      isVerified: true,
+    });
   });
 });
