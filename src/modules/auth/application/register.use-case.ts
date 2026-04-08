@@ -2,8 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { TokenType } from '@prisma/client';
 import { CreateUserUseCase } from '../../users/application/create-user.use-case';
 import { RegisterDto } from '../dto/register.dto';
-import { TokenService } from './token.service';
-import { MailService } from '../../../shared/mail/application/mail.service';
+import { ITokensRepository } from '../domain/tokens.repository.interface';
+import { QueueService } from '../../../shared/infrastructure/queue/queue.service';
+import { EmailType } from '../../../shared/infrastructure/queue/queue.constants';
 
 @Injectable()
 export class RegisterUseCase {
@@ -11,29 +12,40 @@ export class RegisterUseCase {
 
   constructor(
     private readonly createUserUseCase: CreateUserUseCase,
-    private readonly tokenService: TokenService,
-    private readonly mailService: MailService,
+    private readonly tokensRepository: ITokensRepository,
+    private readonly queueService: QueueService,
   ) {}
 
   async execute(dto: RegisterDto): Promise<{ message: string }> {
     const user = await this.createUserUseCase.execute(dto);
 
     try {
-      const token = await this.tokenService.generateToken(
-        user.id,
-        TokenType.EMAIL_VERIFICATION,
-      );
-      await this.mailService.sendVerificationEmail(user.email, token);
+      const tokenRecord = await this.tokensRepository.upsert({
+        userId: user.id,
+        type: TokenType.EMAIL_VERIFICATION,
+        expiresAt: new Date(
+          Date.now() +
+            parseInt(process.env.TOKEN_EXPIRATION_MINUTES || '1440', 10) *
+              60 *
+              1000,
+        ),
+      });
+
+      await this.queueService.sendEmail({
+        type: EmailType.VERIFICATION,
+        email: user.email,
+        token: tokenRecord.id,
+      });
     } catch (error) {
       this.logger.error(
-        `Falha ao processar e-mail de verificação para ${user.email}`,
+        `Failed to enqueue verification email for ${user.email}`,
         error,
       );
     }
 
     return {
       message:
-        'Usuário registrado com sucesso. Por favor, verifique sua caixa de e-mail para ativar sua conta.',
+        'User registered successfully. Please check your email to activate your account.',
     };
   }
 }

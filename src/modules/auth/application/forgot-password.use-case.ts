@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { FindUserByEmailUseCase } from '../../users/application/find-user-by-email.use-case';
-import { TokenService } from './token.service';
-import { MailService } from '../../../shared/mail/application/mail.service';
+import { ITokensRepository } from '../domain/tokens.repository.interface';
+import { QueueService } from '../../../shared/infrastructure/queue/queue.service';
+import { EmailType } from '../../../shared/infrastructure/queue/queue.constants';
 import { TokenType } from '@prisma/client';
 import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 
@@ -11,8 +12,8 @@ export class ForgotPasswordUseCase {
 
   constructor(
     private readonly findUserByEmailUseCase: FindUserByEmailUseCase,
-    private readonly tokenService: TokenService,
-    private readonly mailService: MailService,
+    private readonly tokensRepository: ITokensRepository,
+    private readonly queueService: QueueService,
   ) {}
 
   async execute(dto: ForgotPasswordDto): Promise<{ message: string }> {
@@ -20,14 +21,25 @@ export class ForgotPasswordUseCase {
 
     if (user) {
       try {
-        const token = await this.tokenService.generateToken(
-          user.id,
-          TokenType.PASSWORD_RESET,
-        );
-        await this.mailService.sendPasswordResetEmail(user.email, token);
+        const tokenRecord = await this.tokensRepository.upsert({
+          userId: user.id,
+          type: TokenType.PASSWORD_RESET,
+          expiresAt: new Date(
+            Date.now() +
+              parseInt(process.env.TOKEN_EXPIRATION_MINUTES || '1440', 10) *
+                60 *
+                1000,
+          ),
+        });
+
+        await this.queueService.sendEmail({
+          type: EmailType.PASSWORD_RESET,
+          email: user.email,
+          token: tokenRecord.id,
+        });
       } catch (error) {
         this.logger.error(
-          `Falha ao disparar e-mail de reset de senha para ${dto.email}`,
+          `Failed to enqueue password reset email for ${dto.email}`,
           error,
         );
       }
@@ -35,7 +47,7 @@ export class ForgotPasswordUseCase {
 
     return {
       message:
-        'Se o e-mail existir em nossa base, você receberá um link de recuperação em breve.',
+        'If the email exists in our system, you will receive a recovery link shortly.',
     };
   }
 }
