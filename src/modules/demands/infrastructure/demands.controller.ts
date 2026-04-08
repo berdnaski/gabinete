@@ -142,7 +142,7 @@ export class DemandsController {
   }
 
   @Post(':id/evidences')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Add evidences to an existing demand' })
   @ApiConsumes('multipart/form-data')
