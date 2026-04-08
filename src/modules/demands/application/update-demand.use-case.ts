@@ -1,10 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { IDemandsRepository } from '../domain/demands.repository.interface';
 import { UpdateDemandDto } from '../dto/update-demand.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { DemandStatus } from '@prisma/client';
 
 @Injectable()
 export class UpdateDemandUseCase {
-  constructor(private readonly demandsRepository: IDemandsRepository) {}
+  constructor(
+    private readonly demandsRepository: IDemandsRepository,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   async execute(id: string, dto: UpdateDemandDto) {
     const demand = await this.demandsRepository.findById(id);
@@ -13,6 +18,24 @@ export class UpdateDemandUseCase {
       throw new NotFoundException('Demand not found');
     }
 
-    return this.demandsRepository.update(id, dto);
+    const updatedDemand = await this.demandsRepository.update(id, dto);
+
+    if (dto.status && dto.status !== demand.status) {
+      this.eventEmitter.emit('demand.status-changed', {
+        userId: demand.reporterId,
+        demandId: demand.id,
+        title: demand.title,
+        newStatus: dto.status,
+      });
+
+      if (dto.status === DemandStatus.RESOLVED) {
+        this.eventEmitter.emit('demand.resolved', {
+          userId: demand.reporterId,
+          demandTitle: demand.title,
+        });
+      }
+    }
+
+    return updatedDemand;
   }
 }

@@ -12,14 +12,16 @@ export class CreateDemandUseCase {
   constructor(private readonly demandsRepository: IDemandsRepository) {}
 
   async execute(dto: CreateDemandDto, userId?: string): Promise<DemandEntity> {
-    if (!userId && !dto.guestEmail) {
+    if (userId && dto.guestEmail) {
       throw new BadRequestException(
-        'A user ID or guest email must be provided',
+        'Authenticated users cannot provide a guest email',
       );
     }
 
-    if (userId && dto.guestEmail) {
-      dto.guestEmail = undefined;
+    if (!userId && !dto.guestEmail) {
+      throw new BadRequestException(
+        'A guest email must be provided for non-authenticated demands',
+      );
     }
 
     const demandInfo: CreateDemandInfo = {
