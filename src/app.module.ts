@@ -9,6 +9,8 @@ import { ConfigModule } from '@nestjs/config';
 import { SharedModule } from './shared/shared.module';
 import { DemandsModule } from './modules/demands/infrastructure/demands.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { NotificationsModule } from './modules/notifications/infrastructure/notifications.module';
 
 @Module({
   imports: [
@@ -29,6 +31,8 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
     CategoriesModule,
     SharedModule,
     DemandsModule,
+    EventEmitterModule.forRoot(),
+    NotificationsModule,
   ],
   controllers: [],
   providers: [
