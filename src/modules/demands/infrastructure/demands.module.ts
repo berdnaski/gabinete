@@ -16,11 +16,12 @@ import { CreateDemandCommentUseCase } from '../application/create-demand-comment
 import { ListDemandCommentsUseCase } from '../application/list-demand-comments.use-case';
 import { ToggleDemandLikeUseCase } from '../application/toggle-demand-like.use-case';
 import { CabinetsModule } from '../../cabinets/infrastructure/cabinets.module';
+import { UsersModule } from '../../users/infrastructure/users.module';
 import { DemandAccessGuard } from '../../../shared/guards/demand-access.guard';
 import { GetCabinetDemandMetricsUseCase } from '../application/get-cabinet-demand-metrics.use-case';
 
 @Module({
-  imports: [AuthModule, CabinetsModule],
+  imports: [AuthModule, CabinetsModule, UsersModule],
   controllers: [DemandsController],
   providers: [
     {

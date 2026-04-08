@@ -18,6 +18,7 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiConsumes,
   ApiOperation,
   ApiResponse,
@@ -145,10 +146,23 @@ export class DemandsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Add evidences to an existing demand' })
   @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        evidences: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+      },
+    },
+  })
   @UseInterceptors(FilesInterceptor('evidences', 5))
   async addEvidences(
     @Param('id') id: string,
-    @CurrentUser() user: UserEntity | null,
     @UploadedFiles(
       new ParseFilePipe({
         validators: [
