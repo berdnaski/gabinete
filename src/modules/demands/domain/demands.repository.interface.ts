@@ -50,6 +50,13 @@ export interface DemandCommentInfo {
   createdAt: Date;
 }
 
+export interface CabinetDemandMetrics {
+  new: number;
+  urgent: number;
+  total: number;
+  resolved: number;
+}
+
 export abstract class IDemandsRepository {
   abstract createWithEvidences(
     demand: CreateDemandInfo,
@@ -79,4 +86,7 @@ export abstract class IDemandsRepository {
   ): Promise<PaginatedResult<DemandCommentInfo>>;
   abstract toggleLike(demandId: string, userId: string): Promise<boolean>;
   abstract getLikeStatus(demandId: string, userId: string): Promise<boolean>;
+  abstract getCabinetDemandMetrics(
+    cabinetId: string,
+  ): Promise<CabinetDemandMetrics>;
 }

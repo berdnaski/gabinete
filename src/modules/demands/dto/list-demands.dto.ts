@@ -1,6 +1,15 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { DemandPriority, DemandStatus } from '@prisma/client';
-import { IsEnum, IsOptional, IsString, IsUUID, IsInt, Min, Max, MaxLength } from 'class-validator';
+import {
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsUUID,
+  IsInt,
+  Min,
+  Max,
+  MaxLength,
+} from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 
 export class ListDemandsDto {
@@ -9,7 +18,10 @@ export class ListDemandsDto {
   @IsOptional()
   cabinetId?: string;
 
-  @ApiPropertyOptional({ description: 'Return only unassigned demands', default: false })
+  @ApiPropertyOptional({
+    description: 'Return only unassigned demands',
+    default: false,
+  })
   @Transform(({ value }) => value === 'true' || value === true)
   @IsOptional()
   unassignedOnly?: boolean;

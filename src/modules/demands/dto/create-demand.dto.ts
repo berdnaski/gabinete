@@ -22,13 +22,21 @@ export class CreateDemandDto {
   @MaxLength(150)
   title: string;
 
-  @ApiProperty({ example: 'The asphalt cracked and formed a crater near the traffic light...', maxLength: 5000 })
+  @ApiProperty({
+    example:
+      'The asphalt cracked and formed a crater near the traffic light...',
+    maxLength: 5000,
+  })
   @IsString()
   @IsNotEmpty()
   @MaxLength(5000)
   description: string;
 
-  @ApiProperty({ enum: DemandPriority, default: DemandPriority.MEDIUM, required: false })
+  @ApiProperty({
+    enum: DemandPriority,
+    default: DemandPriority.MEDIUM,
+    required: false,
+  })
   @IsEnum(DemandPriority)
   @IsOptional()
   priority?: DemandPriority;
@@ -71,7 +79,11 @@ export class CreateDemandDto {
   @MaxLength(100)
   city: string;
 
-  @ApiProperty({ example: 'SP', maxLength: 2, description: 'Two-letter state code' })
+  @ApiProperty({
+    example: 'SP',
+    maxLength: 2,
+    description: 'Two-letter state code',
+  })
   @IsString()
   @IsNotEmpty()
   @MaxLength(2)

@@ -140,3 +140,15 @@ The project strictly follows a modularized Clean Architecture approach. Code AI 
 ### 2026-03-28 — Initial Database Schema & Prisma Setup (Task 1)
 **What:** Defined all domain models and enums in `prisma/schema.prisma`: `User`, `Account`, `Cabinet`, `CabinetMember`, `Category`, `Demand`, `DemandEvidence`, `DemandLike`, `DemandComment`, `Result`, `ResultImage`. All enums, soft delete fields (`disabledAt`), audit fields (`createdAt`, `updatedAt`), and unique constraints (`@@unique`) applied per the ERD spec. Wired `PrismaService` (extends `PrismaClient` with `@prisma/adapter-pg`) and marked `DatabaseModule` as `@Global()` with `exports: [PrismaService]`.
 **Why:** Prisma v7 removes `url` from the `datasource` block in `schema.prisma` — connection URL is managed via `prisma.config.ts` for migrations and via `PrismaPg` adapter in the client constructor at runtime. Task 1 baseline migration.
+
+### 2026-04-08 — Feature: Cabinet Demand Metrics Endpoint
+**What:** Added `GET /demands/cabinet/:cabinetId/metrics` backed by `GetCabinetDemandMetricsUseCase` and a repository method to compute and return raw counts: `new` (last 24h), `urgent` (URGENT not RESOLVED/REJECTED/CANCELED), `total` (created this month), `resolved` (created this month + RESOLVED). Added cabinet existence check and soft-delete filtering.
+**Why:** Enables dashboards to retrieve consistent, server-side computed demand KPIs per cabinet, keeping date windows and query logic centralized in the backend.
+
+### 2026-04-08 — Change: Metrics Derived From Logged-in User Cabinet
+**What:** Replaced `GET /demands/cabinet/:cabinetId/metrics` with `GET /demands/metrics`, resolving `cabinetId` from the logged-in user's cabinet membership.
+**Why:** Prevents clients from manually passing cabinet identifiers and keeps cabinet scoping consistent with authentication context.
+
+### 2026-04-08 — Change: Metrics Endpoint Uses Cabinet Slug
+**What:** Replaced `GET /demands/metrics` with `GET /demands/cabinet/:slug/metrics` and resolved the cabinet by `slug` before running metrics queries.
+**Why:** Keeps cabinet scoping explicit for clients while avoiding UUID exposure and aligning with slug-based routing UX.
