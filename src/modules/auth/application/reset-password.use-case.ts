@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import * as bcryptjs from 'bcryptjs';
-import { TokenService } from './token.service';
+import { ITokensRepository } from '../domain/tokens.repository.interface';
 import { IUsersRepository } from '../../users/domain/users.repository.interface';
 import { ResetPasswordDto } from '../dto/reset-password.dto';
 import { TokenType } from '@prisma/client';
@@ -8,27 +8,27 @@ import { TokenType } from '@prisma/client';
 @Injectable()
 export class ResetPasswordUseCase {
   constructor(
-    private readonly tokenService: TokenService,
+    private readonly tokensRepository: ITokensRepository,
     private readonly usersRepository: IUsersRepository,
   ) {}
 
   async execute(dto: ResetPasswordDto): Promise<{ message: string }> {
-    const userId = await this.tokenService.validateToken(
+    const validToken = await this.tokensRepository.findValidToken(
       dto.token,
       TokenType.PASSWORD_RESET,
     );
 
-    if (!userId) {
+    if (!validToken) {
       throw new BadRequestException('Token expirado ou inválido.');
     }
 
     const hashedPassword = await bcryptjs.hash(dto.password, 10);
 
-    await this.usersRepository.update(userId, {
+    await this.usersRepository.update(validToken.userId, {
       password: hashedPassword,
     });
 
-    await this.tokenService.deleteToken(dto.token);
+    await this.tokensRepository.delete(dto.token);
 
     return {
       message:

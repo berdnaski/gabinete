@@ -35,7 +35,7 @@ import { CreateDemandDto } from '../dto/create-demand.dto';
 import { ListDemandsDto } from '../dto/list-demands.dto';
 import { DemandEntity } from '../domain/demand.entity';
 import { MagicBytesValidator } from '../../../shared/validators/magic-bytes.validator';
-import { FindDemandUseCase } from '../application/find-demand-use-case';
+import { FindDemandUseCase } from '../application/find-demand.use-case';
 import { UpdateDemandUseCase } from '../application/update-demand.use-case';
 import { DeleteDemandUseCase } from '../application/delete-demand.use-case';
 import { ClaimDemandUseCase } from '../application/claim-demand.use-case';
@@ -79,7 +79,7 @@ export class DemandsController {
     @Body() dto: CreateDemandDto,
     @CurrentUser() user: UserEntity | null,
   ): Promise<DemandEntity> {
-    return this.createDemandUseCase.execute({ dto, userId: user?.id });
+    return this.createDemandUseCase.execute(dto, user?.id);
   }
 
   @Get()
@@ -152,7 +152,7 @@ export class DemandsController {
     @UploadedFiles(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 5000000 }), // 5MB
+          new MaxFileSizeValidator({ maxSize: 5000000 }),
           new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
           new MagicBytesValidator({
             allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg'],
@@ -165,12 +165,7 @@ export class DemandsController {
     if (!files || files.length === 0) {
       throw new BadRequestException('No files provided');
     }
-    return this.addDemandEvidenceUseCase.execute({
-      demandId: id,
-      userId: user?.id || '',
-      userRole: user?.role,
-      files,
-    });
+    return this.addDemandEvidenceUseCase.execute(id, files);
   }
 
   @Patch(':id/assign')

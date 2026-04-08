@@ -62,6 +62,7 @@ model User {
   demandComments  DemandComment[]
   tokens          Token[]
 
+  @@index([disabledAt])
   @@map("users")
 }
 
@@ -89,6 +90,8 @@ model Cabinet {
   demands Demand[]
   results Result[]
 
+  @@index([slug])
+  @@index([disabledAt])
   @@map("cabinets")
 }
 
@@ -103,6 +106,8 @@ model CabinetMember {
   assignedDemands Demand[] @relation("DemandAssignee")
 
   @@unique([userId, cabinetId])
+  @@index([userId])
+  @@index([cabinetId])
   @@map("cabinet_members")
 }
 
@@ -114,6 +119,8 @@ model Category {
 
   demands Demand[]
 
+  @@index([slug])
+  @@index([disabledAt])
   @@map("categories")
 }
 
@@ -148,6 +155,11 @@ model Demand {
   comments       DemandComment[]
   results        Result[]
 
+  @@index([cabinetId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([city])
+  @@index([disabledAt])
   @@map("demands")
 }
 
@@ -174,6 +186,7 @@ model DemandLike {
   demand Demand @relation(fields: [demandId], references: [id])
 
   @@unique([userId, demandId])
+  @@index([demandId])
   @@map("demand_likes")
 }
 
@@ -188,6 +201,7 @@ model DemandComment {
   demand Demand @relation(fields: [demandId], references: [id])
   author User   @relation(fields: [authorId], references: [id])
 
+  @@index([demandId])
   @@map("demand_comments")
 }
 
@@ -206,6 +220,8 @@ model Result {
   demand  Demand?       @relation(fields: [demandId], references: [id])
   images  ResultImage[]
 
+  @@index([cabinetId])
+  @@index([disabledAt])
   @@map("results")
 }
 

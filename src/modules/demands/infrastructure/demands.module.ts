@@ -7,7 +7,7 @@ import { DemandsController } from './demands.controller';
 import { DemandsRepository } from './demands.repository';
 
 import { AuthModule } from '../../auth/infrastructure/auth.module';
-import { FindDemandUseCase } from '../application/find-demand-use-case';
+import { FindDemandUseCase } from '../application/find-demand.use-case';
 import { UpdateDemandUseCase } from '../application/update-demand.use-case';
 import { DeleteDemandUseCase } from '../application/delete-demand.use-case';
 import { ClaimDemandUseCase } from '../application/claim-demand.use-case';

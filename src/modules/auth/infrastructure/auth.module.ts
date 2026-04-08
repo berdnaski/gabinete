@@ -13,7 +13,8 @@ import { UsersModule } from '../../users/infrastructure/users.module';
 import { AuthController } from './auth.controller';
 import { GoogleStrategy } from './google.strategy';
 import { JwtStrategy } from './jwt.strategy';
-import { TokenService } from '../application/token.service';
+import { ITokensRepository } from '../domain/tokens.repository.interface';
+import { TokensRepository } from './tokens.repository';
 
 @Module({
   imports: [
@@ -32,7 +33,10 @@ import { TokenService } from '../application/token.service';
   ],
   providers: [
     JwtTokenService,
-    TokenService,
+    {
+      provide: ITokensRepository,
+      useClass: TokensRepository,
+    },
     RegisterUseCase,
     LoginUseCase,
     VerifyEmailUseCase,

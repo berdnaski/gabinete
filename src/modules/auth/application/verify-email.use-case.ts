@@ -1,36 +1,29 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
-import { TokenService } from './token.service';
+import { ITokensRepository } from '../domain/tokens.repository.interface';
+import { IUsersRepository } from '../../users/domain/users.repository.interface';
 import { TokenType } from '@prisma/client';
 
 @Injectable()
 export class VerifyEmailUseCase {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly tokenService: TokenService,
+    private readonly usersRepository: IUsersRepository,
+    private readonly tokensRepository: ITokensRepository,
   ) {}
 
   async execute(token: string): Promise<{ message: string }> {
-    const userId = await this.tokenService.validateToken(
+    const validToken = await this.tokensRepository.findValidToken(
       token,
       TokenType.EMAIL_VERIFICATION,
     );
 
-    if (!userId) {
+    if (!validToken) {
       throw new BadRequestException(
         'Token de verificação inválido ou expirado.',
       );
     }
 
-    await this.prisma.$transaction([
-      this.prisma.user.update({
-        where: { id: userId },
-        data: { isVerified: true },
-      }),
-      this.prisma.token.delete({
-        where: { id: token },
-      }),
-    ]);
+    await this.usersRepository.update(validToken.userId, { isVerified: true });
+    await this.tokensRepository.delete(token);
 
     return {
       message: 'E-mail verificado com sucesso! Agora você já pode fazer login.',

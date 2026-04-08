@@ -1,31 +1,24 @@
 import { Injectable } from '@nestjs/common';
-import { DemandPriority, DemandStatus } from '@prisma/client';
 import { PaginationHelper } from '../../../shared/application/pagination.helper';
-import { IDemandsRepository } from '../domain/demands.repository.interface';
-
-export interface ListDemandsInput {
-  cabinetId?: string;
-  status?: DemandStatus;
-  priority?: DemandPriority;
-  categoryId?: string;
-  search?: string;
-  page?: number;
-  limit?: number;
-}
+import {
+  IDemandsRepository,
+  ListDemandsFilters,
+} from '../domain/demands.repository.interface';
 
 @Injectable()
 export class ListDemandsUseCase {
   constructor(private readonly demandsRepository: IDemandsRepository) {}
 
-  async execute(input: ListDemandsInput) {
-    const { page, limit } = PaginationHelper.getSkipTake(input);
+  async execute(filters: ListDemandsFilters) {
+    const { page, limit } = PaginationHelper.getSkipTake(filters);
 
     const { items, total } = await this.demandsRepository.findAll({
-      cabinetId: input.cabinetId,
-      categoryId: input.categoryId,
-      status: input.status,
-      priority: input.priority,
-      search: input.search,
+      cabinetId: filters.cabinetId,
+      unassignedOnly: filters.unassignedOnly,
+      categoryId: filters.categoryId,
+      status: filters.status,
+      priority: filters.priority,
+      search: filters.search,
       page,
       limit,
     });
