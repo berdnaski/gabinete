@@ -5,10 +5,9 @@ import {
   HttpCode,
   HttpStatus,
   Post,
-  Query,
   Req,
   Res,
-  UseGuards,
+  UseGuards
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -21,17 +20,18 @@ import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 import { GoogleAuthGuard } from '../../../shared/guards/google-auth.guard';
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
 import { UserResponseDto } from '../../users/dto/user-response.dto';
+import { ForgotPasswordUseCase } from '../application/forgot-password.use-case';
 import { GoogleLoginUseCase } from '../application/google-login.use-case';
 import { LoginUseCase } from '../application/login.use-case';
 import { RegisterUseCase } from '../application/register.use-case';
-import { AuthResponseDto } from '../dto/auth-response.dto';
+import { ResetPasswordUseCase } from '../application/reset-password.use-case';
 import { VerifyEmailUseCase } from '../application/verify-email.use-case';
+import { AuthResponseDto } from '../dto/auth-response.dto';
+import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 import { LoginDto } from '../dto/login.dto';
 import { RegisterDto } from '../dto/register.dto';
-import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 import { ResetPasswordDto } from '../dto/reset-password.dto';
-import { ForgotPasswordUseCase } from '../application/forgot-password.use-case';
-import { ResetPasswordUseCase } from '../application/reset-password.use-case';
+import { VerifyEmailDto } from '../dto/verify-email.dto';
 import { GoogleUser } from './google.strategy';
 
 @ApiTags('auth')
@@ -44,7 +44,7 @@ export class AuthController {
     private readonly forgotPasswordUseCase: ForgotPasswordUseCase,
     private readonly resetPasswordUseCase: ResetPasswordUseCase,
     private readonly googleLoginUseCase: GoogleLoginUseCase,
-  ) {}
+  ) { }
 
   @Post('register')
   @ApiOperation({ summary: 'Register a new citizen account' })
@@ -54,14 +54,14 @@ export class AuthController {
     return this.registerUseCase.execute(dto);
   }
 
-  @Get('verify-email')
+  @Post('verify-email')
   @ApiOperation({ summary: 'Verify user email using token' })
   @ApiResponse({ status: 200, description: 'Email verified' })
   @ApiResponse({ status: 400, description: 'Invalid token' })
   async verifyEmail(
-    @Query('token') token: string,
+    @Body() dto: VerifyEmailDto,
   ): Promise<{ message: string }> {
-    return this.verifyEmailUseCase.execute(token);
+    return this.verifyEmailUseCase.execute(dto.token);
   }
 
   @Post('login')
@@ -122,7 +122,7 @@ export class AuthController {
     status: 302,
     description: 'Redireciona para a página de autorização do Google',
   })
-  googleAuth() {}
+  googleAuth() { }
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
