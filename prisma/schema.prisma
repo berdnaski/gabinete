@@ -53,7 +53,7 @@ enum NotificationType {
 }
 
 model User {
-  id         String    @id @default(cuid())
+  id         String    @id @default(uuid())
   name       String
   email      String    @unique
   password   String
@@ -75,7 +75,7 @@ model User {
 }
 
 model Account {
-  id                String @id @default(cuid())
+  id                String @id @default(uuid())
   userId            String @map("user_id")
   provider          String
   providerAccountId String @map("provider_account_id")
@@ -87,7 +87,7 @@ model Account {
 }
 
 model Cabinet {
-  id          String    @id @default(cuid())
+  id          String    @id @default(uuid())
   name        String
   slug        String    @unique
   description String?
@@ -104,7 +104,7 @@ model Cabinet {
 }
 
 model CabinetMember {
-  id        String      @id @default(cuid())
+  id        String      @id @default(uuid())
   userId    String      @map("user_id")
   cabinetId String      @map("cabinet_id")
   role      CabinetRole @default(STAFF)
@@ -120,7 +120,7 @@ model CabinetMember {
 }
 
 model Category {
-  id         String    @id @default(cuid())
+  id         String    @id @default(uuid())
   name       String
   slug       String
   disabledAt DateTime? @map("disabled_at")
@@ -133,7 +133,7 @@ model Category {
 }
 
 model Demand {
-  id               String         @id @default(cuid())
+  id               String         @id @default(uuid())
   title            String
   description      String
   status           DemandStatus   @default(SUBMITTED)
@@ -172,7 +172,7 @@ model Demand {
 }
 
 model DemandEvidence {
-  id         String @id @default(cuid())
+  id         String @id @default(uuid())
   storageKey String @map("storage_key")
   url        String
   mimeType   String @map("mime_type")
@@ -185,7 +185,7 @@ model DemandEvidence {
 }
 
 model DemandLike {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   userId    String   @map("user_id")
   demandId  String   @map("demand_id")
   createdAt DateTime @default(now()) @map("created_at")
@@ -199,7 +199,7 @@ model DemandLike {
 }
 
 model DemandComment {
-  id                String   @id @default(cuid())
+  id                String   @id @default(uuid())
   content           String
   isCabinetResponse Boolean  @default(false) @map("is_cabinet_response")
   demandId          String   @map("demand_id")
@@ -214,7 +214,7 @@ model DemandComment {
 }
 
 model Result {
-  id          String     @id @default(cuid())
+  id          String     @id @default(uuid())
   title       String
   description String
   type        ResultType
@@ -234,7 +234,7 @@ model Result {
 }
 
 model ResultImage {
-  id         String          @id @default(cuid())
+  id         String          @id @default(uuid())
   url        String
   storageKey String          @map("storage_key")
   type       ResultImageType
@@ -251,7 +251,7 @@ enum TokenType {
 }
 
 model Token {
-  id        String    @id @default(cuid())
+  id        String    @id @default(uuid())
   userId    String    @map("user_id")
   type      TokenType
   expiresAt DateTime  @map("expires_at")
@@ -264,7 +264,7 @@ model Token {
 }
 
 model Notification {
-  id        String           @id @default(cuid())
+  id        String           @id @default(uuid())
   title     String
   message   String
   type      NotificationType @default(INFO)
