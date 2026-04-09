@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import ms, { StringValue } from 'ms';
 import { TokenType } from '@prisma/client';
 import { CreateUserUseCase } from '../../users/application/create-user.use-case';
 import { RegisterDto } from '../dto/register.dto';
@@ -20,15 +21,12 @@ export class RegisterUseCase {
     const user = await this.createUserUseCase.execute(dto);
 
     try {
+      const expirationMs = ms((process.env.TOKEN_EXPIRATION as StringValue) || '24h');
+
       const tokenRecord = await this.tokensRepository.upsert({
         userId: user.id,
         type: TokenType.EMAIL_VERIFICATION,
-        expiresAt: new Date(
-          Date.now() +
-            parseInt(process.env.TOKEN_EXPIRATION_MINUTES || '1440', 10) *
-              60 *
-              1000,
-        ),
+        expiresAt: new Date(Date.now() + expirationMs),
       });
 
       await this.queueService.sendEmail({

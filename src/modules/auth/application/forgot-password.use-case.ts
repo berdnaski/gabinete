@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import ms, { StringValue } from 'ms';
 import { FindUserByEmailUseCase } from '../../users/application/find-user-by-email.use-case';
 import { ITokensRepository } from '../domain/tokens.repository.interface';
 import { QueueService } from '../../../shared/infrastructure/queue/queue.service';
@@ -21,15 +22,12 @@ export class ForgotPasswordUseCase {
 
     if (user) {
       try {
+        const expirationMs = ms((process.env.TOKEN_EXPIRATION as StringValue) || '24h');
+
         const tokenRecord = await this.tokensRepository.upsert({
           userId: user.id,
           type: TokenType.PASSWORD_RESET,
-          expiresAt: new Date(
-            Date.now() +
-              parseInt(process.env.TOKEN_EXPIRATION_MINUTES || '1440', 10) *
-                60 *
-                1000,
-          ),
+          expiresAt: new Date(Date.now() + expirationMs),
         });
 
         await this.queueService.sendEmail({
