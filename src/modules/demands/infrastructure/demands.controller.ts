@@ -52,6 +52,7 @@ import { ListDemandsUseCase } from '../application/list-demands.use-case';
 import { UpdateDemandUseCase } from '../application/update-demand.use-case';
 import { ListDemandCommentsUseCase } from '../application/list-demand-comments.use-case';
 import { ToggleDemandLikeUseCase } from '../application/toggle-demand-like.use-case';
+import { ListDemandNeighborhoodsUseCase } from '../application/list-demand-neighborhoods.use-case';
 
 @ApiTags('demands')
 @Controller('demands')
@@ -70,6 +71,7 @@ export class DemandsController {
     private readonly toggleDemandLikeUseCase: ToggleDemandLikeUseCase,
     private readonly getCabinetDemandMetricsUseCase: GetCabinetDemandMetricsUseCase,
     private readonly getCabinetDemandHeatmapUseCase: GetCabinetDemandHeatmapUseCase,
+    private readonly listDemandNeighborhoodsUseCase: ListDemandNeighborhoodsUseCase,
   ) { }
 
   @Post()
@@ -119,6 +121,17 @@ export class DemandsController {
   @ApiResponse({ status: 200, type: GetCabinetDemandHeatmapResponseDto })
   async getHeatmap(): Promise<GetCabinetDemandHeatmapResponseDto> {
     return this.getCabinetDemandHeatmapUseCase.execute();
+  }
+
+  @Get('neighborhoods')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get a list of neighborhoods that have active demands' })
+  @ApiResponse({ status: 200, description: 'List of unique neighborhoods', type: [String] })
+  async listNeighborhoods(
+    @Query('cabinetId') cabinetId?: string,
+  ): Promise<string[]> {
+    return this.listDemandNeighborhoodsUseCase.execute(cabinetId);
   }
 
   @Get(':id')

@@ -322,6 +322,25 @@ export class DemandsRepository implements IDemandsRepository {
       neighborhood: r.neighborhood,
     }));
   }
+
+  async getNeighborhoods(cabinetId?: string): Promise<string[]> {
+    const demands = await this.prisma.demand.findMany({
+      where: {
+        disabledAt: null,
+        cabinetId: cabinetId || undefined,
+        neighborhood: { not: '' },
+      },
+      select: {
+        neighborhood: true,
+      },
+      distinct: ['neighborhood'],
+      orderBy: {
+        neighborhood: 'asc',
+      },
+    });
+
+    return demands.map((d) => d.neighborhood);
+  }
 }
 
 export class DemandEntityMapper {

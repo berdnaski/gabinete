@@ -112,4 +112,5 @@ export abstract class IDemandsRepository {
     cabinetId: string,
   ): Promise<CabinetDemandMetrics>;
   abstract getRawHeatmapPoints(startDate?: Date): Promise<RawHeatmapPoint[]>;
+  abstract getNeighborhoods(cabinetId?: string): Promise<string[]>;
 }

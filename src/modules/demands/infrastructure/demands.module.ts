@@ -20,6 +20,7 @@ import { UsersModule } from '../../users/infrastructure/users.module';
 import { DemandAccessGuard } from '../../../shared/guards/demand-access.guard';
 import { GetCabinetDemandMetricsUseCase } from '../application/get-cabinet-demand-metrics.use-case';
 import { GetCabinetDemandHeatmapUseCase } from '../application/get-cabinet-demand-heatmap.use-case';
+import { ListDemandNeighborhoodsUseCase } from '../application/list-demand-neighborhoods.use-case';
 
 
 @Module({
@@ -43,6 +44,7 @@ import { GetCabinetDemandHeatmapUseCase } from '../application/get-cabinet-deman
     ToggleDemandLikeUseCase,
     GetCabinetDemandMetricsUseCase,
     GetCabinetDemandHeatmapUseCase,
+    ListDemandNeighborhoodsUseCase,
     DemandAccessGuard,
   ],
 })
