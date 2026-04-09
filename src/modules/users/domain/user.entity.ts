@@ -9,6 +9,14 @@ export class UserEntity {
   email: string;
   password: string | null;
   avatarUrl: string | null;
+  phone: string | null;
+  address: string | null;
+  zipcode: string | null;
+  neighborhood: string | null;
+  city: string | null;
+  state: string | null;
+  lat: number | null;
+  long: number | null;
   role: UserRole;
   isVerified: boolean;
   disabledAt: Date | null;

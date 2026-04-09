@@ -16,4 +16,28 @@ export class UserResponseDto {
 
   @ApiProperty({ required: false, nullable: true })
   avatarUrl: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  phone: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  address: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  zipcode: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  neighborhood: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  city: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  state: string | null;
+
+  @ApiProperty({ required: false, nullable: true, type: Number })
+  lat: number | null;
+
+  @ApiProperty({ required: false, nullable: true, type: Number })
+  long: number | null;
 }

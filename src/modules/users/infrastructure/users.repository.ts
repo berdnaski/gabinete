@@ -103,6 +103,14 @@ export class UsersRepository implements IUsersRepository {
         role: data.role,
         isVerified: data.isVerified,
         disabledAt: data.disabledAt,
+        phone: data.phone,
+        address: data.address,
+        zipcode: data.zipcode,
+        neighborhood: data.neighborhood,
+        city: data.city,
+        state: data.state,
+        lat: data.lat,
+        long: data.long,
       },
     });
     return this.toEntity(record);
@@ -142,16 +150,7 @@ export class UsersRepository implements IUsersRepository {
     };
   }
 
-  private toEntity(record: {
-    id: string;
-    name: string;
-    email: string;
-    password: string | null;
-    avatarUrl: string | null;
-    role: string;
-    isVerified: boolean;
-    disabledAt: Date | null;
-  }): UserEntity {
+  private toEntity(record: Prisma.UserGetPayload<{}>): UserEntity {
     const entity = new UserEntity();
     entity.id = record.id;
     entity.name = record.name;
@@ -161,6 +160,14 @@ export class UsersRepository implements IUsersRepository {
     entity.role = record.role as UserRole;
     entity.isVerified = record.isVerified;
     entity.disabledAt = record.disabledAt;
+    entity.phone = record.phone;
+    entity.address = record.address;
+    entity.zipcode = record.zipcode;
+    entity.neighborhood = record.neighborhood;
+    entity.city = record.city;
+    entity.state = record.state;
+    entity.lat = record.lat;
+    entity.long = record.long;
     return entity;
   }
 }
