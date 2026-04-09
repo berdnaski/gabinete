@@ -36,6 +36,8 @@ export interface ListDemandsFilters extends PaginationParams {
   status?: DemandStatus;
   priority?: DemandPriority;
   categoryId?: string;
+  categories?: string | string[];
+  neighborhoods?: string | string[];
   search?: string;
 }
 

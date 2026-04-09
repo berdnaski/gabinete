@@ -115,19 +115,37 @@ export class DemandsRepository implements IDemandsRepository {
     filters: ListDemandsFilters,
   ): Promise<PaginatedResult<DemandEntity>> {
     const { skip, take } = PaginationHelper.getSkipTake(filters);
-    const { cabinetId, unassignedOnly, categoryId, status, priority, search } =
+    const { cabinetId, unassignedOnly, categoryId, categories, neighborhoods, status, priority, search } =
       filters;
+
+    const parseArray = (val: string | string[] | undefined): string[] | undefined => {
+      if (!val) return undefined;
+      if (Array.isArray(val)) return val;
+      return String(val).split(',').map((v) => v.trim()).filter(Boolean);
+    };
+
+    const parsedCategories = parseArray(categories);
+    const parsedNeighborhoods = parseArray(neighborhoods);
+
+    let categoryFilter: Prisma.StringFilter | string | undefined = categoryId || undefined;
+    if (parsedCategories?.length) {
+      categoryFilter = {
+        in: parsedCategories,
+      };
+    }
 
     const where: Prisma.DemandWhereInput = {
       disabledAt: null,
       cabinetId: unassignedOnly ? null : cabinetId || undefined,
-      categoryId: categoryId || undefined,
+      categoryId: categoryFilter,
+      neighborhood: parsedNeighborhoods?.length ? { in: parsedNeighborhoods } : undefined,
       status: status || undefined,
       priority: priority || undefined,
       OR: search
         ? [
             { title: { contains: search, mode: 'insensitive' } },
             { description: { contains: search, mode: 'insensitive' } },
+            { neighborhood: { contains: search, mode: 'insensitive' } },
           ]
         : undefined,
     };

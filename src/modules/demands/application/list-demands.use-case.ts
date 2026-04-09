@@ -16,6 +16,8 @@ export class ListDemandsUseCase {
       cabinetId: filters.cabinetId,
       unassignedOnly: filters.unassignedOnly,
       categoryId: filters.categoryId,
+      categories: filters.categories,
+      neighborhoods: filters.neighborhoods,
       status: filters.status,
       priority: filters.priority,
       search: filters.search,
