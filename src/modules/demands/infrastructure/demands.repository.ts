@@ -8,6 +8,9 @@ import {
   CreateDemandInfo,
   CreateEvidenceInfo,
   DemandCommentInfo,
+  HeatmapData,
+  HeatmapPoint,
+  RawHeatmapPoint,
   IDemandsRepository,
   ListDemandsFilters,
 } from '../domain/demands.repository.interface';
@@ -294,6 +297,30 @@ export class DemandsRepository implements IDemandsRepository {
       total: totalDemandsThisMonth,
       resolved: resolvedDemandsThisMonth,
     };
+  }
+
+  async getRawHeatmapPoints(startDate?: Date): Promise<RawHeatmapPoint[]> {
+    const records = await this.prisma.demand.findMany({
+      where: {
+        disabledAt: null,
+        lat: { not: null },
+        long: { not: null },
+        createdAt: startDate ? { gte: startDate } : undefined,
+      },
+      select: {
+        lat: true,
+        long: true,
+        priority: true,
+        neighborhood: true,
+      },
+    });
+
+    return records.map((r) => ({
+      lat: r.lat!,
+      long: r.long!,
+      priority: r.priority,
+      neighborhood: r.neighborhood,
+    }));
   }
 }
 
