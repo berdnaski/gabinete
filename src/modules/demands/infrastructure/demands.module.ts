@@ -19,6 +19,9 @@ import { CabinetsModule } from '../../cabinets/infrastructure/cabinets.module';
 import { UsersModule } from '../../users/infrastructure/users.module';
 import { DemandAccessGuard } from '../../../shared/guards/demand-access.guard';
 import { GetCabinetDemandMetricsUseCase } from '../application/get-cabinet-demand-metrics.use-case';
+import { GetCabinetDemandHeatmapUseCase } from '../application/get-cabinet-demand-heatmap.use-case';
+import { ListDemandNeighborhoodsUseCase } from '../application/list-demand-neighborhoods.use-case';
+
 
 @Module({
   imports: [AuthModule, CabinetsModule, UsersModule],
@@ -40,6 +43,8 @@ import { GetCabinetDemandMetricsUseCase } from '../application/get-cabinet-deman
     ListDemandCommentsUseCase,
     ToggleDemandLikeUseCase,
     GetCabinetDemandMetricsUseCase,
+    GetCabinetDemandHeatmapUseCase,
+    ListDemandNeighborhoodsUseCase,
     DemandAccessGuard,
   ],
 })

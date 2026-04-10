@@ -15,6 +15,7 @@ import {
   DemandCommentInfo,
   IDemandsRepository,
   ListDemandsFilters,
+  RawHeatmapPoint
 } from '../domain/demands.repository.interface';
 
 @Injectable()
@@ -112,19 +113,37 @@ export class DemandsRepository implements IDemandsRepository {
     filters: ListDemandsFilters,
   ): Promise<PaginatedResult<DemandEntity>> {
     const { skip, take } = PaginationHelper.getSkipTake(filters);
-    const { cabinetId, unassignedOnly, categoryId, status, priority, search } =
+    const { cabinetId, unassignedOnly, categoryId, categories, neighborhoods, status, priority, search } =
       filters;
+
+    const parseArray = (val: string | string[] | undefined): string[] | undefined => {
+      if (!val) return undefined;
+      if (Array.isArray(val)) return val;
+      return String(val).split(',').map((v) => v.trim()).filter(Boolean);
+    };
+
+    const parsedCategories = parseArray(categories);
+    const parsedNeighborhoods = parseArray(neighborhoods);
+
+    let categoryFilter: Prisma.StringFilter | string | undefined = categoryId || undefined;
+    if (parsedCategories?.length) {
+      categoryFilter = {
+        in: parsedCategories,
+      };
+    }
 
     const where: Prisma.DemandWhereInput = {
       disabledAt: null,
       cabinetId: unassignedOnly ? null : cabinetId || undefined,
-      categoryId: categoryId || undefined,
+      categoryId: categoryFilter,
+      neighborhood: parsedNeighborhoods?.length ? { in: parsedNeighborhoods } : undefined,
       status: status || undefined,
       priority: priority || undefined,
       OR: search
         ? [
           { title: { contains: search, mode: 'insensitive' } },
           { description: { contains: search, mode: 'insensitive' } },
+          { neighborhood: { contains: search, mode: 'insensitive' } },
         ]
         : undefined,
     };
@@ -303,6 +322,49 @@ export class DemandsRepository implements IDemandsRepository {
       total: totalDemandsThisMonth,
       resolved: resolvedDemandsThisMonth,
     };
+  }
+
+  async getRawHeatmapPoints(startDate?: Date): Promise<RawHeatmapPoint[]> {
+    const records = await this.prisma.demand.findMany({
+      where: {
+        disabledAt: null,
+        lat: { not: null },
+        long: { not: null },
+        createdAt: startDate ? { gte: startDate } : undefined,
+      },
+      select: {
+        lat: true,
+        long: true,
+        priority: true,
+        neighborhood: true,
+      },
+    });
+
+    return records.map((r) => ({
+      lat: r.lat!,
+      long: r.long!,
+      priority: r.priority,
+      neighborhood: r.neighborhood,
+    }));
+  }
+
+  async getNeighborhoods(cabinetId?: string): Promise<string[]> {
+    const demands = await this.prisma.demand.findMany({
+      where: {
+        disabledAt: null,
+        cabinetId: cabinetId || undefined,
+        neighborhood: { not: '' },
+      },
+      select: {
+        neighborhood: true,
+      },
+      distinct: ['neighborhood'],
+      orderBy: {
+        neighborhood: 'asc',
+      },
+    });
+
+    return demands.map((d) => d.neighborhood);
   }
 }
 

@@ -36,6 +36,8 @@ export interface ListDemandsFilters extends PaginationParams {
   status?: DemandStatus;
   priority?: DemandPriority;
   categoryId?: string;
+  categories?: string | string[];
+  neighborhoods?: string | string[];
   search?: string;
 }
 
@@ -55,6 +57,28 @@ export interface CabinetDemandMetrics {
   urgent: number;
   total: number;
   resolved: number;
+}
+
+export interface HeatmapPoint {
+  lat: number;
+  lng: number;
+  weight: number;
+}
+
+export interface HeatmapData {
+  points: HeatmapPoint[];
+  insight: {
+    topNeighborhood: string;
+    occurrenceCount: number;
+    text: string;
+  };
+}
+
+export interface RawHeatmapPoint {
+  lat: number;
+  long: number;
+  priority: DemandPriority;
+  neighborhood: string;
 }
 
 export abstract class IDemandsRepository {
@@ -89,4 +113,6 @@ export abstract class IDemandsRepository {
   abstract getCabinetDemandMetrics(
     cabinetId: string,
   ): Promise<CabinetDemandMetrics>;
+  abstract getRawHeatmapPoints(startDate?: Date): Promise<RawHeatmapPoint[]>;
+  abstract getNeighborhoods(cabinetId?: string): Promise<string[]>;
 }
