@@ -6,6 +6,7 @@ export abstract class ITokensRepository {
     userId: string;
     type: TokenType;
     expiresAt: Date;
+    payload?: string;
   }): Promise<TokenEntity>;
 
   abstract findValidToken(

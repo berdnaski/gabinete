@@ -9,6 +9,8 @@ import { RegisterUseCase } from '../application/register.use-case';
 import { VerifyEmailUseCase } from '../application/verify-email.use-case';
 import { ForgotPasswordUseCase } from '../application/forgot-password.use-case';
 import { ResetPasswordUseCase } from '../application/reset-password.use-case';
+import { RequestPasswordChangeUseCase } from '../application/request-password-change.use-case';
+import { ConfirmPasswordChangeUseCase } from '../application/confirm-password-change.use-case';
 import { UsersModule } from '../../users/infrastructure/users.module';
 import { AuthController } from './auth.controller';
 import { GoogleStrategy } from './google.strategy';
@@ -42,6 +44,8 @@ import { TokensRepository } from './tokens.repository';
     VerifyEmailUseCase,
     ForgotPasswordUseCase,
     ResetPasswordUseCase,
+    RequestPasswordChangeUseCase,
+    ConfirmPasswordChangeUseCase,
     JwtStrategy,
     GoogleStrategy,
     GoogleLoginUseCase,

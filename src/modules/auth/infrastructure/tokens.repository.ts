@@ -12,16 +12,21 @@ export class TokensRepository implements ITokensRepository {
     userId: string;
     type: TokenType;
     expiresAt: Date;
+    payload?: string;
   }): Promise<TokenEntity> {
     const record = await this.prisma.token.upsert({
       where: {
         userId_type: { userId: data.userId, type: data.type },
       },
-      update: { expiresAt: data.expiresAt },
+      update: { 
+        expiresAt: data.expiresAt,
+        payload: data.payload || null,
+      },
       create: {
         userId: data.userId,
         type: data.type,
         expiresAt: data.expiresAt,
+        payload: data.payload || null,
       },
     });
 

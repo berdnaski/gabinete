@@ -9,9 +9,18 @@ import {
   Patch,
   Post,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { MagicBytesValidator } from '../../../shared/validators/magic-bytes.validator';
 import {
   ApiBearerAuth,
+  ApiConsumes,
+  ApiBody,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -93,15 +102,43 @@ export class CabinetsController {
   @ApiOperation({ summary: 'Update cabinet by slug' })
   @ApiResponse({ status: 200, type: CabinetResponseDto })
   @ApiResponse({ status: 404, description: 'Cabinet not found' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        description: { type: 'string' },
+        avatar: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor('avatar'))
   async update(
     @Param('slug') slug: string,
     @Body() dto: UpdateCabinetDto,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5000000 }),
+          new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
+          new MagicBytesValidator({
+            allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg'],
+          }),
+        ],
+        fileIsRequired: false,
+      }),
+    )
+    file?: Express.Multer.File,
   ): Promise<CabinetResponseDto> {
     const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
     const updated = await this.updateCabinetUseCase.execute({
       id: cabinet.id,
       ...dto,
-    });
+    }, file);
     return this.toCabinetDto(updated);
   }
 

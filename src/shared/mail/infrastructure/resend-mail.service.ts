@@ -15,7 +15,7 @@ export class ResendMailService implements MailService {
 
     this.fromEmail = process.env.MAIL_FROM || 'onboarding@resend.dev';
     this.frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-  }
+  } 
 
   async sendVerificationEmail(email: string, token: string): Promise<void> {
     const verificationLink = `${this.frontendUrl}/verify-email?token=${token}`;
@@ -75,6 +75,42 @@ export class ResendMailService implements MailService {
     } catch (error) {
       this.logger.error(
         `Failed to send password reset email to ${email}`,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  async sendPasswordChangeConfirmationEmail(
+    email: string,
+    token: string,
+  ): Promise<void> {
+    const confirmationLink = `${this.frontendUrl}/confirm-password?token=${token}`;
+
+    try {
+      await this.resend.emails.send({
+        from: this.fromEmail,
+        to: email,
+        subject: 'Gabinete - Confirmação de Troca de Senha',
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2>Confirmação de Alteração</h2>
+            <p>Recebemos uma solicitação para alterar a senha da sua conta.</p>
+            <p>Por favor, clique no botão abaixo para confirmar essa alteração. Se você não solicitou isso, ignore este e-mail.</p>
+            <p style="margin: 30px 0;">
+              <a href="${confirmationLink}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                Confirmar Alteração de Senha
+              </a>
+            </p>
+            <p>Se o botão não funcionar, cole este link em seu navegador:</p>
+            <p><a href="${confirmationLink}">${confirmationLink}</a></p>
+          </div>
+        `,
+      });
+      this.logger.log(`Password change confirmation email sent to ${email}`);
+    } catch (error) {
+      this.logger.error(
+        `Failed to send password change confirmation email to ${email}`,
         error,
       );
       throw error;

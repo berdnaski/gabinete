@@ -51,8 +51,10 @@ export class DefaultProcessor extends WorkerHost implements OnModuleInit {
         const data = job.data as SendEmailJobData;
         if (data.type === EmailType.VERIFICATION) {
           await this.mailService.sendVerificationEmail(data.email, data.token);
-        } else {
+        } else if (data.type === EmailType.PASSWORD_RESET) {
           await this.mailService.sendPasswordResetEmail(data.email, data.token);
+        } else if (data.type === EmailType.PASSWORD_CHANGE) {
+          await this.mailService.sendPasswordChangeConfirmationEmail(data.email, data.token);
         }
         break;
       }

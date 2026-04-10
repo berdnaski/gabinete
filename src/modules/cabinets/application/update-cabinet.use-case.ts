@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { resolveUniqueSlug, toBaseSlug } from '../../../shared/utils/slug.util';
 import { CabinetEntity } from '../domain/cabinet.entity';
 import { ICabinetsRepository } from '../domain/cabinets.repository.interface';
+import { StorageService } from '../../../shared/domain/services/storage.service';
 
 export interface UpdateCabinetInput {
   id: string;
@@ -12,9 +13,12 @@ export interface UpdateCabinetInput {
 
 @Injectable()
 export class UpdateCabinetUseCase {
-  constructor(private readonly cabinetsRepository: ICabinetsRepository) {}
+  constructor(
+    private readonly cabinetsRepository: ICabinetsRepository,
+    private readonly storageService: StorageService,
+  ) {}
 
-  async execute(input: UpdateCabinetInput): Promise<CabinetEntity> {
+  async execute(input: UpdateCabinetInput, file?: Express.Multer.File): Promise<CabinetEntity> {
     const existing = await this.cabinetsRepository.findById(input.id);
     if (!existing) {
       throw new NotFoundException('Cabinet not found');
@@ -28,11 +32,23 @@ export class UpdateCabinetUseCase {
       slug = resolveUniqueSlug(baseSlug, existingSlugs);
     }
 
+    let updatedAvatarUrl = input.avatarUrl;
+    if (file) {
+      const uploaded = await this.storageService.upload({
+        buffer: file.buffer,
+        filename: file.originalname,
+        mimetype: file.mimetype,
+        folder: `cabinets/${existing.id}`,
+      });
+      const generated = await this.storageService.getUrl(uploaded.path);
+      updatedAvatarUrl = generated.signedUrl;
+    }
+
     return this.cabinetsRepository.update(input.id, {
       name: input.name,
       slug,
       description: input.description,
-      avatarUrl: input.avatarUrl,
+      avatarUrl: updatedAvatarUrl,
     });
   }
 }

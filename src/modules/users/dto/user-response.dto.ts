@@ -40,4 +40,7 @@ export class UserResponseDto {
 
   @ApiProperty({ required: false, nullable: true, type: Number })
   long: number | null;
+  
+  @ApiProperty({ example: true })
+  hasSetPassword: boolean;
 }

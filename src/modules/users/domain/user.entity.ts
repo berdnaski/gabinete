@@ -19,5 +19,6 @@ export class UserEntity {
   long: number | null;
   role: UserRole;
   isVerified: boolean;
+  hasSetPassword: boolean;
   disabledAt: Date | null;
 }

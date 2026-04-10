@@ -11,7 +11,7 @@ import { PaginatedResult } from 'src/shared/domain/pagination.interface';
 
 @Injectable()
 export class UsersRepository implements IUsersRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async findByEmail(email: string): Promise<UserEntity | null> {
     const record = await this.prisma.user.findFirst({
@@ -67,6 +67,8 @@ export class UsersRepository implements IUsersRepository {
         name: data.name,
         email: data.email,
         password: data.password || 'none',
+        hasSetPassword: false,
+        isVerified: true,
         accounts: {
           create: {
             provider: data.provider,
@@ -111,6 +113,7 @@ export class UsersRepository implements IUsersRepository {
         state: data.state,
         lat: data.lat,
         long: data.long,
+        hasSetPassword: data.hasSetPassword,
       },
     });
     return this.toEntity(record);
@@ -168,6 +171,7 @@ export class UsersRepository implements IUsersRepository {
     entity.state = record.state;
     entity.lat = record.lat;
     entity.long = record.long;
+    entity.hasSetPassword = record.hasSetPassword;
     return entity;
   }
 }

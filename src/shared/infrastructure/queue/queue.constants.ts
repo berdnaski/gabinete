@@ -15,4 +15,5 @@ export enum CronExpression {
 export enum EmailType {
   VERIFICATION = 'verification',
   PASSWORD_RESET = 'password-reset',
+  PASSWORD_CHANGE = 'password-change',
 }

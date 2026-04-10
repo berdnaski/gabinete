@@ -60,6 +60,7 @@ model User {
   phone      String?
   avatarUrl  String?   @map("avatar_url")
   role       UserRole  @default(MEMBER)
+  hasSetPassword Boolean @default(true) @map("has_set_password")
 
   address      String?
   zipcode      String?
@@ -90,7 +91,7 @@ model Account {
   provider          String
   providerAccountId String @map("provider_account_id")
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@map("accounts")
@@ -103,6 +104,9 @@ model Cabinet {
   description String?
   avatarUrl   String?   @map("avatar_url")
   disabledAt  DateTime? @map("disabled_at")
+  score             Int @default(0)
+  in_progress_count Int @default(0) @map("in_progress_count")
+  resolved_count    Int @default(0) @map("resolved_count")
 
   members CabinetMember[]
   demands Demand[]
@@ -119,7 +123,7 @@ model CabinetMember {
   cabinetId String      @map("cabinet_id")
   role      CabinetRole @default(STAFF)
 
-  user            User     @relation(fields: [userId], references: [id])
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   cabinet         Cabinet  @relation(fields: [cabinetId], references: [id])
   assignedDemands Demand[] @relation("DemandAssignee")
 
@@ -164,7 +168,7 @@ model Demand {
   updatedAt        DateTime       @updatedAt @map("updated_at")
   disabledAt       DateTime?      @map("disabled_at")
 
-  reporter       User?            @relation("DemandReporter", fields: [reporterId], references: [id])
+  reporter       User?            @relation("DemandReporter", fields: [reporterId], references: [id], onDelete: SetNull)
   cabinet        Cabinet?         @relation(fields: [cabinetId], references: [id])
   category       Category?        @relation(fields: [categoryId], references: [id])
   assigneeMember CabinetMember?   @relation("DemandAssignee", fields: [assigneeMemberId], references: [id])
@@ -200,7 +204,7 @@ model DemandLike {
   demandId  String   @map("demand_id")
   createdAt DateTime @default(now()) @map("created_at")
 
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   demand Demand @relation(fields: [demandId], references: [id])
 
   @@unique([userId, demandId])
@@ -217,7 +221,7 @@ model DemandComment {
   createdAt         DateTime @default(now()) @map("created_at")
 
   demand Demand @relation(fields: [demandId], references: [id])
-  author User   @relation(fields: [authorId], references: [id])
+  author User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([demandId])
   @@map("demand_comments")
@@ -258,12 +262,14 @@ model ResultImage {
 enum TokenType {
   PASSWORD_RESET
   EMAIL_VERIFICATION
+  CHANGE_PASSWORD
 }
 
 model Token {
   id        String    @id @default(uuid())
   userId    String    @map("user_id")
   type      TokenType
+  payload   String?
   expiresAt DateTime  @map("expires_at")
   createdAt DateTime  @default(now()) @map("created_at")
 
