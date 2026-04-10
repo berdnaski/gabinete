@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { DemandPriority, DemandStatus, Prisma } from '@prisma/client';
 import { addMonths, startOfMonth, subHours } from 'date-fns';
+import { PaginationHelper } from 'src/shared/application/pagination.helper';
+import {
+  PaginatedResult,
+  PaginationParams,
+} from 'src/shared/domain/pagination.interface';
 import { PrismaService } from '../../database/prisma.service';
 import { DemandEntity } from '../domain/demand.entity';
 import {
@@ -11,15 +16,10 @@ import {
   IDemandsRepository,
   ListDemandsFilters,
 } from '../domain/demands.repository.interface';
-import {
-  PaginatedResult,
-  PaginationParams,
-} from 'src/shared/domain/pagination.interface';
-import { PaginationHelper } from 'src/shared/application/pagination.helper';
 
 @Injectable()
 export class DemandsRepository implements IDemandsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async findById(id: string): Promise<DemandEntity | null> {
     const demand = await this.prisma.demand.findUnique({
@@ -123,9 +123,9 @@ export class DemandsRepository implements IDemandsRepository {
       priority: priority || undefined,
       OR: search
         ? [
-            { title: { contains: search, mode: 'insensitive' } },
-            { description: { contains: search, mode: 'insensitive' } },
-          ]
+          { title: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+        ]
         : undefined,
     };
 
@@ -135,11 +135,20 @@ export class DemandsRepository implements IDemandsRepository {
         skip,
         take,
         orderBy: { createdAt: 'desc' },
-        include: { evidences: true },
+        include: {
+          evidences: true,
+          reporter: true,
+          category: {
+            select: {
+              name: true,
+            }
+          }
+        },
       }),
       this.prisma.demand.count({ where }),
     ]);
 
+    console.log(items)
     return {
       items: items.map((item) => DemandEntityMapper.toDomain(item)),
       total,
@@ -297,10 +306,13 @@ export class DemandsRepository implements IDemandsRepository {
   }
 }
 
+type DemandWithRelations = Prisma.DemandGetPayload<{ include: { evidences: true } }> & {
+  reporter?: { name: string; avatarUrl: string | null } | null;
+  category?: { name: string } | null;
+};
+
 export class DemandEntityMapper {
-  static toDomain(
-    prismaModel: Prisma.DemandGetPayload<{ include: { evidences: true } }>,
-  ): DemandEntity {
+  static toDomain(prismaModel: DemandWithRelations): DemandEntity {
     const entity = new DemandEntity();
     entity.id = prismaModel.id;
     entity.title = prismaModel.title;
@@ -334,6 +346,16 @@ export class DemandEntityMapper {
           demandId: e.demandId,
         };
       });
+    }
+
+    if (prismaModel.reporter !== undefined) {
+      entity.reporter = prismaModel.reporter
+        ? { name: prismaModel.reporter.name, avatarUrl: prismaModel.reporter.avatarUrl }
+        : null;
+    }
+
+    if (prismaModel.category !== undefined) {
+      entity.category = prismaModel.category ? { name: prismaModel.category.name } : null;
     }
 
     return entity;

@@ -46,6 +46,7 @@ import { DemandEntity } from '../domain/demand.entity';
 import { AssignDemandDto } from '../dto/assign-demand.dto';
 import { CreateDemandCommentDto } from '../dto/create-demand-comment.dto';
 import { CreateDemandDto } from '../dto/create-demand.dto';
+import { DemandCommentResponseDto } from '../dto/demand-comment-response.dto';
 import { GetCabinetDemandMetricsResponseDto } from '../dto/get-cabinet-demand-metrics-response.dto';
 import { ListCommentsDto } from '../dto/list-comments.dto';
 import { ListDemandsDto } from '../dto/list-demands.dto';
@@ -75,7 +76,8 @@ export class DemandsController {
   @ApiOperation({
     summary: 'Creates a new Demand (Authenticated or Guest Flow)',
   })
-  @ApiResponse({ status: 201, description: 'Demand successfully created' })
+  @ApiResponse({ status: 201, type: DemandEntity, description: 'Demand successfully created' })
+  @ApiResponse({ status: 400, description: 'Validation error' })
   async create(
     @Body() dto: CreateDemandDto,
     @CurrentUser() user: UserEntity | null,
@@ -87,6 +89,24 @@ export class DemandsController {
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'List demands with filters and pagination' })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated list of demands',
+    schema: {
+      properties: {
+        items: { type: 'array', items: { $ref: '#/components/schemas/DemandEntity' } },
+        meta: {
+          type: 'object',
+          properties: {
+            total: { type: 'number', example: 100 },
+            page: { type: 'number', example: 1 },
+            limit: { type: 'number', example: 10 },
+            totalPages: { type: 'number', example: 10 },
+          },
+        },
+      },
+    },
+  })
   async list(@Query() query: ListDemandsDto) {
     return this.listDemandsUseCase.execute(query);
   }
@@ -113,6 +133,9 @@ export class DemandsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Find a demand by ID' })
+  @ApiResponse({ status: 200, type: DemandEntity })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Demand not found' })
   async findById(@Param('id') id: string) {
     return this.findDemandUseCase.execute(id);
   }
@@ -121,6 +144,11 @@ export class DemandsController {
   @UseGuards(JwtAuthGuard, DemandAccessGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a demand' })
+  @ApiResponse({ status: 200, type: DemandEntity })
+  @ApiResponse({ status: 400, description: 'Validation error' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Demand not found' })
   async update(@Param('id') id: string, @Body() dto: UpdateDemandDto) {
     return this.updateDemandUseCase.execute(id, dto);
   }
@@ -129,6 +157,10 @@ export class DemandsController {
   @UseGuards(JwtAuthGuard, DemandAccessGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Soft delete a demand' })
+  @ApiResponse({ status: 200, description: 'Demand soft-deleted' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Demand not found' })
   async delete(@Param('id') id: string) {
     return this.deleteDemandUseCase.execute(id);
   }
@@ -137,6 +169,11 @@ export class DemandsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Claim a global demand for your cabinet' })
+  @ApiResponse({ status: 201, type: DemandEntity, description: 'Demand claimed for the caller\'s cabinet' })
+  @ApiResponse({ status: 400, description: 'Demand is already assigned to a cabinet' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Caller does not belong to any cabinet' })
+  @ApiResponse({ status: 404, description: 'Demand not found' })
   async claim(@Param('id') id: string, @CurrentUser() user: UserEntity) {
     return this.claimDemandUseCase.execute(id, user.id);
   }
@@ -145,6 +182,9 @@ export class DemandsController {
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Add evidences to an existing demand' })
+  @ApiResponse({ status: 201, description: 'Evidences uploaded successfully' })
+  @ApiResponse({ status: 400, description: 'No files provided or invalid file type/size' })
+  @ApiResponse({ status: 404, description: 'Demand not found' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -186,6 +226,11 @@ export class DemandsController {
   @UseGuards(JwtAuthGuard, DemandAccessGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Assign a demand to a specific cabinet member' })
+  @ApiResponse({ status: 200, type: DemandEntity })
+  @ApiResponse({ status: 400, description: 'Demand has no cabinet or assignee is not a member of the cabinet' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Caller is not a member of the demand\'s cabinet' })
+  @ApiResponse({ status: 404, description: 'Demand not found' })
   async assign(
     @Param('id') id: string,
     @Body() dto: AssignDemandDto,
@@ -198,6 +243,9 @@ export class DemandsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Post a comment on a demand' })
+  @ApiResponse({ status: 201, description: 'Comment posted successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Demand not found' })
   async addComment(
     @Param('id') id: string,
     @CurrentUser() user: UserEntity,
@@ -210,6 +258,18 @@ export class DemandsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'List comments for a demand' })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated list of demand comments',
+    schema: {
+      properties: {
+        items: { type: 'array', items: { $ref: '#/components/schemas/DemandCommentResponseDto' } },
+        total: { type: 'number', example: 50 },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Demand not found' })
   async listComments(@Param('id') id: string, @Query() query: ListCommentsDto) {
     return this.listDemandCommentsUseCase.execute(id, query);
   }
@@ -218,6 +278,13 @@ export class DemandsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Toggle like status for a demand' })
+  @ApiResponse({
+    status: 201,
+    description: 'Returns true if the demand is now liked, false if unliked',
+    schema: { type: 'boolean', example: true },
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Demand not found' })
   async toggleLike(@Param('id') id: string, @CurrentUser() user: UserEntity) {
     return this.toggleDemandLikeUseCase.execute(id, user.id);
   }
