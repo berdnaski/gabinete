@@ -4,6 +4,7 @@ export abstract class ICabinetsRepository {
   abstract create(data: {
     name: string;
     slug: string;
+    email?: string;
     description?: string;
     avatarUrl?: string;
   }): Promise<CabinetEntity>;
@@ -21,6 +22,7 @@ export abstract class ICabinetsRepository {
     data: {
       name?: string;
       slug?: string;
+      email?: string;
       description?: string;
       avatarUrl?: string;
     },

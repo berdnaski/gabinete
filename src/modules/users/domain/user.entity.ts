@@ -1,6 +1,7 @@
 export enum UserRole {
   ADMIN = 'ADMIN',
-  MEMBER = 'MEMBER',
+  USER = 'USER',
+  CITIZEN = 'CITIZEN',
 }
 
 export class UserEntity {
@@ -20,5 +21,6 @@ export class UserEntity {
   role: UserRole;
   isVerified: boolean;
   hasSetPassword: boolean;
+  isCabinetMember: boolean;
   disabledAt: Date | null;
 }

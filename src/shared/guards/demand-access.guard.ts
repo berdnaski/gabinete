@@ -9,6 +9,7 @@ import { UserRole, UserEntity } from '../../modules/users/domain/user.entity';
 import { IDemandsRepository } from '../../modules/demands/domain/demands.repository.interface';
 import { ICabinetMembersRepository } from '../../modules/cabinets/domain/cabinet-members.repository.interface';
 import { CabinetRole } from '../../modules/cabinets/domain/cabinet-role.enum';
+import { DemandEntity } from '../../modules/demands/domain/demand.entity';
 
 @Injectable()
 export class DemandAccessGuard implements CanActivate {
@@ -21,7 +22,7 @@ export class DemandAccessGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<{
       user: UserEntity;
       params: Record<string, string>;
-      demand?: any;
+      demand?: DemandEntity;
     }>();
     const { user, params } = request;
 

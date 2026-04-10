@@ -15,4 +15,7 @@ export class CabinetResponseDto {
 
   @ApiPropertyOptional({ nullable: true })
   avatarUrl: string | null;
+
+  @ApiPropertyOptional({ nullable: true, example: 'contato@gabinete.gov.br' })
+  email: string | null;
 }

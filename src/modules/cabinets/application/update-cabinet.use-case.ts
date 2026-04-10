@@ -9,6 +9,7 @@ export interface UpdateCabinetInput {
   name?: string;
   description?: string;
   avatarUrl?: string;
+  email?: string;
 }
 
 @Injectable()
@@ -49,6 +50,7 @@ export class UpdateCabinetUseCase {
       slug,
       description: input.description,
       avatarUrl: updatedAvatarUrl,
+      email: input.email,
     });
   }
 }

@@ -32,4 +32,10 @@ export class CreateCabinetDto {
   @IsUrl()
   @MaxLength(2048)
   avatarUrl?: string;
+
+  @ApiPropertyOptional({ example: 'contato@gabinete.gov.br' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  email?: string;
 }

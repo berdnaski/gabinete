@@ -9,6 +9,10 @@ import { PrismaService } from '../../database/prisma.service';
 import { PaginationHelper } from 'src/shared/application/pagination.helper';
 import { PaginatedResult } from 'src/shared/domain/pagination.interface';
 
+type PrismaUserWithMembers = Prisma.UserGetPayload<{
+  include: { cabinetMembers: { select: { id: true } } };
+}>;
+
 @Injectable()
 export class UsersRepository implements IUsersRepository {
   constructor(private readonly prisma: PrismaService) { }
@@ -16,14 +20,16 @@ export class UsersRepository implements IUsersRepository {
   async findByEmail(email: string): Promise<UserEntity | null> {
     const record = await this.prisma.user.findFirst({
       where: { email, disabledAt: null },
-    });
+      include: { cabinetMembers: { select: { id: true } } },
+    }) as PrismaUserWithMembers | null;
     return record ? this.toEntity(record) : null;
   }
 
   async findById(id: string): Promise<UserEntity | null> {
     const record = await this.prisma.user.findFirst({
       where: { id, disabledAt: null },
-    });
+      include: { cabinetMembers: { select: { id: true } } },
+    }) as PrismaUserWithMembers | null;
     return record ? this.toEntity(record) : null;
   }
 
@@ -32,7 +38,10 @@ export class UsersRepository implements IUsersRepository {
     email: string;
     password: string;
   }): Promise<UserEntity> {
-    const record = await this.prisma.user.create({ data });
+    const record = await this.prisma.user.create({ 
+      data,
+      include: { cabinetMembers: { select: { id: true } } },
+    }) as PrismaUserWithMembers;
     return this.toEntity(record);
   }
 
@@ -54,9 +63,16 @@ export class UsersRepository implements IUsersRepository {
           providerAccountId,
         },
       },
-      include: { user: true },
+      include: { 
+        user: {
+          include: { cabinetMembers: { select: { id: true } } }
+        }
+      },
     });
-    return account?.user ? this.toEntity(account.user) : null;
+
+    if (!account?.user) return null;
+    
+    return this.toEntity(account.user as PrismaUserWithMembers);
   }
 
   async createWithAccount(
@@ -76,7 +92,8 @@ export class UsersRepository implements IUsersRepository {
           },
         },
       },
-    });
+      include: { cabinetMembers: { select: { id: true } } },
+    }) as PrismaUserWithMembers;
     return this.toEntity(record);
   }
 
@@ -115,7 +132,8 @@ export class UsersRepository implements IUsersRepository {
         long: data.long,
         hasSetPassword: data.hasSetPassword,
       },
-    });
+      include: { cabinetMembers: { select: { id: true } } },
+    }) as PrismaUserWithMembers;
     return this.toEntity(record);
   }
 
@@ -143,7 +161,8 @@ export class UsersRepository implements IUsersRepository {
         skip,
         take,
         orderBy: { name: 'asc' },
-      }),
+        include: { cabinetMembers: { select: { id: true } } },
+      }) as Promise<PrismaUserWithMembers[]>,
       this.prisma.user.count({ where }),
     ]);
 
@@ -153,7 +172,7 @@ export class UsersRepository implements IUsersRepository {
     };
   }
 
-  private toEntity(record: Prisma.UserGetPayload<{}>): UserEntity {
+  private toEntity(record: PrismaUserWithMembers): UserEntity {
     const entity = new UserEntity();
     entity.id = record.id;
     entity.name = record.name;
@@ -172,6 +191,7 @@ export class UsersRepository implements IUsersRepository {
     entity.lat = record.lat;
     entity.long = record.long;
     entity.hasSetPassword = record.hasSetPassword;
+    entity.isCabinetMember = !!record.cabinetMembers && record.cabinetMembers.length > 0;
     return entity;
   }
 }

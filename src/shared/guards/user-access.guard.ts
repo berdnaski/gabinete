@@ -26,6 +26,10 @@ export class UserAccessGuard implements CanActivate {
 
     const userIdParam = params.id;
 
+    if (user.role === UserRole.ADMIN) {
+      return true;
+    }
+
     if (userIdParam && user.id === userIdParam) {
       return true;
     }

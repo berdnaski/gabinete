@@ -8,7 +8,8 @@ datasource db {
 
 enum UserRole {
   ADMIN
-  MEMBER
+  USER
+  CITIZEN
 }
 
 enum CabinetRole {
@@ -59,7 +60,7 @@ model User {
   password   String
   phone      String?
   avatarUrl  String?   @map("avatar_url")
-  role       UserRole  @default(MEMBER)
+  role       UserRole  @default(CITIZEN)
   hasSetPassword Boolean @default(true) @map("has_set_password")
 
   address      String?
@@ -101,6 +102,7 @@ model Cabinet {
   id          String    @id @default(uuid())
   name        String
   slug        String    @unique
+  email       String?
   description String?
   avatarUrl   String?   @map("avatar_url")
   disabledAt  DateTime? @map("disabled_at")

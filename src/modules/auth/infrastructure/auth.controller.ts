@@ -146,19 +146,19 @@ export class AuthController {
 
   @Get('google')
   @UseGuards(GoogleAuthGuard)
-  @ApiOperation({ summary: 'Inicia o fluxo OAuth com o Google' })
+  @ApiOperation({ summary: 'Initialize OAuth flow with Google' })
   @ApiResponse({
     status: 302,
-    description: 'Redireciona para a página de autorização do Google',
+    description: 'Redirects to Google authorization page',
   })
   googleAuth() { }
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
-  @ApiOperation({ summary: 'Callback do Google após autorização' })
+  @ApiOperation({ summary: 'Google OAuth callback' })
   @ApiResponse({
     status: 302,
-    description: 'Redireciona para o frontend com o accessToken na query',
+    description: 'Redirects to frontend with accessToken in query',
   })
   async googleAuthCallback(
     @Req() req: Request,

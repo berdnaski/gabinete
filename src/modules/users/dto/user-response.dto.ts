@@ -11,7 +11,7 @@ export class UserResponseDto {
   @ApiProperty({ example: 'maria@example.com' })
   email: string;
 
-  @ApiProperty({ enum: UserRole, example: UserRole.MEMBER })
+  @ApiProperty({ enum: UserRole, example: UserRole.USER })
   role: UserRole;
 
   @ApiProperty({ required: false, nullable: true })
@@ -43,4 +43,7 @@ export class UserResponseDto {
   
   @ApiProperty({ example: true })
   hasSetPassword: boolean;
+
+  @ApiProperty({ example: false })
+  isCabinetMember: boolean;
 }

@@ -10,6 +10,7 @@ export class CabinetsRepository implements ICabinetsRepository {
   async create(data: {
     name: string;
     slug: string;
+    email?: string;
     description?: string;
     avatarUrl?: string;
   }): Promise<CabinetEntity> {
@@ -54,6 +55,7 @@ export class CabinetsRepository implements ICabinetsRepository {
     data: {
       name?: string;
       slug?: string;
+      email?: string;
       description?: string;
       avatarUrl?: string;
     },
@@ -73,6 +75,7 @@ export class CabinetsRepository implements ICabinetsRepository {
     id: string;
     name: string;
     slug: string;
+    email: string | null;
     description: string | null;
     avatarUrl: string | null;
     disabledAt: Date | null;
@@ -81,6 +84,7 @@ export class CabinetsRepository implements ICabinetsRepository {
     entity.id = record.id;
     entity.name = record.name;
     entity.slug = record.slug;
+    entity.email = record.email;
     entity.description = record.description;
     entity.avatarUrl = record.avatarUrl;
     entity.disabledAt = record.disabledAt;

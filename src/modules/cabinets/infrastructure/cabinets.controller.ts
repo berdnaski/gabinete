@@ -109,6 +109,7 @@ export class CabinetsController {
       properties: {
         name: { type: 'string' },
         description: { type: 'string' },
+        email: { type: 'string' },
         avatar: {
           type: 'string',
           format: 'binary',
@@ -211,6 +212,7 @@ export class CabinetsController {
     dto.slug = entity.slug;
     dto.description = entity.description;
     dto.avatarUrl = entity.avatarUrl;
+    dto.email = entity.email;
     return dto;
   }
 

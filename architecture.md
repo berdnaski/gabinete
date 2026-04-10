@@ -22,7 +22,7 @@ The system allows citizens to report public demands (e.g., infrastructure issues
 ---
 
 ## 2. Enums Definition
-* `UserRole`: `ADMIN` | `MEMBER` (Global system roles).
+* `UserRole`: `ADMIN` | `USER` | `CITIZEN` (Global system roles).
 * `CabinetRole`: `OWNER` | `STAFF` (Contextual roles inside a specific cabinet).
 * `DemandStatus`: `SUBMITTED` | `IN_ANALYSIS` | `IN_PROGRESS` | `RESOLVED` | `REJECTED` | `CANCELED`.
 * `DemandPriority`: `LOW` | `MEDIUM` | `HIGH` | `URGENT`.
@@ -152,3 +152,6 @@ The project strictly follows a modularized Clean Architecture approach. Code AI 
 ### 2026-04-08 — Change: Metrics Endpoint Uses Cabinet Slug
 **What:** Replaced `GET /demands/metrics` with `GET /demands/cabinet/:slug/metrics` and resolved the cabinet by `slug` before running metrics queries.
 **Why:** Keeps cabinet scoping explicit for clients while avoiding UUID exposure and aligning with slug-based routing UX.
+### 2026-04-10 — Refactor: User Roles and Senior Type Cleanup
+**What:** Renamed global `UserRole.MEMBER` to `UserRole.USER` and verified `UserRole.CITIZEN` as default. Refactored `UsersRepository` to define explicit Prisma payload types, removing `any` casts and fixing TypeScript errors in `toEntity`. Updated `DemandAccessGuard` to use `DemandEntity` instead of `any`.
+**Why:** Improves semantic clarity between global platform identity and contextual cabinet membership. Fixes a brittle repository implementation that was causing build errors and relied on unsafe type casting.
