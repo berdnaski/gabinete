@@ -22,7 +22,6 @@ import { GetCabinetDemandMetricsUseCase } from '../application/get-cabinet-deman
 import { GetCabinetDemandHeatmapUseCase } from '../application/get-cabinet-demand-heatmap.use-case';
 import { ListDemandNeighborhoodsUseCase } from '../application/list-demand-neighborhoods.use-case';
 
-
 @Module({
   imports: [AuthModule, CabinetsModule, UsersModule],
   controllers: [DemandsController],

@@ -16,7 +16,9 @@ export abstract class ICategoriesRepository {
 
   abstract findSlugsByBaseName(baseSlug: string): Promise<string[]>;
 
-  abstract list(params: PaginationParams): Promise<PaginatedResult<CategoryEntity>>;
+  abstract list(
+    params: PaginationParams,
+  ): Promise<PaginatedResult<CategoryEntity>>;
 
   abstract update(
     id: string,

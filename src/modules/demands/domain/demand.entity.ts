@@ -6,7 +6,10 @@ export class DemandReporterInfo {
   @ApiProperty({ example: 'João Silva' })
   name: string;
 
-  @ApiProperty({ example: 'https://cdn.example.com/avatar.jpg', nullable: true })
+  @ApiProperty({
+    example: 'https://cdn.example.com/avatar.jpg',
+    nullable: true,
+  })
   avatarUrl: string | null;
 }
 
@@ -22,7 +25,10 @@ export class DemandEntity {
   @ApiProperty({ example: 'Pothole on Main Street' })
   title: string;
 
-  @ApiProperty({ example: 'The asphalt cracked and formed a crater near the traffic light...' })
+  @ApiProperty({
+    example:
+      'The asphalt cracked and formed a crater near the traffic light...',
+  })
   description: string;
 
   @ApiProperty({ enum: DemandStatus })

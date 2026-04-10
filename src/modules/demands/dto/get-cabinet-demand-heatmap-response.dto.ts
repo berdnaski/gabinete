@@ -7,7 +7,10 @@ export class HeatmapPointDto {
   @ApiProperty({ example: -48.2622 })
   lng: number;
 
-  @ApiProperty({ example: 1, description: 'Weight/intensity of the point (e.g. priority)' })
+  @ApiProperty({
+    example: 1,
+    description: 'Weight/intensity of the point (e.g. priority)',
+  })
   weight: number;
 }
 
@@ -18,7 +21,10 @@ export class HeatmapInsightDto {
   @ApiProperty({ example: 7 })
   occurrenceCount: number;
 
-  @ApiProperty({ example: 'Bairro Luizote de Freitas apresenta maior densidade de ocorrências urgentes (7).' })
+  @ApiProperty({
+    example:
+      'Bairro Luizote de Freitas apresenta maior densidade de ocorrências urgentes (7).',
+  })
   text: string;
 }
 

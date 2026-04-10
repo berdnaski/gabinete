@@ -41,11 +41,15 @@ export class ListDemandsDto {
   @IsOptional()
   categoryId?: string;
 
-  @ApiPropertyOptional({ description: 'Filter by category IDs or slugs (array or comma-separated)' })
+  @ApiPropertyOptional({
+    description: 'Filter by category IDs or slugs (array or comma-separated)',
+  })
   @IsOptional()
   categories?: string | string[];
 
-  @ApiPropertyOptional({ description: 'Filter by neighborhood names (array or comma-separated)' })
+  @ApiPropertyOptional({
+    description: 'Filter by neighborhood names (array or comma-separated)',
+  })
   @IsOptional()
   neighborhoods?: string | string[];
 

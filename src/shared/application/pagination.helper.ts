@@ -27,7 +27,10 @@ export class PaginationHelper {
   static buildResponse<T>(
     items: T[],
     total: number,
-    params: Pick<ReturnType<typeof PaginationHelper.getSkipTake>, 'page' | 'limit'>,
+    params: Pick<
+      ReturnType<typeof PaginationHelper.getSkipTake>,
+      'page' | 'limit'
+    >,
   ): PaginatedResponse<T> {
     return {
       items,

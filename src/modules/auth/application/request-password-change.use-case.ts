@@ -20,9 +20,12 @@ export class RequestPasswordChangeUseCase {
     private readonly usersRepository: IUsersRepository,
     private readonly tokensRepository: ITokensRepository,
     private readonly queueService: QueueService,
-  ) { }
+  ) {}
 
-  async execute(userId: string, dto: ChangePasswordDto): Promise<{ message: string }> {
+  async execute(
+    userId: string,
+    dto: ChangePasswordDto,
+  ): Promise<{ message: string }> {
     const user = await this.usersRepository.findById(userId);
 
     if (!user) {
@@ -31,7 +34,9 @@ export class RequestPasswordChangeUseCase {
 
     if (user.hasSetPassword) {
       if (!dto.currentPassword) {
-        throw new BadRequestException('A senha atual é obrigatória para este usuário.');
+        throw new BadRequestException(
+          'A senha atual é obrigatória para este usuário.',
+        );
       }
       const isPasswordValid = await bcryptjs.compare(
         dto.currentPassword,
@@ -68,7 +73,8 @@ export class RequestPasswordChangeUseCase {
     }
 
     return {
-      message: 'Um e-mail de confirmação foi enviado para sua caixa de entrada.',
+      message:
+        'Um e-mail de confirmação foi enviado para sua caixa de entrada.',
     };
   }
 }

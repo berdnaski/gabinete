@@ -43,7 +43,6 @@ import { DemandEntity } from '../domain/demand.entity';
 import { AssignDemandDto } from '../dto/assign-demand.dto';
 import { CreateDemandCommentDto } from '../dto/create-demand-comment.dto';
 import { CreateDemandDto } from '../dto/create-demand.dto';
-import { DemandCommentResponseDto } from '../dto/demand-comment-response.dto';
 import { GetCabinetDemandMetricsResponseDto } from '../dto/get-cabinet-demand-metrics-response.dto';
 import { GetCabinetDemandHeatmapResponseDto } from '../dto/get-cabinet-demand-heatmap-response.dto';
 import { ListCommentsDto } from '../dto/list-comments.dto';
@@ -81,7 +80,11 @@ export class DemandsController {
   @ApiOperation({
     summary: 'Creates a new Demand (Authenticated or Guest Flow)',
   })
-  @ApiResponse({ status: 201, type: DemandEntity, description: 'Demand successfully created' })
+  @ApiResponse({
+    status: 201,
+    type: DemandEntity,
+    description: 'Demand successfully created',
+  })
   @ApiResponse({ status: 400, description: 'Validation error' })
   async create(
     @Body() dto: CreateDemandDto,
@@ -99,7 +102,10 @@ export class DemandsController {
     description: 'Paginated list of demands',
     schema: {
       properties: {
-        items: { type: 'array', items: { $ref: '#/components/schemas/DemandEntity' } },
+        items: {
+          type: 'array',
+          items: { $ref: '#/components/schemas/DemandEntity' },
+        },
         meta: {
           type: 'object',
           properties: {
@@ -146,8 +152,14 @@ export class DemandsController {
   @Get('neighborhoods')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get a list of neighborhoods that have active demands' })
-  @ApiResponse({ status: 200, description: 'List of unique neighborhoods', type: [String] })
+  @ApiOperation({
+    summary: 'Get a list of neighborhoods that have active demands',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of unique neighborhoods',
+    type: [String],
+  })
   async listNeighborhoods(
     @Query('cabinetId') cabinetId?: string,
   ): Promise<string[]> {
@@ -194,10 +206,20 @@ export class DemandsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Claim a global demand for your cabinet' })
-  @ApiResponse({ status: 201, type: DemandEntity, description: 'Demand claimed for the caller\'s cabinet' })
-  @ApiResponse({ status: 400, description: 'Demand is already assigned to a cabinet' })
+  @ApiResponse({
+    status: 201,
+    type: DemandEntity,
+    description: "Demand claimed for the caller's cabinet",
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Demand is already assigned to a cabinet',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Caller does not belong to any cabinet' })
+  @ApiResponse({
+    status: 403,
+    description: 'Caller does not belong to any cabinet',
+  })
   @ApiResponse({ status: 404, description: 'Demand not found' })
   async claim(@Param('id') id: string, @CurrentUser() user: UserEntity) {
     return this.claimDemandUseCase.execute(id, user.id);
@@ -208,7 +230,10 @@ export class DemandsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Add evidences to an existing demand' })
   @ApiResponse({ status: 201, description: 'Evidences uploaded successfully' })
-  @ApiResponse({ status: 400, description: 'No files provided or invalid file type/size' })
+  @ApiResponse({
+    status: 400,
+    description: 'No files provided or invalid file type/size',
+  })
   @ApiResponse({ status: 404, description: 'Demand not found' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -252,9 +277,16 @@ export class DemandsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Assign a demand to a specific cabinet member' })
   @ApiResponse({ status: 200, type: DemandEntity })
-  @ApiResponse({ status: 400, description: 'Demand has no cabinet or assignee is not a member of the cabinet' })
+  @ApiResponse({
+    status: 400,
+    description:
+      'Demand has no cabinet or assignee is not a member of the cabinet',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Caller is not a member of the demand\'s cabinet' })
+  @ApiResponse({
+    status: 403,
+    description: "Caller is not a member of the demand's cabinet",
+  })
   @ApiResponse({ status: 404, description: 'Demand not found' })
   async assign(
     @Param('id') id: string,
@@ -288,7 +320,10 @@ export class DemandsController {
     description: 'Paginated list of demand comments',
     schema: {
       properties: {
-        items: { type: 'array', items: { $ref: '#/components/schemas/DemandCommentResponseDto' } },
+        items: {
+          type: 'array',
+          items: { $ref: '#/components/schemas/DemandCommentResponseDto' },
+        },
         total: { type: 'number', example: 50 },
       },
     },

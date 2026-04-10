@@ -21,7 +21,9 @@ export class RegisterUseCase {
     const user = await this.createUserUseCase.execute(dto);
 
     try {
-      const expirationMs = ms((process.env.TOKEN_EXPIRATION as StringValue) || '24h');
+      const expirationMs = ms(
+        (process.env.TOKEN_EXPIRATION as StringValue) || '24h',
+      );
 
       const tokenRecord = await this.tokensRepository.upsert({
         userId: user.id,

@@ -1,15 +1,20 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import * as bcryptjs from 'bcryptjs';
 import { IUsersRepository } from '../../users/domain/users.repository.interface';
 import { ChangePasswordDto } from '../dto/change-password.dto';
 
 @Injectable()
 export class ChangePasswordUseCase {
-  constructor(
-    private readonly usersRepository: IUsersRepository,
-  ) {}
+  constructor(private readonly usersRepository: IUsersRepository) {}
 
-  async execute(userId: string, dto: ChangePasswordDto): Promise<{ message: string }> {
+  async execute(
+    userId: string,
+    dto: ChangePasswordDto,
+  ): Promise<{ message: string }> {
     const user = await this.usersRepository.findById(userId);
 
     if (!user) {
@@ -18,9 +23,14 @@ export class ChangePasswordUseCase {
 
     if (user.hasSetPassword) {
       if (!dto.currentPassword) {
-        throw new BadRequestException('A senha atual é obrigatória para este usuário.');
+        throw new BadRequestException(
+          'A senha atual é obrigatória para este usuário.',
+        );
       }
-      const isPasswordValid = await bcryptjs.compare(dto.currentPassword, user.password || '');
+      const isPasswordValid = await bcryptjs.compare(
+        dto.currentPassword,
+        user.password || '',
+      );
       if (!isPasswordValid) {
         throw new BadRequestException('A senha atual está incorreta.');
       }
@@ -34,7 +44,9 @@ export class ChangePasswordUseCase {
     });
 
     return {
-      message: user.hasSetPassword ? 'Senha alterada com sucesso.' : 'Senha criada com sucesso.',
+      message: user.hasSetPassword
+        ? 'Senha alterada com sucesso.'
+        : 'Senha criada com sucesso.',
     };
   }
 }

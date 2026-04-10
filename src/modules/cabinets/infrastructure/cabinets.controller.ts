@@ -136,10 +136,13 @@ export class CabinetsController {
     file?: Express.Multer.File,
   ): Promise<CabinetResponseDto> {
     const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
-    const updated = await this.updateCabinetUseCase.execute({
-      id: cabinet.id,
-      ...dto,
-    }, file);
+    const updated = await this.updateCabinetUseCase.execute(
+      {
+        id: cabinet.id,
+        ...dto,
+      },
+      file,
+    );
     return this.toCabinetDto(updated);
   }
 

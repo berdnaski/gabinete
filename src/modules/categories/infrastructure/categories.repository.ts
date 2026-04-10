@@ -10,7 +10,7 @@ import { PaginationHelper } from '../../../shared/application/pagination.helper'
 
 @Injectable()
 export class CategoriesRepository implements ICategoriesRepository {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(data: { name: string; slug: string }): Promise<CategoryEntity> {
     const record = await this.prisma.category.create({ data });
@@ -42,12 +42,19 @@ export class CategoriesRepository implements ICategoriesRepository {
     return records.map((r) => r.slug);
   }
 
-  async list(params: PaginationParams): Promise<PaginatedResult<CategoryEntity>> {
+  async list(
+    params: PaginationParams,
+  ): Promise<PaginatedResult<CategoryEntity>> {
     const { skip, take } = PaginationHelper.getSkipTake(params);
     const where = { disabledAt: null };
 
     const [records, total] = await Promise.all([
-      this.prisma.category.findMany({ where, skip, take, orderBy: { name: 'asc' } }),
+      this.prisma.category.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { name: 'asc' },
+      }),
       this.prisma.category.count({ where }),
     ]);
 

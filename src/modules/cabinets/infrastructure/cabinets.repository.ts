@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { Cabinet as PrismaCabinet } from '@prisma/client';
 import { CabinetEntity } from '../domain/cabinet.entity';
 import { ICabinetsRepository } from '../domain/cabinets.repository.interface';
 
@@ -71,15 +72,7 @@ export class CabinetsRepository implements ICabinetsRepository {
     });
   }
 
-  private toEntity(record: {
-    id: string;
-    name: string;
-    slug: string;
-    email: string | null;
-    description: string | null;
-    avatarUrl: string | null;
-    disabledAt: Date | null;
-  }): CabinetEntity {
+  private toEntity(record: PrismaCabinet): CabinetEntity {
     const entity = new CabinetEntity();
     entity.id = record.id;
     entity.name = record.name;

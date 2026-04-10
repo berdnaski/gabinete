@@ -19,7 +19,10 @@ export class UpdateCabinetUseCase {
     private readonly storageService: StorageService,
   ) {}
 
-  async execute(input: UpdateCabinetInput, file?: Express.Multer.File): Promise<CabinetEntity> {
+  async execute(
+    input: UpdateCabinetInput,
+    file?: Express.Multer.File,
+  ): Promise<CabinetEntity> {
     const existing = await this.cabinetsRepository.findById(input.id);
     if (!existing) {
       throw new NotFoundException('Cabinet not found');

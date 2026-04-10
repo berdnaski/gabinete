@@ -9,10 +9,12 @@ import { subDays } from 'date-fns';
 
 @Injectable()
 export class GetCabinetDemandHeatmapUseCase {
-  constructor(private readonly demandsRepository: IDemandsRepository) { }
+  constructor(private readonly demandsRepository: IDemandsRepository) {}
 
   async execute(): Promise<HeatmapData> {
-    const rawPoints = await this.demandsRepository.getRawHeatmapPoints(subDays(new Date(), 30));
+    const rawPoints = await this.demandsRepository.getRawHeatmapPoints(
+      subDays(new Date(), 30),
+    );
 
     const counts: Record<string, number> = {};
     let topName = 'N/A';

@@ -15,12 +15,12 @@ import {
   DemandCommentInfo,
   IDemandsRepository,
   ListDemandsFilters,
-  RawHeatmapPoint
+  RawHeatmapPoint,
 } from '../domain/demands.repository.interface';
 
 @Injectable()
 export class DemandsRepository implements IDemandsRepository {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async findById(id: string): Promise<DemandEntity | null> {
     const demand = await this.prisma.demand.findUnique({
@@ -113,19 +113,33 @@ export class DemandsRepository implements IDemandsRepository {
     filters: ListDemandsFilters,
   ): Promise<PaginatedResult<DemandEntity>> {
     const { skip, take } = PaginationHelper.getSkipTake(filters);
-    const { cabinetId, unassignedOnly, categoryId, categories, neighborhoods, status, priority, search } =
-      filters;
+    const {
+      cabinetId,
+      unassignedOnly,
+      categoryId,
+      categories,
+      neighborhoods,
+      status,
+      priority,
+      search,
+    } = filters;
 
-    const parseArray = (val: string | string[] | undefined): string[] | undefined => {
+    const parseArray = (
+      val: string | string[] | undefined,
+    ): string[] | undefined => {
       if (!val) return undefined;
       if (Array.isArray(val)) return val;
-      return String(val).split(',').map((v) => v.trim()).filter(Boolean);
+      return String(val)
+        .split(',')
+        .map((v) => v.trim())
+        .filter(Boolean);
     };
 
     const parsedCategories = parseArray(categories);
     const parsedNeighborhoods = parseArray(neighborhoods);
 
-    let categoryFilter: Prisma.StringFilter | string | undefined = categoryId || undefined;
+    let categoryFilter: Prisma.StringFilter | string | undefined =
+      categoryId || undefined;
     if (parsedCategories?.length) {
       categoryFilter = {
         in: parsedCategories,
@@ -136,15 +150,17 @@ export class DemandsRepository implements IDemandsRepository {
       disabledAt: null,
       cabinetId: unassignedOnly ? null : cabinetId || undefined,
       categoryId: categoryFilter,
-      neighborhood: parsedNeighborhoods?.length ? { in: parsedNeighborhoods } : undefined,
+      neighborhood: parsedNeighborhoods?.length
+        ? { in: parsedNeighborhoods }
+        : undefined,
       status: status || undefined,
       priority: priority || undefined,
       OR: search
         ? [
-          { title: { contains: search, mode: 'insensitive' } },
-          { description: { contains: search, mode: 'insensitive' } },
-          { neighborhood: { contains: search, mode: 'insensitive' } },
-        ]
+            { title: { contains: search, mode: 'insensitive' } },
+            { description: { contains: search, mode: 'insensitive' } },
+            { neighborhood: { contains: search, mode: 'insensitive' } },
+          ]
         : undefined,
     };
 
@@ -160,14 +176,14 @@ export class DemandsRepository implements IDemandsRepository {
           category: {
             select: {
               name: true,
-            }
-          }
+            },
+          },
         },
       }),
       this.prisma.demand.count({ where }),
     ]);
 
-    console.log(items)
+    console.log(items);
     return {
       items: items.map((item) => DemandEntityMapper.toDomain(item)),
       total,
@@ -315,7 +331,7 @@ export class DemandsRepository implements IDemandsRepository {
       totalDemandsThisMonth,
       resolvedDemandsThisMonth,
       cabinetId,
-    })
+    });
     return {
       new: newDemandsLast24HoursCount,
       urgent: urgentOpenDemandsTotalCount,
@@ -368,7 +384,9 @@ export class DemandsRepository implements IDemandsRepository {
   }
 }
 
-type DemandWithRelations = Prisma.DemandGetPayload<{ include: { evidences: true } }> & {
+type DemandWithRelations = Prisma.DemandGetPayload<{
+  include: { evidences: true };
+}> & {
   reporter?: { name: string; avatarUrl: string | null } | null;
   category?: { name: string } | null;
 };
@@ -412,12 +430,17 @@ export class DemandEntityMapper {
 
     if (prismaModel.reporter !== undefined) {
       entity.reporter = prismaModel.reporter
-        ? { name: prismaModel.reporter.name, avatarUrl: prismaModel.reporter.avatarUrl }
+        ? {
+            name: prismaModel.reporter.name,
+            avatarUrl: prismaModel.reporter.avatarUrl,
+          }
         : null;
     }
 
     if (prismaModel.category !== undefined) {
-      entity.category = prismaModel.category ? { name: prismaModel.category.name } : null;
+      entity.category = prismaModel.category
+        ? { name: prismaModel.category.name }
+        : null;
     }
 
     return entity;

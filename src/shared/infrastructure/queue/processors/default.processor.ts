@@ -54,7 +54,10 @@ export class DefaultProcessor extends WorkerHost implements OnModuleInit {
         } else if (data.type === EmailType.PASSWORD_RESET) {
           await this.mailService.sendPasswordResetEmail(data.email, data.token);
         } else if (data.type === EmailType.PASSWORD_CHANGE) {
-          await this.mailService.sendPasswordChangeConfirmationEmail(data.email, data.token);
+          await this.mailService.sendPasswordChangeConfirmationEmail(
+            data.email,
+            data.token,
+          );
         }
         break;
       }

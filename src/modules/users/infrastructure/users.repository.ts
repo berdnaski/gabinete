@@ -15,21 +15,21 @@ type PrismaUserWithMembers = Prisma.UserGetPayload<{
 
 @Injectable()
 export class UsersRepository implements IUsersRepository {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async findByEmail(email: string): Promise<UserEntity | null> {
-    const record = await this.prisma.user.findFirst({
+    const record = (await this.prisma.user.findFirst({
       where: { email, disabledAt: null },
       include: { cabinetMembers: { select: { id: true } } },
-    }) as PrismaUserWithMembers | null;
+    })) as PrismaUserWithMembers | null;
     return record ? this.toEntity(record) : null;
   }
 
   async findById(id: string): Promise<UserEntity | null> {
-    const record = await this.prisma.user.findFirst({
+    const record = (await this.prisma.user.findFirst({
       where: { id, disabledAt: null },
       include: { cabinetMembers: { select: { id: true } } },
-    }) as PrismaUserWithMembers | null;
+    })) as PrismaUserWithMembers | null;
     return record ? this.toEntity(record) : null;
   }
 
@@ -38,10 +38,10 @@ export class UsersRepository implements IUsersRepository {
     email: string;
     password: string;
   }): Promise<UserEntity> {
-    const record = await this.prisma.user.create({ 
+    const record = (await this.prisma.user.create({
       data,
       include: { cabinetMembers: { select: { id: true } } },
-    }) as PrismaUserWithMembers;
+    })) as PrismaUserWithMembers;
     return this.toEntity(record);
   }
 
@@ -63,22 +63,22 @@ export class UsersRepository implements IUsersRepository {
           providerAccountId,
         },
       },
-      include: { 
+      include: {
         user: {
-          include: { cabinetMembers: { select: { id: true } } }
-        }
+          include: { cabinetMembers: { select: { id: true } } },
+        },
       },
     });
 
     if (!account?.user) return null;
-    
+
     return this.toEntity(account.user as PrismaUserWithMembers);
   }
 
   async createWithAccount(
     data: CreateUserWithAccountData,
   ): Promise<UserEntity> {
-    const record = await this.prisma.user.create({
+    const record = (await this.prisma.user.create({
       data: {
         name: data.name,
         email: data.email,
@@ -93,7 +93,7 @@ export class UsersRepository implements IUsersRepository {
         },
       },
       include: { cabinetMembers: { select: { id: true } } },
-    }) as PrismaUserWithMembers;
+    })) as PrismaUserWithMembers;
     return this.toEntity(record);
   }
 
@@ -112,7 +112,7 @@ export class UsersRepository implements IUsersRepository {
   }
 
   async update(id: string, data: Partial<UserEntity>): Promise<UserEntity> {
-    const record = await this.prisma.user.update({
+    const record = (await this.prisma.user.update({
       where: { id },
       data: {
         name: data.name,
@@ -133,7 +133,7 @@ export class UsersRepository implements IUsersRepository {
         hasSetPassword: data.hasSetPassword,
       },
       include: { cabinetMembers: { select: { id: true } } },
-    }) as PrismaUserWithMembers;
+    })) as PrismaUserWithMembers;
     return this.toEntity(record);
   }
 
@@ -191,7 +191,8 @@ export class UsersRepository implements IUsersRepository {
     entity.lat = record.lat;
     entity.long = record.long;
     entity.hasSetPassword = record.hasSetPassword;
-    entity.isCabinetMember = !!record.cabinetMembers && record.cabinetMembers.length > 0;
+    entity.isCabinetMember =
+      !!record.cabinetMembers && record.cabinetMembers.length > 0;
     return entity;
   }
 }

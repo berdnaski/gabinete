@@ -5,7 +5,7 @@ import { SendNotificationUseCase } from './send-notification.use-case';
 
 @Injectable()
 export class NotificationListener {
-  constructor(private readonly sendNotification: SendNotificationUseCase) { }
+  constructor(private readonly sendNotification: SendNotificationUseCase) {}
 
   @OnEvent('demand.status-changed')
   async handleDemandStatusChanged(payload: {

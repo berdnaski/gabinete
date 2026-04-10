@@ -8,7 +8,7 @@ import {
   Patch,
   Req,
   Res,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -50,7 +50,7 @@ export class AuthController {
     private readonly requestPasswordChangeUseCase: RequestPasswordChangeUseCase,
     private readonly confirmPasswordChangeUseCase: ConfirmPasswordChangeUseCase,
     private readonly googleLoginUseCase: GoogleLoginUseCase,
-  ) { }
+  ) {}
 
   @Post('register')
   @ApiOperation({ summary: 'Register a new citizen account' })
@@ -64,9 +64,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Verify user email using token' })
   @ApiResponse({ status: 200, description: 'Email verified' })
   @ApiResponse({ status: 400, description: 'Invalid token' })
-  async verifyEmail(
-    @Body() dto: VerifyEmailDto,
-  ): Promise<{ message: string }> {
+  async verifyEmail(@Body() dto: VerifyEmailDto): Promise<{ message: string }> {
     return this.verifyEmailUseCase.execute(dto.token);
   }
 
@@ -111,7 +109,9 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Request a password change (sends confirmation email)' })
+  @ApiOperation({
+    summary: 'Request a password change (sends confirmation email)',
+  })
   @ApiResponse({ status: 200, description: 'Confirmation email sent' })
   async requestChangePassword(
     @CurrentUser() user: UserResponseDto,
@@ -151,7 +151,7 @@ export class AuthController {
     status: 302,
     description: 'Redirects to Google authorization page',
   })
-  googleAuth() { }
+  googleAuth() {}
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)

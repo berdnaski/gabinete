@@ -15,7 +15,7 @@ export class ResendMailService implements MailService {
 
     this.fromEmail = process.env.MAIL_FROM || 'onboarding@resend.dev';
     this.frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-  } 
+  }
 
   async sendVerificationEmail(email: string, token: string): Promise<void> {
     const verificationLink = `${this.frontendUrl}/verify-email?token=${token}`;

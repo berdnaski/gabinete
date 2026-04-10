@@ -12,7 +12,7 @@ export class ConfirmPasswordChangeUseCase {
   constructor(
     private readonly tokensRepository: ITokensRepository,
     private readonly usersRepository: IUsersRepository,
-  ) { }
+  ) {}
 
   async execute(token: string): Promise<{ message: string }> {
     const tokenRecord = await this.tokensRepository.findValidToken(

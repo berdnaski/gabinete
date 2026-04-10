@@ -18,7 +18,7 @@ export class TokensRepository implements ITokensRepository {
       where: {
         userId_type: { userId: data.userId, type: data.type },
       },
-      update: { 
+      update: {
         expiresAt: data.expiresAt,
         payload: data.payload || null,
       },
