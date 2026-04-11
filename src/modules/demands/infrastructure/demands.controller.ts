@@ -186,8 +186,12 @@ export class DemandsController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Demand not found' })
-  async update(@Param('id') id: string, @Body() dto: UpdateDemandDto) {
-    return this.updateDemandUseCase.execute(id, dto);
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateDemandDto,
+    @CurrentUser() user: UserEntity,
+  ) {
+    return this.updateDemandUseCase.execute(id, dto, user.id);
   }
 
   @Delete(':id')

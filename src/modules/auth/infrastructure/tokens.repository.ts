@@ -66,4 +66,13 @@ export class TokensRepository implements ITokensRepository {
   async delete(id: string): Promise<void> {
     await this.prisma.token.deleteMany({ where: { id } });
   }
+
+  async deleteByUserAndType(userId: string, type: TokenType): Promise<void> {
+    await this.prisma.token.deleteMany({
+      where: {
+        userId,
+        type,
+      },
+    });
+  }
 }

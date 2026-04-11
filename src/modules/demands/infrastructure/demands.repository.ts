@@ -183,7 +183,6 @@ export class DemandsRepository implements IDemandsRepository {
       this.prisma.demand.count({ where }),
     ]);
 
-    console.log(items);
     return {
       items: items.map((item) => DemandEntityMapper.toDomain(item)),
       total,

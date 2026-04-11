@@ -52,7 +52,7 @@ export class AuthController {
     private readonly confirmPasswordChangeUseCase: ConfirmPasswordChangeUseCase,
     private readonly googleLoginUseCase: GoogleLoginUseCase,
     private readonly refreshTokenUseCase: RefreshTokenUseCase,
-  ) {}
+  ) { }
 
   @Post('register')
   @ApiOperation({ summary: 'Register a new citizen account' })
@@ -161,7 +161,7 @@ export class AuthController {
     status: 302,
     description: 'Redirects to Google authorization page',
   })
-  googleAuth() {}
+  googleAuth() { }
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)

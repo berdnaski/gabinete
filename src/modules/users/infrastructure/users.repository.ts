@@ -111,7 +111,26 @@ export class UsersRepository implements IUsersRepository {
     });
   }
 
-  async update(id: string, data: Partial<UserEntity>): Promise<UserEntity> {
+  async update(
+    id: string,
+    data: {
+      name?: string;
+      email?: string;
+      password?: string;
+      avatarUrl?: string;
+      phone?: string;
+      address?: string;
+      zipcode?: string;
+      neighborhood?: string;
+      city?: string;
+      state?: string;
+      lat?: number;
+      long?: number;
+      hasSetPassword?: boolean;
+      isVerified?: boolean;
+      disabledAt?: Date;
+    },
+  ): Promise<UserEntity> {
     const record = (await this.prisma.user.update({
       where: { id },
       data: {
@@ -119,7 +138,6 @@ export class UsersRepository implements IUsersRepository {
         email: data.email,
         password: data.password || undefined,
         avatarUrl: data.avatarUrl,
-        role: data.role,
         isVerified: data.isVerified,
         disabledAt: data.disabledAt,
         phone: data.phone,
@@ -132,6 +150,15 @@ export class UsersRepository implements IUsersRepository {
         long: data.long,
         hasSetPassword: data.hasSetPassword,
       },
+      include: { cabinetMembers: { select: { id: true } } },
+    })) as PrismaUserWithMembers;
+    return this.toEntity(record);
+  }
+
+  async updateRole(id: string, role: UserRole): Promise<UserEntity> {
+    const record = (await this.prisma.user.update({
+      where: { id },
+      data: { role },
       include: { cabinetMembers: { select: { id: true } } },
     })) as PrismaUserWithMembers;
     return this.toEntity(record);

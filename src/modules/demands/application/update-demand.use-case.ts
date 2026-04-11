@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { IDemandsRepository } from '../domain/demands.repository.interface';
+import { ICabinetMembersRepository } from '../../cabinets/domain/cabinet-members.repository.interface';
 import { UpdateDemandDto } from '../dto/update-demand.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { DemandStatus } from '@prisma/client';
@@ -8,14 +9,33 @@ import { DemandStatus } from '@prisma/client';
 export class UpdateDemandUseCase {
   constructor(
     private readonly demandsRepository: IDemandsRepository,
+    private readonly cabinetMembersRepository: ICabinetMembersRepository,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
-  async execute(id: string, dto: UpdateDemandDto) {
+  async execute(id: string, dto: UpdateDemandDto, userId: string) {
     const demand = await this.demandsRepository.findById(id);
 
     if (!demand) {
       throw new NotFoundException('Demand not found');
+    }
+
+    if (dto.status || dto.priority || dto.assigneeMemberId) {
+      let isAuthorized = false;
+
+      if (demand.cabinetId) {
+        const membership = await this.cabinetMembersRepository.findMembership(
+          userId,
+          demand.cabinetId,
+        );
+        isAuthorized = !!membership;
+      }
+
+      if (!isAuthorized) {
+        delete dto.status;
+        delete dto.priority;
+        delete dto.assigneeMemberId;
+      }
     }
 
     const updatedDemand = await this.demandsRepository.update(id, dto);

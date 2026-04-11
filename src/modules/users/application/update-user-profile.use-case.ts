@@ -28,6 +28,17 @@ export class UpdateUserProfileUseCase {
       data.avatarUrl = generated.signedUrl;
     }
 
-    return this.usersRepository.update(id, data);
+    return this.usersRepository.update(id, {
+      name: data.name,
+      avatarUrl: data.avatarUrl,
+      phone: data.phone,
+      address: data.address,
+      zipcode: data.zipcode,
+      neighborhood: data.neighborhood,
+      city: data.city,
+      state: data.state,
+      lat: data.lat,
+      long: data.long,
+    });
   }
 }

@@ -37,7 +37,27 @@ export abstract class IUsersRepository {
     provider: string;
     providerAccountId: string;
   }): Promise<void>;
-  abstract update(id: string, data: Partial<UserEntity>): Promise<UserEntity>;
+  abstract update(
+    id: string,
+    data: {
+      name?: string;
+      email?: string;
+      password?: string;
+      avatarUrl?: string;
+      phone?: string;
+      address?: string;
+      zipcode?: string;
+      neighborhood?: string;
+      city?: string;
+      state?: string;
+      lat?: number;
+      long?: number;
+      hasSetPassword?: boolean;
+      isVerified?: boolean;
+      disabledAt?: Date;
+    },
+  ): Promise<UserEntity>;
+  abstract updateRole(id: string, role: string): Promise<UserEntity>;
   abstract findAll(
     filters: ListUsersFilters,
   ): Promise<PaginatedResult<UserEntity>>;

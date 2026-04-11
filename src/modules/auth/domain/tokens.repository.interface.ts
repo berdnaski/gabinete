@@ -20,4 +20,5 @@ export abstract class ITokensRepository {
   ): Promise<TokenEntity | null>;
 
   abstract delete(id: string): Promise<void>;
+  abstract deleteByUserAndType(userId: string, type: TokenType): Promise<void>;
 }

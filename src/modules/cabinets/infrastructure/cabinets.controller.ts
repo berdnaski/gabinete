@@ -181,8 +181,11 @@ export class CabinetsController {
   }
 
   @Get(':slug/members')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'List members of a cabinet' })
   @ApiResponse({ status: 200, type: [CabinetMemberResponseDto] })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Cabinet not found' })
   async listMembers(
     @Param('slug') slug: string,
