@@ -174,10 +174,10 @@ export class AuthController {
     @Req() req: Request,
     @Res() res: Response,
   ): Promise<void> {
-    const { accessToken } = await this.googleLoginUseCase.execute(
+    const { accessToken, refreshToken } = await this.googleLoginUseCase.execute(
       req.user as GoogleUser,
     );
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    res.redirect(`${frontendUrl}/auth/callback?token=${accessToken}`);
+    res.redirect(`${frontendUrl}/auth/callback?token=${accessToken}&refreshToken=${refreshToken}`);
   }
 }
