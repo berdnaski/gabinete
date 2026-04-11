@@ -29,6 +29,7 @@ import { LoginUseCase } from '../application/login.use-case';
 import { RegisterUseCase } from '../application/register.use-case';
 import { ResetPasswordUseCase } from '../application/reset-password.use-case';
 import { VerifyEmailUseCase } from '../application/verify-email.use-case';
+import { RefreshTokenUseCase } from '../application/refresh-token.use-case';
 import { AuthResponseDto } from '../dto/auth-response.dto';
 import { ChangePasswordDto } from '../dto/change-password.dto';
 import { ForgotPasswordDto } from '../dto/forgot-password.dto';
@@ -50,6 +51,7 @@ export class AuthController {
     private readonly requestPasswordChangeUseCase: RequestPasswordChangeUseCase,
     private readonly confirmPasswordChangeUseCase: ConfirmPasswordChangeUseCase,
     private readonly googleLoginUseCase: GoogleLoginUseCase,
+    private readonly refreshTokenUseCase: RefreshTokenUseCase,
   ) {}
 
   @Post('register')
@@ -79,6 +81,14 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(@Body() dto: LoginDto): Promise<AuthResponseDto> {
     return this.loginUseCase.execute(dto);
+  }
+
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Refresh accessToken using refreshToken' })
+  @ApiResponse({ status: 200, description: 'New token pair', type: AuthResponseDto })
+  async refresh(@Body('refreshToken') refreshToken: string): Promise<AuthResponseDto> {
+    return this.refreshTokenUseCase.execute(refreshToken);
   }
 
   @Post('forgot-password')

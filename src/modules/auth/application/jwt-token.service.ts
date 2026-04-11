@@ -9,18 +9,28 @@ export interface JwtPayload {
 
 @Injectable()
 export class JwtTokenService {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(private readonly jwtService: JwtService) { }
 
   sign(user: { id: string; email: string }): AuthTokenEntity {
-    const expiresIn = parseInt(process.env.JWT_EXPIRES_IN ?? '3600', 10);
+    const accessTokenExpiresIn = parseInt(process.env.JWT_EXPIRES_IN ?? '3600', 10);
+    const refreshTokenExpiresIn = parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN ?? '604800', 10);
 
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
     };
 
-    const accessToken = this.jwtService.sign(payload, { expiresIn });
+    const accessToken = this.jwtService.sign(payload, { expiresIn: accessTokenExpiresIn });
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: refreshTokenExpiresIn });
 
-    return { accessToken, expiresIn };
+    return {
+      accessToken,
+      refreshToken,
+      expiresIn: accessTokenExpiresIn
+    };
+  }
+
+  verify(token: string): JwtPayload {
+    return this.jwtService.verify(token);
   }
 }

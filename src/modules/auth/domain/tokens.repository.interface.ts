@@ -14,5 +14,10 @@ export abstract class ITokensRepository {
     type: TokenType,
   ): Promise<TokenEntity | null>;
 
+  abstract findValidTokenByPayload(
+    payload: string,
+    type: TokenType,
+  ): Promise<TokenEntity | null>;
+
   abstract delete(id: string): Promise<void>;
 }

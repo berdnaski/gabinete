@@ -5,9 +5,11 @@ import {
 } from '@nestjs/common';
 import { FindUserByEmailUseCase } from '../../users/application/find-user-by-email.use-case';
 import { ValidatePasswordUseCase } from '../../users/application/validate-password.use-case';
-import { AuthTokenEntity } from '../domain/auth-token.entity';
+import { ITokensRepository } from '../domain/tokens.repository.interface';
+import { TokenType } from '@prisma/client';
 import { LoginDto } from '../dto/login.dto';
 import { JwtTokenService } from './jwt-token.service';
+import { AuthTokenEntity } from '../domain/auth-token.entity';
 
 @Injectable()
 export class LoginUseCase {
@@ -15,7 +17,8 @@ export class LoginUseCase {
     private readonly findUserByEmailUseCase: FindUserByEmailUseCase,
     private readonly validatePasswordUseCase: ValidatePasswordUseCase,
     private readonly jwtTokenService: JwtTokenService,
-  ) {}
+    private readonly tokensRepository: ITokensRepository,
+  ) { }
 
   async execute(dto: LoginDto): Promise<AuthTokenEntity> {
     const user = await this.findUserByEmailUseCase.execute(dto.email);
@@ -38,6 +41,18 @@ export class LoginUseCase {
       );
     }
 
-    return this.jwtTokenService.sign(user);
+    const tokens = this.jwtTokenService.sign(user);
+    const refreshTokenExpiresIn = parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN ?? '604800', 10);
+    const expiresAt = new Date();
+    expiresAt.setSeconds(expiresAt.getSeconds() + refreshTokenExpiresIn);
+
+    await this.tokensRepository.upsert({
+      userId: user.id,
+      type: TokenType.REFRESH_TOKEN,
+      payload: tokens.refreshToken,
+      expiresAt: expiresAt,
+    });
+
+    return tokens;
   }
 }
