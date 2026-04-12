@@ -17,8 +17,10 @@ import { InviteCabinetMemberUseCase } from '../application/invite-cabinet-member
 import { GetCabinetInvitationUseCase } from '../application/get-cabinet-invitation.use-case';
 import { AcceptCabinetInvitationUseCase } from '../application/accept-cabinet-invitation.use-case';
 import { CabinetInvitationsRepository } from './invitations.repository';
+import { UsersModule } from '../../users/infrastructure/users.module';
 
 @Module({
+  imports: [UsersModule],
   providers: [
     { provide: ICabinetsRepository, useClass: CabinetsRepository },
     { provide: ICabinetMembersRepository, useClass: CabinetMembersRepository },
