@@ -43,6 +43,20 @@ export class CabinetInvitationsRepository implements ICabinetInvitationsReposito
     });
   }
 
+  async findById(id: string): Promise<any | null> {
+    return this.prisma.cabinetInvitation.findUnique({
+      where: { id },
+      include: { cabinet: true },
+    });
+  }
+
+  async findByCabinetId(cabinetId: string): Promise<any[]> {
+    return this.prisma.cabinetInvitation.findMany({
+      where: { cabinetId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async delete(id: string): Promise<void> {
     await this.prisma.cabinetInvitation.delete({
       where: { id },

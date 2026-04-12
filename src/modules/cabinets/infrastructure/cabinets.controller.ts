@@ -48,6 +48,8 @@ import { InviteCabinetMemberDto } from '../dto/invite-cabinet-member.dto';
 import { InviteCabinetMemberUseCase } from '../application/invite-cabinet-member.use-case';
 import { GetCabinetInvitationUseCase } from '../application/get-cabinet-invitation.use-case';
 import { AcceptCabinetInvitationUseCase } from '../application/accept-cabinet-invitation.use-case';
+import { ListCabinetInvitationsUseCase } from '../application/list-cabinet-invitations.use-case';
+import { CancelCabinetInvitationUseCase } from '../application/cancel-cabinet-invitation.use-case';
 
 @ApiTags('cabinets')
 @Controller('cabinets')
@@ -61,6 +63,8 @@ export class CabinetsController {
     private readonly inviteCabinetMemberUseCase: InviteCabinetMemberUseCase,
     private readonly getCabinetInvitationUseCase: GetCabinetInvitationUseCase,
     private readonly acceptCabinetInvitationUseCase: AcceptCabinetInvitationUseCase,
+    private readonly listCabinetInvitationsUseCase: ListCabinetInvitationsUseCase,
+    private readonly cancelCabinetInvitationUseCase: CancelCabinetInvitationUseCase,
     private readonly listCabinetMembersUseCase: ListCabinetMembersUseCase,
     private readonly removeCabinetMemberUseCase: RemoveCabinetMemberUseCase,
   ) { }
@@ -205,6 +209,33 @@ export class CabinetsController {
     @CurrentUser() user: UserEntity,
   ) {
     return this.acceptCabinetInvitationUseCase.execute(token, user.id);
+  }
+
+  @Get(':slug/invites')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List pending invitations for a cabinet' })
+  @ApiResponse({ status: 200, description: 'List of invitations' })
+  @ApiResponse({ status: 403, description: 'Only owners can list' })
+  async listInvites(
+    @Param('slug') slug: string,
+    @CurrentUser() user: UserEntity,
+  ) {
+    return this.listCabinetInvitationsUseCase.execute(slug, user.id);
+  }
+
+  @Delete('invites/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Cancel a pending invitation' })
+  @ApiResponse({ status: 200, description: 'Invitation canceled' })
+  @ApiResponse({ status: 403, description: 'Only owners can cancel' })
+  @ApiResponse({ status: 404, description: 'Invitation not found' })
+  async cancelInvite(
+    @Param('id') id: string,
+    @CurrentUser() user: UserEntity,
+  ) {
+    return this.cancelCabinetInvitationUseCase.execute(id, user.id);
   }
 
   @Get(':slug/members')
