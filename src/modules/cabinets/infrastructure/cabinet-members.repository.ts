@@ -60,6 +60,17 @@ export class CabinetMembersRepository implements ICabinetMembersRepository {
     return record ? this.toEntity(record) : null;
   }
 
+  async updateRole(
+    userId: string,
+    cabinetId: string,
+    role: CabinetRole,
+  ): Promise<void> {
+    await this.prisma.cabinetMember.update({
+      where: { userId_cabinetId: { userId, cabinetId } },
+      data: { role },
+    });
+  }
+
   private toEntity(record: {
     id: string;
     userId: string;

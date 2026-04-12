@@ -50,6 +50,9 @@ import { GetCabinetInvitationUseCase } from '../application/get-cabinet-invitati
 import { AcceptCabinetInvitationUseCase } from '../application/accept-cabinet-invitation.use-case';
 import { ListCabinetInvitationsUseCase } from '../application/list-cabinet-invitations.use-case';
 import { CancelCabinetInvitationUseCase } from '../application/cancel-cabinet-invitation.use-case';
+import { UpdateCabinetMemberRoleUseCase } from '../application/update-cabinet-member-role.use-case';
+import { LeaveCabinetUseCase } from '../application/leave-cabinet.use-case';
+import { UpdateCabinetMemberRoleDto } from '../dto/update-cabinet-member-role.dto';
 
 @ApiTags('cabinets')
 @Controller('cabinets')
@@ -65,6 +68,8 @@ export class CabinetsController {
     private readonly acceptCabinetInvitationUseCase: AcceptCabinetInvitationUseCase,
     private readonly listCabinetInvitationsUseCase: ListCabinetInvitationsUseCase,
     private readonly cancelCabinetInvitationUseCase: CancelCabinetInvitationUseCase,
+    private readonly updateCabinetMemberRoleUseCase: UpdateCabinetMemberRoleUseCase,
+    private readonly leaveCabinetUseCase: LeaveCabinetUseCase,
     private readonly listCabinetMembersUseCase: ListCabinetMembersUseCase,
     private readonly removeCabinetMemberUseCase: RemoveCabinetMemberUseCase,
   ) { }
@@ -236,6 +241,42 @@ export class CabinetsController {
     @CurrentUser() user: UserEntity,
   ) {
     return this.cancelCabinetInvitationUseCase.execute(id, user.id);
+  }
+
+  @Patch(':slug/members/:userId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update a cabinet member role' })
+  @ApiResponse({ status: 200, description: 'Role updated successfully' })
+  @ApiResponse({ status: 400, description: 'Cannot change own role' })
+  @ApiResponse({ status: 403, description: 'Only owners can update roles' })
+  @ApiResponse({ status: 404, description: 'Member not found' })
+  async updateMemberRole(
+    @Param('slug') slug: string,
+    @Param('userId') userId: string,
+    @Body() dto: UpdateCabinetMemberRoleDto,
+    @CurrentUser() requester: UserEntity,
+  ) {
+    return this.updateCabinetMemberRoleUseCase.execute({
+      slug,
+      targetUserId: userId,
+      newRole: dto.role,
+      requesterId: requester.id,
+    });
+  }
+
+  @Post(':slug/leave')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Leave a cabinet voluntarily' })
+  @ApiResponse({ status: 200, description: 'Left successfully' })
+  @ApiResponse({ status: 400, description: 'Owners cannot leave' })
+  @ApiResponse({ status: 404, description: 'Cabinet not found' })
+  async leaveCabinet(
+    @Param('slug') slug: string,
+    @CurrentUser() user: UserEntity,
+  ) {
+    return this.leaveCabinetUseCase.execute(slug, user.id);
   }
 
   @Get(':slug/members')

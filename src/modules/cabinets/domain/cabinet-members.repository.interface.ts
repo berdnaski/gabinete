@@ -23,4 +23,10 @@ export abstract class ICabinetMembersRepository {
     userId: string,
     roles?: CabinetRole[],
   ): Promise<CabinetMemberEntity[]>;
+
+  abstract updateRole(
+    userId: string,
+    cabinetId: string,
+    role: CabinetRole,
+  ): Promise<void>;
 }

@@ -18,6 +18,8 @@ import { GetCabinetInvitationUseCase } from '../application/get-cabinet-invitati
 import { AcceptCabinetInvitationUseCase } from '../application/accept-cabinet-invitation.use-case';
 import { ListCabinetInvitationsUseCase } from '../application/list-cabinet-invitations.use-case';
 import { CancelCabinetInvitationUseCase } from '../application/cancel-cabinet-invitation.use-case';
+import { UpdateCabinetMemberRoleUseCase } from '../application/update-cabinet-member-role.use-case';
+import { LeaveCabinetUseCase } from '../application/leave-cabinet.use-case';
 import { CabinetInvitationsRepository } from './invitations.repository';
 import { UsersModule } from '../../users/infrastructure/users.module';
 
@@ -41,6 +43,8 @@ import { UsersModule } from '../../users/infrastructure/users.module';
     AcceptCabinetInvitationUseCase,
     ListCabinetInvitationsUseCase,
     CancelCabinetInvitationUseCase,
+    UpdateCabinetMemberRoleUseCase,
+    LeaveCabinetUseCase,
     ListCabinetMembersUseCase,
     RemoveCabinetMemberUseCase,
   ],
