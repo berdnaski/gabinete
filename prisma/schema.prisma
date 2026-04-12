@@ -113,6 +113,7 @@ model Cabinet {
   members CabinetMember[]
   demands Demand[]
   results Result[]
+  invitations CabinetInvitation[]
 
   @@index([slug])
   @@index([disabledAt])
@@ -133,6 +134,23 @@ model CabinetMember {
   @@index([userId])
   @@index([cabinetId])
   @@map("cabinet_members")
+}
+
+model CabinetInvitation {
+  id        String      @id @default(uuid())
+  email     String
+  token     String      @unique
+  cabinetId String      @map("cabinet_id")
+  role      CabinetRole @default(STAFF)
+  expiresAt DateTime    @map("expires_at")
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  cabinet Cabinet @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
+
+  @@unique([email, cabinetId])
+  @@index([email])
+  @@index([token])
+  @@map("cabinet_invitations")
 }
 
 model Category {

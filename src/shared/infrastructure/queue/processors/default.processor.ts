@@ -15,6 +15,8 @@ export interface SendEmailJobData {
   type: EmailType;
   email: string;
   token: string;
+  cabinetName?: string;
+  senderName?: string;
 }
 
 @Injectable()
@@ -57,6 +59,13 @@ export class DefaultProcessor extends WorkerHost implements OnModuleInit {
           await this.mailService.sendPasswordChangeConfirmationEmail(
             data.email,
             data.token,
+          );
+        } else if (data.type === EmailType.CABINET_INVITATION) {
+          await this.mailService.sendCabinetInvitation(
+            data.email,
+            data.token,
+            data.cabinetName ?? 'Gabinete',
+            data.senderName ?? 'Um administrador',
           );
         }
         break;

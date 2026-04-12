@@ -116,4 +116,45 @@ export class ResendMailService implements MailService {
       throw error;
     }
   }
+
+  async sendCabinetInvitation(
+    email: string,
+    token: string,
+    cabinetName: string,
+    senderName: string,
+  ): Promise<void> {
+    const inviteLink = `${this.frontendUrl}/cabinets/invites/${token}`;
+
+    try {
+      await this.resend.emails.send({
+        from: this.fromEmail,
+        to: email,
+        subject: `Convite para participar do gabinete: ${cabinetName}`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2>Você foi convidado(a)!</h2>
+            <p>Olá,</p>
+            <p><strong>${senderName}</strong> convidou você para fazer parte do gabinete <strong>${cabinetName}</strong> no sistema Gabinete.</p>
+            <p>Ao aceitar, você poderá colaborar na gestão de demandas e resultados deste gabinete.</p>
+            <p style="margin: 30px 0;">
+              <a href="${inviteLink}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                Ver Convite e Aceitar
+              </a>
+            </p>
+            <p>Se o botão não funcionar, cole este link em seu navegador:</p>
+            <p><a href="${inviteLink}">${inviteLink}</a></p>
+            <br/>
+            <p>Se você não conhece quem te convidou, pode ignorar este e-mail.</p>
+          </div>
+        `,
+      });
+      this.logger.log(`Cabinet invitation email sent to ${email}`);
+    } catch (error) {
+      this.logger.error(
+        `Failed to send cabinet invitation email to ${email}`,
+        error,
+      );
+      throw error;
+    }
+  }
 }

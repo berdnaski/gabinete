@@ -5,4 +5,10 @@ export abstract class MailService {
     email: string,
     token: string,
   ): Promise<void>;
+  abstract sendCabinetInvitation(
+    email: string,
+    token: string,
+    cabinetName: string,
+    senderName: string,
+  ): Promise<void>;
 }

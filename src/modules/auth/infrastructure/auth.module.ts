@@ -13,6 +13,7 @@ import { RequestPasswordChangeUseCase } from '../application/request-password-ch
 import { ConfirmPasswordChangeUseCase } from '../application/confirm-password-change.use-case';
 import { RefreshTokenUseCase } from '../application/refresh-token.use-case';
 import { UsersModule } from '../../users/infrastructure/users.module';
+import { CabinetsModule } from '../../cabinets/infrastructure/cabinets.module';
 import { AuthController } from './auth.controller';
 import { GoogleStrategy } from './google.strategy';
 import { JwtStrategy } from './jwt.strategy';
@@ -22,6 +23,7 @@ import { TokensRepository } from './tokens.repository';
 @Module({
   imports: [
     UsersModule,
+    CabinetsModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],

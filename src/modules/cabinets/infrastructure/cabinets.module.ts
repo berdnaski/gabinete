@@ -12,21 +12,37 @@ import { ICabinetsRepository } from '../domain/cabinets.repository.interface';
 import { CabinetMembersRepository } from './cabinet-members.repository';
 import { CabinetsController } from './cabinets.controller';
 import { CabinetsRepository } from './cabinets.repository';
+import { ICabinetInvitationsRepository } from '../domain/invitations.repository.interface';
+import { InviteCabinetMemberUseCase } from '../application/invite-cabinet-member.use-case';
+import { GetCabinetInvitationUseCase } from '../application/get-cabinet-invitation.use-case';
+import { AcceptCabinetInvitationUseCase } from '../application/accept-cabinet-invitation.use-case';
+import { CabinetInvitationsRepository } from './invitations.repository';
 
 @Module({
   providers: [
     { provide: ICabinetsRepository, useClass: CabinetsRepository },
     { provide: ICabinetMembersRepository, useClass: CabinetMembersRepository },
+    {
+      provide: ICabinetInvitationsRepository,
+      useClass: CabinetInvitationsRepository,
+    },
     CreateCabinetUseCase,
     ListCabinetsUseCase,
     FindCabinetBySlugUseCase,
     UpdateCabinetUseCase,
     DeleteCabinetUseCase,
     AddCabinetMemberUseCase,
+    InviteCabinetMemberUseCase,
+    GetCabinetInvitationUseCase,
+    AcceptCabinetInvitationUseCase,
     ListCabinetMembersUseCase,
     RemoveCabinetMemberUseCase,
   ],
   controllers: [CabinetsController],
-  exports: [ICabinetMembersRepository, ICabinetsRepository],
+  exports: [
+    ICabinetMembersRepository,
+    ICabinetsRepository,
+    ICabinetInvitationsRepository,
+  ],
 })
 export class CabinetsModule {}

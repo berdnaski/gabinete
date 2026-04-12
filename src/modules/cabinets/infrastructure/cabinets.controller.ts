@@ -31,7 +31,6 @@ import { CabinetRolesGuard } from '../../../shared/guards/cabinet-roles.guard';
 import { CabinetRoles } from '../../../shared/decorators/cabinet-roles.decorator';
 import { UserEntity } from '../../users/domain/user.entity';
 import { CabinetRole } from '../domain/cabinet-role.enum';
-import { AddCabinetMemberUseCase } from '../application/add-cabinet-member.use-case';
 import { CreateCabinetUseCase } from '../application/create-cabinet.use-case';
 import { DeleteCabinetUseCase } from '../application/delete-cabinet.use-case';
 import { FindCabinetBySlugUseCase } from '../application/find-cabinet-by-slug.use-case';
@@ -41,11 +40,14 @@ import { RemoveCabinetMemberUseCase } from '../application/remove-cabinet-member
 import { UpdateCabinetUseCase } from '../application/update-cabinet.use-case';
 import { CabinetMemberEntity } from '../domain/cabinet-member.entity';
 import { CabinetEntity } from '../domain/cabinet.entity';
-import { AddCabinetMemberDto } from '../dto/add-cabinet-member.dto';
 import { CabinetMemberResponseDto } from '../dto/cabinet-member-response.dto';
 import { CabinetResponseDto } from '../dto/cabinet-response.dto';
 import { CreateCabinetDto } from '../dto/create-cabinet.dto';
 import { UpdateCabinetDto } from '../dto/update-cabinet.dto';
+import { InviteCabinetMemberDto } from '../dto/invite-cabinet-member.dto';
+import { InviteCabinetMemberUseCase } from '../application/invite-cabinet-member.use-case';
+import { GetCabinetInvitationUseCase } from '../application/get-cabinet-invitation.use-case';
+import { AcceptCabinetInvitationUseCase } from '../application/accept-cabinet-invitation.use-case';
 
 @ApiTags('cabinets')
 @Controller('cabinets')
@@ -56,10 +58,12 @@ export class CabinetsController {
     private readonly findCabinetBySlugUseCase: FindCabinetBySlugUseCase,
     private readonly updateCabinetUseCase: UpdateCabinetUseCase,
     private readonly deleteCabinetUseCase: DeleteCabinetUseCase,
-    private readonly addCabinetMemberUseCase: AddCabinetMemberUseCase,
+    private readonly inviteCabinetMemberUseCase: InviteCabinetMemberUseCase,
+    private readonly getCabinetInvitationUseCase: GetCabinetInvitationUseCase,
+    private readonly acceptCabinetInvitationUseCase: AcceptCabinetInvitationUseCase,
     private readonly listCabinetMembersUseCase: ListCabinetMembersUseCase,
     private readonly removeCabinetMemberUseCase: RemoveCabinetMemberUseCase,
-  ) {}
+  ) { }
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -159,25 +163,48 @@ export class CabinetsController {
     await this.deleteCabinetUseCase.execute(cabinet.id);
   }
 
-  @Post(':slug/members')
+  @Post(':slug/invites')
   @UseGuards(JwtAuthGuard, CabinetRolesGuard)
   @CabinetRoles(CabinetRole.OWNER)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Add a member to a cabinet' })
-  @ApiResponse({ status: 201, type: CabinetMemberResponseDto })
+  @ApiOperation({ summary: 'Invite a member to a cabinet by email' })
+  @ApiResponse({ status: 201, description: 'Invitation sent or user linked' })
   @ApiResponse({ status: 404, description: 'Cabinet not found' })
   @ApiResponse({ status: 409, description: 'User is already a member' })
-  async addMember(
+  async inviteMember(
     @Param('slug') slug: string,
-    @Body() dto: AddCabinetMemberDto,
-  ): Promise<CabinetMemberResponseDto> {
+    @Body() dto: InviteCabinetMemberDto,
+    @CurrentUser() user: UserEntity,
+  ): Promise<{ message: string }> {
     const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
-    const member = await this.addCabinetMemberUseCase.execute({
+    return this.inviteCabinetMemberUseCase.execute({
       cabinetId: cabinet.id,
-      userId: dto.userId,
+      email: dto.email,
       role: dto.role,
+      senderId: user.id,
     });
-    return this.toMemberDto(member);
+  }
+
+  @Get('invites/:token')
+  @ApiOperation({ summary: 'Get invitation details by token' })
+  @ApiResponse({ status: 200, description: 'Invitation details returned' })
+  @ApiResponse({ status: 404, description: 'Invitation not found' })
+  async getInvite(@Param('token') token: string) {
+    return this.getCabinetInvitationUseCase.execute(token);
+  }
+
+  @Post('invites/:token/accept')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Accept a cabinet invitation' })
+  @ApiResponse({ status: 200, description: 'Invitation accepted successfully' })
+  @ApiResponse({ status: 403, description: 'Email mismatch' })
+  @ApiResponse({ status: 404, description: 'Invitation not found' })
+  async acceptInvite(
+    @Param('token') token: string,
+    @CurrentUser() user: UserEntity,
+  ) {
+    return this.acceptCabinetInvitationUseCase.execute(token, user.id);
   }
 
   @Get(':slug/members')
@@ -206,9 +233,10 @@ export class CabinetsController {
   async removeMember(
     @Param('slug') slug: string,
     @Param('userId') userId: string,
+    @CurrentUser() user: UserEntity,
   ): Promise<void> {
     const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
-    await this.removeCabinetMemberUseCase.execute(cabinet.id, userId);
+    await this.removeCabinetMemberUseCase.execute(cabinet.id, userId, user.id);
   }
 
   private toCabinetDto(entity: CabinetEntity): CabinetResponseDto {

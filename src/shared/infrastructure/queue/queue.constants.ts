@@ -16,4 +16,5 @@ export enum EmailType {
   VERIFICATION = 'verification',
   PASSWORD_RESET = 'password-reset',
   PASSWORD_CHANGE = 'password-change',
+  CABINET_INVITATION = 'cabinet-invitation',
 }

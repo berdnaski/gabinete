@@ -15,7 +15,7 @@ export class RegisterUseCase {
     private readonly createUserUseCase: CreateUserUseCase,
     private readonly tokensRepository: ITokensRepository,
     private readonly queueService: QueueService,
-  ) {}
+  ) { }
 
   async execute(dto: RegisterDto): Promise<{ message: string }> {
     const user = await this.createUserUseCase.execute(dto);
