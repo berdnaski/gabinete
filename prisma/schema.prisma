@@ -173,7 +173,7 @@ model Demand {
   status           DemandStatus   @default(SUBMITTED)
   priority         DemandPriority @default(LOW)
   address          String
-  zipcode          String
+  zipcode          String?
   lat              Float?
   long             Float?
   neighborhood     String

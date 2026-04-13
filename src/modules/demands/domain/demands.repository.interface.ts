@@ -11,7 +11,7 @@ export interface CreateDemandInfo {
   status?: DemandStatus;
   priority?: DemandPriority;
   address: string;
-  zipcode: string;
+  zipcode?: string | null;
   lat?: number | null;
   long?: number | null;
   neighborhood: string;

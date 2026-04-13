@@ -47,11 +47,11 @@ export class CreateDemandDto {
   @MaxLength(300)
   address: string;
 
-  @ApiProperty({ example: '12345-678', maxLength: 9 })
+  @ApiProperty({ example: '12345-678', maxLength: 9, required: false })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MaxLength(9)
-  zipcode: string;
+  zipcode?: string;
 
   @ApiProperty({ example: -23.55052, required: false })
   @Type(() => Number)

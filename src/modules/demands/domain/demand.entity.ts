@@ -40,8 +40,8 @@ export class DemandEntity {
   @ApiProperty({ example: 'Main Street, 123' })
   address: string;
 
-  @ApiProperty({ example: '12345-678' })
-  zipcode: string;
+  @ApiProperty({ example: '12345-678', nullable: true })
+  zipcode: string | null;
 
   @ApiProperty({ example: -23.55052, nullable: true })
   lat: number | null;
