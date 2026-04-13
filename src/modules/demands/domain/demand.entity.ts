@@ -90,4 +90,10 @@ export class DemandEntity {
 
   @ApiProperty({ type: DemandCategoryInfo, required: false, nullable: true })
   category?: DemandCategoryInfo | null;
+
+  @ApiProperty({ example: 42 })
+  likesCount: number = 0;
+
+  @ApiProperty({ example: false })
+  isLiked: boolean = false;
 }

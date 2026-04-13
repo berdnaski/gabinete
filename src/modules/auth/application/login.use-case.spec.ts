@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { FindUserByEmailUseCase } from '../../users/application/find-user-by-email.use-case';
 import { ValidatePasswordUseCase } from '../../users/application/validate-password.use-case';
+import { ITokensRepository } from '../domain/tokens.repository.interface';
 import { JwtPayload, JwtTokenService } from './jwt-token.service';
 import { LoginUseCase } from './login.use-case';
 
@@ -50,6 +51,7 @@ describe('LoginUseCase', () => {
   const mockFindUserByEmail = { execute: jest.fn() };
   const mockValidatePassword = { execute: jest.fn() };
   const mockJwtTokenService = { sign: jest.fn() };
+  const mockTokensRepository = { upsert: jest.fn() };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -59,6 +61,7 @@ describe('LoginUseCase', () => {
         { provide: FindUserByEmailUseCase, useValue: mockFindUserByEmail },
         { provide: ValidatePasswordUseCase, useValue: mockValidatePassword },
         { provide: JwtTokenService, useValue: mockJwtTokenService },
+        { provide: ITokensRepository, useValue: mockTokensRepository },
       ],
     }).compile();
 

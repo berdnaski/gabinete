@@ -120,8 +120,11 @@ export class DemandsController {
       },
     },
   })
-  async list(@Query() query: ListDemandsDto) {
-    return this.listDemandsUseCase.execute(query);
+  async list(
+    @Query() query: ListDemandsDto,
+    @CurrentUser() user: UserEntity | null,
+  ) {
+    return this.listDemandsUseCase.execute(query, user?.id);
   }
 
   @Get('cabinet/:slug/metrics')
@@ -160,7 +163,7 @@ export class DemandsController {
     @Query() query: ListDemandsDto,
     @CurrentUser() user: UserEntity,
   ) {
-    return this.listDemandsByReporterUseCase.execute(user.id, query);
+    return this.listDemandsByReporterUseCase.execute(user.id, query, user.id);
   }
 
   @Get('neighborhoods')
@@ -181,14 +184,16 @@ export class DemandsController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Find a demand by ID' })
   @ApiResponse({ status: 200, type: DemandEntity })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Demand not found' })
-  async findById(@Param('id') id: string) {
-    return this.findDemandUseCase.execute(id);
+  async findById(
+    @Param('id') id: string,
+    @CurrentUser() user: UserEntity | null,
+  ) {
+    return this.findDemandUseCase.execute(id, user?.id);
   }
 
   @Patch(':id')

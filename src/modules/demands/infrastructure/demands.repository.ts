@@ -15,6 +15,7 @@ import {
   DemandCommentInfo,
   IDemandsRepository,
   ListDemandsFilters,
+  ListReporterDemandsFilters,
   RawHeatmapPoint,
 } from '../domain/demands.repository.interface';
 
@@ -22,12 +23,16 @@ import {
 export class DemandsRepository implements IDemandsRepository {
   constructor(private readonly prisma: PrismaService) { }
 
-  async findById(id: string): Promise<DemandEntity | null> {
+  async findById(id: string, userId?: string): Promise<DemandEntity | null> {
     const demand = await this.prisma.demand.findUnique({
       where: { id, disabledAt: null },
-      include: { evidences: true },
+      include: {
+        evidences: true,
+        _count: { select: { likes: true } },
+        likes: userId ? { where: { userId } } : false,
+      },
     });
-    return demand ? DemandEntityMapper.toDomain(demand) : null;
+    return demand ? DemandEntityMapper.toDomain(demand, userId) : null;
   }
 
   async addEvidence(
@@ -111,6 +116,7 @@ export class DemandsRepository implements IDemandsRepository {
 
   async findAll(
     filters: ListDemandsFilters,
+    userId?: string,
   ): Promise<PaginatedResult<DemandEntity>> {
     const { skip, take } = PaginationHelper.getSkipTake(filters);
     const {
@@ -178,26 +184,36 @@ export class DemandsRepository implements IDemandsRepository {
               name: true,
             },
           },
+          _count: { select: { likes: true } },
+          likes: userId ? { where: { userId } } : false,
         },
       }),
       this.prisma.demand.count({ where }),
     ]);
 
     return {
-      items: items.map((item) => DemandEntityMapper.toDomain(item)),
+      items: items.map((item) => DemandEntityMapper.toDomain(item, userId)),
       total,
     };
   }
 
   async findByReporter(
     reporterId: string,
-    params: PaginationParams,
+    filters: ListReporterDemandsFilters,
+    userId?: string,
   ): Promise<PaginatedResult<DemandEntity>> {
-    const { skip, take } = PaginationHelper.getSkipTake(params);
+    const { skip, take } = PaginationHelper.getSkipTake(filters);
 
     const where: Prisma.DemandWhereInput = {
       reporterId,
       disabledAt: null,
+      status: filters.status,
+      OR: filters.search
+        ? [
+          { title: { contains: filters.search, mode: 'insensitive' } },
+          { description: { contains: filters.search, mode: 'insensitive' } },
+        ]
+        : undefined,
     };
 
     const [items, total] = await Promise.all([
@@ -214,13 +230,15 @@ export class DemandsRepository implements IDemandsRepository {
               name: true,
             },
           },
+          _count: { select: { likes: true } },
+          likes: userId ? { where: { userId } } : false,
         },
       }),
       this.prisma.demand.count({ where }),
     ]);
 
     return {
-      items: items.map((item) => DemandEntityMapper.toDomain(item)),
+      items: items.map((item) => DemandEntityMapper.toDomain(item, userId)),
       total,
     };
   }
@@ -424,10 +442,15 @@ type DemandWithRelations = Prisma.DemandGetPayload<{
 }> & {
   reporter?: { name: string; avatarUrl: string | null } | null;
   category?: { name: string } | null;
+  _count?: { likes: number };
+  likes?: any[];
 };
 
 export class DemandEntityMapper {
-  static toDomain(prismaModel: DemandWithRelations): DemandEntity {
+  static toDomain(
+    prismaModel: DemandWithRelations,
+    userId?: string,
+  ): DemandEntity {
     const entity = new DemandEntity();
     entity.id = prismaModel.id;
     entity.title = prismaModel.title;
@@ -477,6 +500,9 @@ export class DemandEntityMapper {
         ? { name: prismaModel.category.name }
         : null;
     }
+
+    entity.likesCount = prismaModel._count?.likes ?? 0;
+    entity.isLiked = userId ? !!prismaModel.likes?.length : false;
 
     return entity;
   }

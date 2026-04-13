@@ -54,6 +54,17 @@ export class CloudflareStorageService implements StorageService {
   }
 
   async getUrl(key: string): Promise<{ signedUrl: string }> {
+    const publicUrlBase = process.env.CLOUDFLARE_PUBLIC_URL;
+
+    if (publicUrlBase) {
+      const cleanBase = publicUrlBase.endsWith('/')
+        ? publicUrlBase.slice(0, -1)
+        : publicUrlBase;
+      return {
+        signedUrl: `${cleanBase}/${key}`,
+      };
+    }
+
     try {
       const command = new GetObjectCommand({
         Bucket: this.bucket,

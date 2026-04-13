@@ -9,21 +9,24 @@ import {
 export class ListDemandsUseCase {
   constructor(private readonly demandsRepository: IDemandsRepository) { }
 
-  async execute(filters: ListDemandsFilters) {
+  async execute(filters: ListDemandsFilters, userId?: string) {
     const { page, limit } = PaginationHelper.getSkipTake(filters);
 
-    const { items, total } = await this.demandsRepository.findAll({
-      cabinetId: filters.cabinetId,
-      unassignedOnly: filters.unassignedOnly,
-      categoryId: filters.categoryId,
-      categories: filters.categories,
-      neighborhoods: filters.neighborhoods,
-      status: filters.status,
-      priority: filters.priority,
-      search: filters.search,
-      page,
-      limit,
-    });
+    const { items, total } = await this.demandsRepository.findAll(
+      {
+        cabinetId: filters.cabinetId,
+        unassignedOnly: filters.unassignedOnly,
+        categoryId: filters.categoryId,
+        categories: filters.categories,
+        neighborhoods: filters.neighborhoods,
+        status: filters.status,
+        priority: filters.priority,
+        search: filters.search,
+        page,
+        limit,
+      },
+      userId,
+    );
 
     return {
       items,

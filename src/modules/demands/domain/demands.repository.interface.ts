@@ -41,6 +41,11 @@ export interface ListDemandsFilters extends PaginationParams {
   search?: string;
 }
 
+export interface ListReporterDemandsFilters extends PaginationParams {
+  status?: DemandStatus;
+  search?: string;
+}
+
 export interface DemandCommentInfo {
   id: string;
   content: string;
@@ -86,7 +91,7 @@ export abstract class IDemandsRepository {
     demand: CreateDemandInfo,
     evidences: CreateEvidenceInfo[],
   ): Promise<DemandEntity>;
-  abstract findById(id: string): Promise<DemandEntity | null>;
+  abstract findById(id: string, userId?: string): Promise<DemandEntity | null>;
   abstract update(
     id: string,
     data: Partial<DemandEntity>,
@@ -97,10 +102,12 @@ export abstract class IDemandsRepository {
   ): Promise<void>;
   abstract findAll(
     filters: ListDemandsFilters,
+    userId?: string,
   ): Promise<PaginatedResult<DemandEntity>>;
   abstract findByReporter(
     reporterId: string,
-    params: PaginationParams,
+    filters: ListReporterDemandsFilters,
+    userId?: string,
   ): Promise<PaginatedResult<DemandEntity>>;
   abstract addComment(data: {
     demandId: string;
