@@ -108,6 +108,78 @@ export class AuthController {
     return authData;
   }
 
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Request password reset email' })
+  @ApiResponse({
+    status: 200,
+    description: 'Email sent successfully context message',
+  })
+  async forgotPassword(
+    @Body() dto: ForgotPasswordDto,
+  ): Promise<{ message: string }> {
+    return this.forgotPasswordUseCase.execute(dto);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update password using reset token' })
+  @ApiResponse({ status: 200, description: 'Password updated' })
+  @ApiResponse({ status: 400, description: 'Invalid token' })
+  async resetPassword(
+    @Body() dto: ResetPasswordDto,
+  ): Promise<{ message: string }> {
+    return this.resetPasswordUseCase.execute(dto);
+  }
+
+  @Patch('change-password')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Request a password change (sends confirmation email)',
+  })
+  @ApiResponse({ status: 200, description: 'Confirmation email sent' })
+  async requestChangePassword(
+    @CurrentUser() user: UserResponseDto,
+    @Body() dto: ChangePasswordDto,
+  ): Promise<{ message: string }> {
+    return this.requestPasswordChangeUseCase.execute(user.id, dto);
+  }
+
+  @Post('confirm-change-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Confirm password change using token' })
+  @ApiResponse({ status: 200, description: 'Password changed successfully' })
+  async confirmChangePassword(
+    @Body('token') token: string,
+  ): Promise<{ message: string }> {
+    return this.confirmPasswordChangeUseCase.execute(token);
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get the currently authenticated user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Authenticated user profile',
+    type: UserResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  me(@CurrentUser() user: UserResponseDto): UserResponseDto {
+    return user;
+  }
+
+  @Get('google')
+  @UseGuards(GoogleAuthGuard)
+  @ApiOperation({ summary: 'Initialize OAuth flow with Google' })
+  @ApiResponse({
+    status: 302,
+    description: 'Redirects to Google authorization page',
+  })
+  googleAuth() { }
+
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Clear auth cookies' })
