@@ -1,5 +1,4 @@
 import helmet from 'helmet';
-import cookieParser from 'cookie-parser';
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -7,6 +6,7 @@ import { AppModule } from './app.module';
 import { DatabaseExceptionFilter } from './shared/filters/database-exception.filter';
 import { AllExceptionsFilter } from './shared/filters/all-exceptions.filter';
 import { DiscordService } from './shared/infrastructure/services/discord.service';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
