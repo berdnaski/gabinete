@@ -3,6 +3,7 @@ import { ICabinetInvitationsRepository } from '../domain/invitations.repository.
 import { ICabinetMembersRepository } from '../domain/cabinet-members.repository.interface';
 import { ICabinetsRepository } from '../domain/cabinets.repository.interface';
 import { IUsersRepository } from '../../users/domain/users.repository.interface';
+import { UserRole } from '../../users/domain/user.entity';
 import { CabinetRole } from '../domain/cabinet-role.enum';
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 
@@ -46,6 +47,10 @@ export class AcceptCabinetInvitationUseCase {
       cabinetId: invite.cabinetId,
       role: invite.role,
     });
+
+    if (user.role === UserRole.CITIZEN) {
+      await this.usersRepository.updateRole(user.id, UserRole.MEMBER);
+    }
 
     await this.invitationsRepository.delete(invite.id);
 

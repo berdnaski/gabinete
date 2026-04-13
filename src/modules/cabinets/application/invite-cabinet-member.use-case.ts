@@ -5,6 +5,7 @@ import { ICabinetsRepository } from '../domain/cabinets.repository.interface';
 import { ICabinetMembersRepository } from '../domain/cabinet-members.repository.interface';
 import { ICabinetInvitationsRepository } from '../domain/invitations.repository.interface';
 import { IUsersRepository } from '../../users/domain/users.repository.interface';
+import { UserRole } from '../../users/domain/user.entity';
 import { CabinetRole } from '../domain/cabinet-role.enum';
 import { QueueService } from '../../../shared/infrastructure/queue/queue.service';
 import { EmailType } from '../../../shared/infrastructure/queue/queue.constants';
@@ -45,6 +46,12 @@ export class InviteCabinetMemberUseCase {
 
     const user = await this.usersRepository.findByEmail(input.email);
     if (user) {
+      if (user.role === UserRole.ADMIN || user.role === UserRole.MEMBER || user.isCabinetMember) {
+        throw new ForbiddenException(
+          'Este usuário já possui um cargo administrativo ou já pertence a um gabinete.',
+        );
+      }
+
       const existingMember = await this.membersRepository.findMembership(user.id, input.cabinetId);
       if (existingMember) {
         throw new ForbiddenException('O usuário já é membro deste gabinete');

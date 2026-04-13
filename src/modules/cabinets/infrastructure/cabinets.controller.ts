@@ -27,9 +27,11 @@ import {
 } from '@nestjs/swagger';
 import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../shared/guards/roles.guard';
 import { CabinetRolesGuard } from '../../../shared/guards/cabinet-roles.guard';
 import { CabinetRoles } from '../../../shared/decorators/cabinet-roles.decorator';
-import { UserEntity } from '../../users/domain/user.entity';
+import { Roles } from '../../../shared/decorators/roles.decorator';
+import { UserRole, UserEntity } from '../../users/domain/user.entity';
 import { CabinetRole } from '../domain/cabinet-role.enum';
 import { CreateCabinetUseCase } from '../application/create-cabinet.use-case';
 import { DeleteCabinetUseCase } from '../application/delete-cabinet.use-case';
@@ -75,7 +77,8 @@ export class CabinetsController {
   ) { }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MEMBER)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new cabinet' })
   @ApiResponse({ status: 201, type: CabinetResponseDto })
