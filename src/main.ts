@@ -4,6 +4,8 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { DatabaseExceptionFilter } from './shared/filters/database-exception.filter';
+import { AllExceptionsFilter } from './shared/filters/all-exceptions.filter';
+import { DiscordService } from './shared/infrastructure/services/discord.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -24,7 +26,11 @@ async function bootstrap() {
     }),
   );
 
-  app.useGlobalFilters(new DatabaseExceptionFilter());
+  const discordService = app.get(DiscordService);
+  app.useGlobalFilters(
+    new AllExceptionsFilter(discordService),
+    new DatabaseExceptionFilter(),
+  );
 
   const config = new DocumentBuilder()
     .setTitle('Gabinete API')

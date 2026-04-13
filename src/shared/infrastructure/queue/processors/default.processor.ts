@@ -10,6 +10,7 @@ import {
 } from '../queue.constants';
 import { MailService } from '../../../mail/application/mail.service';
 import { PrismaService } from '../../../../modules/database/prisma.service';
+import { DiscordService } from '../../services/discord.service';
 
 export interface SendEmailJobData {
   type: EmailType;
@@ -28,6 +29,7 @@ export class DefaultProcessor extends WorkerHost implements OnModuleInit {
     @InjectQueue(QueueName.DEFAULT) private readonly queue: Queue,
     private readonly mailService: MailService,
     private readonly prisma: PrismaService,
+    private readonly discordService: DiscordService,
   ) {
     super();
   }
@@ -46,43 +48,55 @@ export class DefaultProcessor extends WorkerHost implements OnModuleInit {
   }
 
   async process(job: Job): Promise<void> {
-    this.logger.log(`Processing job: ${job.name} [id=${job.id}]`);
+    try {
+      this.logger.log(`Processing job: ${job.name} [id=${job.id}]`);
 
-    switch (job.name as JobName) {
-      case JobName.SEND_EMAIL: {
-        const data = job.data as SendEmailJobData;
-        if (data.type === EmailType.VERIFICATION) {
-          await this.mailService.sendVerificationEmail(data.email, data.token);
-        } else if (data.type === EmailType.PASSWORD_RESET) {
-          await this.mailService.sendPasswordResetEmail(data.email, data.token);
-        } else if (data.type === EmailType.PASSWORD_CHANGE) {
-          await this.mailService.sendPasswordChangeConfirmationEmail(
-            data.email,
-            data.token,
-          );
-        } else if (data.type === EmailType.CABINET_INVITATION) {
-          await this.mailService.sendCabinetInvitation(
-            data.email,
-            data.token,
-            data.cabinetName ?? 'Gabinete',
-            data.senderName ?? 'Um administrador',
-          );
+      switch (job.name as JobName) {
+        case JobName.SEND_EMAIL: {
+          const data = job.data as SendEmailJobData;
+          if (data.type === EmailType.VERIFICATION) {
+            await this.mailService.sendVerificationEmail(data.email, data.token);
+          } else if (data.type === EmailType.PASSWORD_RESET) {
+            await this.mailService.sendPasswordResetEmail(data.email, data.token);
+          } else if (data.type === EmailType.PASSWORD_CHANGE) {
+            await this.mailService.sendPasswordChangeConfirmationEmail(
+              data.email,
+              data.token,
+            );
+          } else if (data.type === EmailType.CABINET_INVITATION) {
+            await this.mailService.sendCabinetInvitation(
+              data.email,
+              data.token,
+              data.cabinetName ?? 'Gabinete',
+              data.senderName ?? 'Um administrador',
+            );
+          }
+          break;
         }
-        break;
-      }
 
-      case JobName.CLEANUP_EXPIRED_TOKENS: {
-        const { count } = await this.prisma.token.deleteMany({
-          where: { expiresAt: { lt: new Date() } },
-        });
-        if (count > 0) {
-          this.logger.log(`Removed ${count} expired tokens`);
+        case JobName.CLEANUP_EXPIRED_TOKENS: {
+          const { count } = await this.prisma.token.deleteMany({
+            where: { expiresAt: { lt: new Date() } },
+          });
+          if (count > 0) {
+            this.logger.log(`Removed ${count} expired tokens`);
+          }
+          break;
         }
-        break;
-      }
 
-      default:
-        this.logger.warn(`No handler for job: ${job.name}`);
+        default:
+          this.logger.warn(`No handler for job: ${job.name}`);
+      }
+    } catch (err) {
+      this.logger.error(`Job failed: ${job.name} [id=${job.id}]`, err);
+
+      await this.discordService.sendError(err as any, {
+        method: 'BULLMQ_JOB',
+        url: job.name,
+        userId: 'system',
+      });
+
+      throw err;
     }
   }
 }
