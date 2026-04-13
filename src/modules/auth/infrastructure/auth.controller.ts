@@ -7,8 +7,8 @@ import {
   Post,
   Patch,
   Req,
+  Res,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -37,9 +37,8 @@ import { RegisterDto } from '../dto/register.dto';
 import { ResetPasswordDto } from '../dto/reset-password.dto';
 import { VerifyEmailDto } from '../dto/verify-email.dto';
 import { GoogleUser } from './google.strategy';
-import { AuthCookiesInterceptor } from './interceptors/auth-cookies.interceptor';
 import { RefreshToken } from './decorators/refresh-token.decorator';
-import { ClearCookiesInterceptor } from './interceptors/clear-cookies.interceptor';
+import * as express from 'express';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -74,7 +73,6 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @UseInterceptors(AuthCookiesInterceptor)
   @ApiOperation({ summary: 'Authenticate and receive a JWT via Cookies' })
   @ApiResponse({
     status: 200,
@@ -82,17 +80,26 @@ export class AuthController {
     type: AuthResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async login(@Body() dto: LoginDto): Promise<AuthResponseDto> {
-    return this.loginUseCase.execute(dto);
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: express.Response,
+  ): Promise<AuthResponseDto> {
+    const authData = await this.loginUseCase.execute(dto);
+    this.setAuthCookies(res, authData.accessToken, authData.refreshToken);
+    return authData;
   }
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  @UseInterceptors(AuthCookiesInterceptor)
   @ApiOperation({ summary: 'Refresh tokens via Cookies' })
   @ApiResponse({ status: 200, description: 'New token pair set in Cookies', type: AuthResponseDto })
-  async refresh(@RefreshToken() refreshToken: string): Promise<AuthResponseDto> {
-    return this.refreshTokenUseCase.execute(refreshToken);
+  async refresh(
+    @RefreshToken() refreshToken: string,
+    @Res({ passthrough: true }) res: express.Response,
+  ): Promise<AuthResponseDto> {
+    const authData = await this.refreshTokenUseCase.execute(refreshToken);
+    this.setAuthCookies(res, authData.accessToken, authData.refreshToken);
+    return authData;
   }
 
   @Post('forgot-password')
@@ -163,22 +170,46 @@ export class AuthController {
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  @UseInterceptors(ClearCookiesInterceptor)
   @ApiOperation({ summary: 'Clear auth cookies' })
   @ApiResponse({ status: 200, description: 'Logged out successfully' })
-  logout() {
+  logout(@Res({ passthrough: true }) res: express.Response) {
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
     return { message: 'Logged out successfully' };
   }
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
-  @UseInterceptors(AuthCookiesInterceptor)
   @ApiOperation({ summary: 'Google OAuth callback setting Cookies' })
   @ApiResponse({
     status: 302,
     description: 'Redirects to frontend after setting Cookies',
   })
-  async googleAuthCallback(@Req() req: any): Promise<AuthResponseDto> {
-    return this.googleLoginUseCase.execute(req.user as GoogleUser);
+  async googleAuthCallback(
+    @Req() req: any,
+    @Res() res: express.Response,
+  ): Promise<void> {
+    const authData = await this.googleLoginUseCase.execute(req.user as GoogleUser);
+    this.setAuthCookies(res, authData.accessToken, authData.refreshToken);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    res.redirect(`${frontendUrl}/auth/callback`);
+  }
+
+  private setAuthCookies(res: express.Response, accessToken: string, refreshToken: string) {
+    const isProd = process.env.NODE_ENV === 'production';
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: 'lax',
+      maxAge: 3600 * 1000,
+      path: '/',
+    });
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 3600 * 1000,
+      path: '/',
+    });
   }
 }

@@ -4,7 +4,7 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Response } from 'express';
 
@@ -18,7 +18,6 @@ export class AuthCookiesInterceptor implements NestInterceptor {
         }
 
         const res = context.switchToHttp().getResponse<Response>();
-        const req = context.switchToHttp().getRequest();
         const isProd = process.env.NODE_ENV === 'production';
 
         res.cookie('accessToken', data.accessToken, {
@@ -36,11 +35,6 @@ export class AuthCookiesInterceptor implements NestInterceptor {
           maxAge: 30 * 24 * 3600 * 1000,
           path: '/',
         });
-
-        if (req.route.path.includes('google/callback')) {
-          const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-          res.redirect(`${frontendUrl}/auth/callback`);
-        }
       }),
     );
   }
