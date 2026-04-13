@@ -7,8 +7,8 @@ import {
   Post,
   Patch,
   Req,
-  Res,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -16,7 +16,6 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import type { Request, Response } from 'express';
 import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 import { GoogleAuthGuard } from '../../../shared/guards/google-auth.guard';
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
@@ -38,6 +37,9 @@ import { RegisterDto } from '../dto/register.dto';
 import { ResetPasswordDto } from '../dto/reset-password.dto';
 import { VerifyEmailDto } from '../dto/verify-email.dto';
 import { GoogleUser } from './google.strategy';
+import { AuthCookiesInterceptor } from './interceptors/auth-cookies.interceptor';
+import { RefreshToken } from './decorators/refresh-token.decorator';
+import { ClearCookiesInterceptor } from './interceptors/clear-cookies.interceptor';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -72,6 +74,7 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @UseInterceptors(AuthCookiesInterceptor)
   @ApiOperation({ summary: 'Authenticate and receive a JWT via Cookies' })
   @ApiResponse({
     status: 200,
@@ -79,33 +82,17 @@ export class AuthController {
     type: AuthResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async login(
-    @Body() dto: LoginDto,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<AuthResponseDto> {
-    const authData = await this.loginUseCase.execute(dto);
-
-    this.setAuthCookies(res, authData.accessToken, authData.refreshToken);
-
-    return authData;
+  async login(@Body() dto: LoginDto): Promise<AuthResponseDto> {
+    return this.loginUseCase.execute(dto);
   }
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
+  @UseInterceptors(AuthCookiesInterceptor)
   @ApiOperation({ summary: 'Refresh tokens via Cookies' })
   @ApiResponse({ status: 200, description: 'New token pair set in Cookies', type: AuthResponseDto })
-  async refresh(
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<AuthResponseDto> {
-    // Tenta pegar o refresh token do cookie ou do body (fallback para migração)
-    const refreshToken = req.cookies?.['refreshToken'] || req.body?.refreshToken;
-
-    const authData = await this.refreshTokenUseCase.execute(refreshToken);
-
-    this.setAuthCookies(res, authData.accessToken, authData.refreshToken);
-
-    return authData;
+  async refresh(@RefreshToken() refreshToken: string): Promise<AuthResponseDto> {
+    return this.refreshTokenUseCase.execute(refreshToken);
   }
 
   @Post('forgot-password')
@@ -115,9 +102,7 @@ export class AuthController {
     status: 200,
     description: 'Email sent successfully context message',
   })
-  async forgotPassword(
-    @Body() dto: ForgotPasswordDto,
-  ): Promise<{ message: string }> {
+  async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<{ message: string }> {
     return this.forgotPasswordUseCase.execute(dto);
   }
 
@@ -126,9 +111,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Update password using reset token' })
   @ApiResponse({ status: 200, description: 'Password updated' })
   @ApiResponse({ status: 400, description: 'Invalid token' })
-  async resetPassword(
-    @Body() dto: ResetPasswordDto,
-  ): Promise<{ message: string }> {
+  async resetPassword(@Body() dto: ResetPasswordDto): Promise<{ message: string }> {
     return this.resetPasswordUseCase.execute(dto);
   }
 
@@ -151,9 +134,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Confirm password change using token' })
   @ApiResponse({ status: 200, description: 'Password changed successfully' })
-  async confirmChangePassword(
-    @Body('token') token: string,
-  ): Promise<{ message: string }> {
+  async confirmChangePassword(@Body('token') token: string): Promise<{ message: string }> {
     return this.confirmPasswordChangeUseCase.execute(token);
   }
 
@@ -182,53 +163,22 @@ export class AuthController {
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
+  @UseInterceptors(ClearCookiesInterceptor)
   @ApiOperation({ summary: 'Clear auth cookies' })
   @ApiResponse({ status: 200, description: 'Logged out successfully' })
-  logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
+  logout() {
     return { message: 'Logged out successfully' };
   }
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
+  @UseInterceptors(AuthCookiesInterceptor)
   @ApiOperation({ summary: 'Google OAuth callback setting Cookies' })
   @ApiResponse({
     status: 302,
     description: 'Redirects to frontend after setting Cookies',
   })
-  async googleAuthCallback(
-    @Req() req: Request,
-    @Res() res: Response,
-  ): Promise<void> {
-    const { accessToken, refreshToken } = await this.googleLoginUseCase.execute(
-      req.user as GoogleUser,
-    );
-
-    this.setAuthCookies(res, accessToken, refreshToken);
-
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    // Não passamos mais tokens na URL por segurança
-    res.redirect(`${frontendUrl}/auth/callback`);
-  }
-
-  private setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
-    const isProd = process.env.NODE_ENV === 'production';
-
-    res.cookie('accessToken', accessToken, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: 'strict',
-      maxAge: 3600 * 1000, // 1 hora
-      path: '/',
-    });
-
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: 'strict',
-      maxAge: 30 * 24 * 3600 * 1000, // 30 dias
-      path: '/',
-    });
+  async googleAuthCallback(@Req() req: any): Promise<AuthResponseDto> {
+    return this.googleLoginUseCase.execute(req.user as GoogleUser);
   }
 }
