@@ -20,7 +20,7 @@ import {
 
 @Injectable()
 export class DemandsRepository implements IDemandsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async findById(id: string): Promise<DemandEntity | null> {
     const demand = await this.prisma.demand.findUnique({
@@ -157,11 +157,47 @@ export class DemandsRepository implements IDemandsRepository {
       priority: priority || undefined,
       OR: search
         ? [
-            { title: { contains: search, mode: 'insensitive' } },
-            { description: { contains: search, mode: 'insensitive' } },
-            { neighborhood: { contains: search, mode: 'insensitive' } },
-          ]
+          { title: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+          { neighborhood: { contains: search, mode: 'insensitive' } },
+        ]
         : undefined,
+    };
+
+    const [items, total] = await Promise.all([
+      this.prisma.demand.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          evidences: true,
+          reporter: true,
+          category: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      }),
+      this.prisma.demand.count({ where }),
+    ]);
+
+    return {
+      items: items.map((item) => DemandEntityMapper.toDomain(item)),
+      total,
+    };
+  }
+
+  async findByReporter(
+    reporterId: string,
+    params: PaginationParams,
+  ): Promise<PaginatedResult<DemandEntity>> {
+    const { skip, take } = PaginationHelper.getSkipTake(params);
+
+    const where: Prisma.DemandWhereInput = {
+      reporterId,
+      disabledAt: null,
     };
 
     const [items, total] = await Promise.all([
@@ -430,9 +466,9 @@ export class DemandEntityMapper {
     if (prismaModel.reporter !== undefined) {
       entity.reporter = prismaModel.reporter
         ? {
-            name: prismaModel.reporter.name,
-            avatarUrl: prismaModel.reporter.avatarUrl,
-          }
+          name: prismaModel.reporter.name,
+          avatarUrl: prismaModel.reporter.avatarUrl,
+        }
         : null;
     }
 

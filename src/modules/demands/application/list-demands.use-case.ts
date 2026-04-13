@@ -7,7 +7,7 @@ import {
 
 @Injectable()
 export class ListDemandsUseCase {
-  constructor(private readonly demandsRepository: IDemandsRepository) {}
+  constructor(private readonly demandsRepository: IDemandsRepository) { }
 
   async execute(filters: ListDemandsFilters) {
     const { page, limit } = PaginationHelper.getSkipTake(filters);

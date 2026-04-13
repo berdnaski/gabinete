@@ -59,6 +59,11 @@ export class ListDemandsDto {
   @MaxLength(100)
   search?: string;
 
+  @ApiPropertyOptional({ description: 'Filter by reporter (user) ID' })
+  @IsUUID()
+  @IsOptional()
+  reporterId?: string;
+
   @ApiPropertyOptional({ minimum: 1, default: 1 })
   @Type(() => Number)
   @IsInt()

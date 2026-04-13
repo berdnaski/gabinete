@@ -98,6 +98,10 @@ export abstract class IDemandsRepository {
   abstract findAll(
     filters: ListDemandsFilters,
   ): Promise<PaginatedResult<DemandEntity>>;
+  abstract findByReporter(
+    reporterId: string,
+    params: PaginationParams,
+  ): Promise<PaginatedResult<DemandEntity>>;
   abstract addComment(data: {
     demandId: string;
     authorId: string;

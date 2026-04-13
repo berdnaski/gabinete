@@ -53,6 +53,7 @@ import { UpdateDemandUseCase } from '../application/update-demand.use-case';
 import { ListDemandCommentsUseCase } from '../application/list-demand-comments.use-case';
 import { ToggleDemandLikeUseCase } from '../application/toggle-demand-like.use-case';
 import { ListDemandNeighborhoodsUseCase } from '../application/list-demand-neighborhoods.use-case';
+import { ListDemandsByReporterUseCase } from '../application/list-demands-by-reporter.use-case';
 
 @ApiTags('demands')
 @Controller('demands')
@@ -72,6 +73,7 @@ export class DemandsController {
     private readonly getCabinetDemandMetricsUseCase: GetCabinetDemandMetricsUseCase,
     private readonly getCabinetDemandHeatmapUseCase: GetCabinetDemandHeatmapUseCase,
     private readonly listDemandNeighborhoodsUseCase: ListDemandNeighborhoodsUseCase,
+    private readonly listDemandsByReporterUseCase: ListDemandsByReporterUseCase,
   ) { }
 
   @Post()
@@ -147,6 +149,18 @@ export class DemandsController {
   @ApiResponse({ status: 200, type: GetCabinetDemandHeatmapResponseDto })
   async getHeatmap(): Promise<GetCabinetDemandHeatmapResponseDto> {
     return this.getCabinetDemandHeatmapUseCase.execute();
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List demands created by the authenticated user' })
+  @ApiResponse({ status: 200, description: 'Paginated list of user demands' })
+  async listMe(
+    @Query() query: ListDemandsDto,
+    @CurrentUser() user: UserEntity,
+  ) {
+    return this.listDemandsByReporterUseCase.execute(user.id, query);
   }
 
   @Get('neighborhoods')
