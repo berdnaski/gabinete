@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { IDemandsRepository } from '../domain/demands.repository.interface';
 import { ICabinetMembersRepository } from '../../cabinets/domain/cabinet-members.repository.interface';
 
@@ -12,6 +13,7 @@ export class AssignDemandUseCase {
   constructor(
     private readonly demandsRepository: IDemandsRepository,
     private readonly cabinetMembersRepository: ICabinetMembersRepository,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async execute(
@@ -54,8 +56,16 @@ export class AssignDemandUseCase {
       );
     }
 
-    return this.demandsRepository.update(demandId, {
+    const updatedDemand = await this.demandsRepository.update(demandId, {
       assigneeMemberId,
     });
+
+    this.eventEmitter.emit('demand.assigned', {
+      demandId,
+      assigneeUserId: assigneeMembership.userId,
+      demandTitle: demand.title,
+    });
+
+    return updatedDemand;
   }
 }

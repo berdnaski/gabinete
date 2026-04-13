@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import * as crypto from 'crypto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ICabinetsRepository } from '../domain/cabinets.repository.interface';
 import { ICabinetMembersRepository } from '../domain/cabinet-members.repository.interface';
 import { ICabinetInvitationsRepository } from '../domain/invitations.repository.interface';
@@ -23,6 +24,7 @@ export class InviteCabinetMemberUseCase {
     private readonly invitationsRepository: ICabinetInvitationsRepository,
     private readonly usersRepository: IUsersRepository,
     private readonly queueService: QueueService,
+    private readonly eventEmitter: EventEmitter2,
   ) { }
 
   async execute(input: InviteCabinetMemberInput): Promise<{ message: string }> {
@@ -65,6 +67,12 @@ export class InviteCabinetMemberUseCase {
       type: EmailType.CABINET_INVITATION,
       email: input.email,
       token,
+      cabinetName: cabinet.name,
+      senderName: sender.name,
+    });
+
+    this.eventEmitter.emit('cabinet.invitation-sent', {
+      email: input.email,
       cabinetName: cabinet.name,
       senderName: sender.name,
     });

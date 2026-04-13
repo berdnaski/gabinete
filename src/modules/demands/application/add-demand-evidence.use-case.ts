@@ -1,16 +1,24 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import sharp from 'sharp';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { IUsersRepository } from '../../users/domain/users.repository.interface';
 import { StorageService } from '../../../shared/domain/services/storage.service';
 import { IDemandsRepository } from '../domain/demands.repository.interface';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import sharp from 'sharp';
 
 @Injectable()
 export class AddDemandEvidenceUseCase {
   constructor(
     private readonly demandsRepository: IDemandsRepository,
     private readonly storageService: StorageService,
-  ) {}
+    private readonly usersRepository: IUsersRepository,
+    private readonly eventEmitter: EventEmitter2,
+  ) { }
 
-  async execute(demandId: string, files: Express.Multer.File[]): Promise<void> {
+  async execute(
+    demandId: string,
+    userId: string,
+    files: Express.Multer.File[],
+  ): Promise<void> {
     const demand = await this.demandsRepository.findById(demandId);
     if (!demand) {
       throw new NotFoundException('Demanda não encontrada');
@@ -40,6 +48,15 @@ export class AddDemandEvidenceUseCase {
           size: sanitizedBuffer.length,
         });
       }
+
+      const reporter = await this.usersRepository.findById(userId);
+      this.eventEmitter.emit('demand.evidence-added', {
+        demandId: demand.id,
+        cabinetId: demand.cabinetId,
+        demandTitle: demand.title,
+        reporterId: demand.reporterId,
+        reporterName: reporter?.name || 'O autor',
+      });
     }
   }
 }

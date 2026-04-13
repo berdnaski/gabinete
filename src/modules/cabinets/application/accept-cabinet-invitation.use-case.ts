@@ -1,7 +1,10 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ICabinetInvitationsRepository } from '../domain/invitations.repository.interface';
 import { ICabinetMembersRepository } from '../domain/cabinet-members.repository.interface';
+import { ICabinetsRepository } from '../domain/cabinets.repository.interface';
 import { IUsersRepository } from '../../users/domain/users.repository.interface';
+import { CabinetRole } from '../domain/cabinet-role.enum';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class AcceptCabinetInvitationUseCase {
@@ -9,6 +12,8 @@ export class AcceptCabinetInvitationUseCase {
     private readonly invitationsRepository: ICabinetInvitationsRepository,
     private readonly membersRepository: ICabinetMembersRepository,
     private readonly usersRepository: IUsersRepository,
+    private readonly cabinetsRepository: ICabinetsRepository,
+    private readonly eventEmitter: EventEmitter2,
   ) { }
 
   async execute(token: string, userId: string): Promise<{ message: string }> {
@@ -43,6 +48,20 @@ export class AcceptCabinetInvitationUseCase {
     });
 
     await this.invitationsRepository.delete(invite.id);
+
+    // Notificar o proprietário do gabinete
+    const cabinet = await this.cabinetsRepository.findById(invite.cabinetId);
+    const members = await this.membersRepository.findByCabinetId(invite.cabinetId);
+    const owner = members.find((m) => m.role === CabinetRole.OWNER);
+
+    if (owner && cabinet) {
+      this.eventEmitter.emit('cabinet.member-joined', {
+        cabinetId: cabinet.id,
+        ownerId: owner.userId,
+        memberName: user.name,
+        cabinetName: cabinet.name,
+      });
+    }
 
     return { message: 'Convite aceito com sucesso' };
   }

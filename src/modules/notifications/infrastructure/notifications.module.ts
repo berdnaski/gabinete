@@ -7,10 +7,12 @@ import { ListNotificationsUseCase } from '../application/list-notifications.use-
 import { MarkNotificationAsReadUseCase } from '../application/mark-notification-as-read.use-case';
 import { NotificationListener } from '../application/notification.listener';
 import { DatabaseModule } from '../../database/database.module';
+import { UsersModule } from '../../users/infrastructure/users.module';
+import { CabinetsModule } from '../../cabinets/infrastructure/cabinets.module';
 import { NotificationsController } from './notifications.controller';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, UsersModule, CabinetsModule],
   controllers: [NotificationsController],
   providers: [
     NotificationsGateway,

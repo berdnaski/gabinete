@@ -269,8 +269,9 @@ export class DemandsController {
     },
   })
   @UseInterceptors(FilesInterceptor('evidences', 5))
-  async addEvidences(
+  async uploadEvidence(
     @Param('id') id: string,
+    @CurrentUser() user: any,
     @UploadedFiles(
       new ParseFilePipe({
         validators: [
@@ -287,7 +288,7 @@ export class DemandsController {
     if (!files || files.length === 0) {
       throw new BadRequestException('Nenhum arquivo enviado');
     }
-    return this.addDemandEvidenceUseCase.execute(id, files);
+    return this.addDemandEvidenceUseCase.execute(id, user?.id, files);
   }
 
   @Patch(':id/assign')
