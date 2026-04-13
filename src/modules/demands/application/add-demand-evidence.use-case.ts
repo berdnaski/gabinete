@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import sharp from 'sharp';
 import { StorageService } from '../../../shared/domain/services/storage.service';
 import { IDemandsRepository } from '../domain/demands.repository.interface';
+
 @Injectable()
 export class AddDemandEvidenceUseCase {
   constructor(
@@ -16,10 +18,16 @@ export class AddDemandEvidenceUseCase {
 
     if (files && files.length > 0) {
       for (const file of files) {
+        const sanitizedBuffer = await sharp(file.buffer)
+          .rotate()
+          .resize(1920, 1080, { fit: 'inside', withoutEnlargement: true })
+          .jpeg({ quality: 80, progressive: true })
+          .toBuffer();
+
         const uploaded = await this.storageService.upload({
-          buffer: file.buffer,
-          filename: file.originalname,
-          mimetype: file.mimetype,
+          buffer: sanitizedBuffer,
+          filename: `${file.originalname.split('.')[0]}.jpg`,
+          mimetype: 'image/jpeg',
           folder: `demands/${demand.id}`,
         });
 
@@ -28,8 +36,8 @@ export class AddDemandEvidenceUseCase {
         await this.demandsRepository.addEvidence(demand.id, {
           storageKey: uploaded.path,
           url: urlInfo.signedUrl,
-          mimeType: uploaded.mimetype,
-          size: file.size,
+          mimeType: 'image/jpeg',
+          size: sanitizedBuffer.length,
         });
       }
     }

@@ -1,6 +1,7 @@
 import helmet from 'helmet';
-import { ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
+import cookieParser from 'cookie-parser';
+import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { DatabaseExceptionFilter } from './shared/filters/database-exception.filter';
@@ -11,6 +12,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.use(helmet());
+  app.use(cookieParser());
   app.setGlobalPrefix('api');
 
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
@@ -25,6 +27,8 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   const discordService = app.get(DiscordService);
   app.useGlobalFilters(

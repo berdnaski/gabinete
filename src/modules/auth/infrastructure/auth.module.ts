@@ -28,12 +28,18 @@ import { TokensRepository } from './tokens.repository';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        secret: config.get<string>('JWT_SECRET', 'changeme'),
-        signOptions: {
-          expiresIn: parseInt(config.get<string>('JWT_EXPIRES_IN', '3600'), 10),
-        },
-      }),
+      useFactory: (config: ConfigService) => {
+        const secret = config.get<string>('JWT_SECRET');
+        if (!secret) {
+          throw new Error('JWT_SECRET must be defined in environment variables');
+        }
+        return {
+          secret,
+          signOptions: {
+            expiresIn: parseInt(config.get<string>('JWT_EXPIRES_IN', '3600'), 10),
+          },
+        };
+      },
     }),
   ],
   providers: [

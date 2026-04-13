@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import sharp from 'sharp';
 import { IUsersRepository } from '../domain/users.repository.interface';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { StorageService } from '../../../shared/domain/services/storage.service';
@@ -18,10 +19,16 @@ export class UpdateUserProfileUseCase {
     }
 
     if (file) {
+      const sanitizedBuffer = await sharp(file.buffer)
+        .rotate()
+        .resize(400, 400, { fit: 'cover' })
+        .jpeg({ quality: 90 })
+        .toBuffer();
+
       const uploaded = await this.storageService.upload({
-        buffer: file.buffer,
-        filename: file.originalname,
-        mimetype: file.mimetype,
+        buffer: sanitizedBuffer,
+        filename: `${id}-avatar.jpg`,
+        mimetype: 'image/jpeg',
         folder: `avatars/${id}`,
       });
       const generated = await this.storageService.getUrl(uploaded.path);

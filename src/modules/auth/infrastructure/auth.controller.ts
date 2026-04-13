@@ -72,103 +72,58 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Authenticate and receive a JWT' })
+  @ApiOperation({ summary: 'Authenticate and receive a JWT via Cookies' })
   @ApiResponse({
     status: 200,
-    description: 'JWT token pair',
+    description: 'Success - Tokens set in HttpOnly cookies',
     type: AuthResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async login(@Body() dto: LoginDto): Promise<AuthResponseDto> {
-    return this.loginUseCase.execute(dto);
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponseDto> {
+    const authData = await this.loginUseCase.execute(dto);
+
+    this.setAuthCookies(res, authData.accessToken, authData.refreshToken);
+
+    return authData;
   }
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Refresh accessToken using refreshToken' })
-  @ApiResponse({ status: 200, description: 'New token pair', type: AuthResponseDto })
-  async refresh(@Body('refreshToken') refreshToken: string): Promise<AuthResponseDto> {
-    return this.refreshTokenUseCase.execute(refreshToken);
+  @ApiOperation({ summary: 'Refresh tokens via Cookies' })
+  @ApiResponse({ status: 200, description: 'New token pair set in Cookies', type: AuthResponseDto })
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponseDto> {
+    // Tenta pegar o refresh token do cookie ou do body (fallback para migração)
+    const refreshToken = req.cookies?.['refreshToken'] || req.body?.refreshToken;
+
+    const authData = await this.refreshTokenUseCase.execute(refreshToken);
+
+    this.setAuthCookies(res, authData.accessToken, authData.refreshToken);
+
+    return authData;
   }
 
-  @Post('forgot-password')
+  @Post('logout')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Request password reset email' })
-  @ApiResponse({
-    status: 200,
-    description: 'Email sent successfully context message',
-  })
-  async forgotPassword(
-    @Body() dto: ForgotPasswordDto,
-  ): Promise<{ message: string }> {
-    return this.forgotPasswordUseCase.execute(dto);
+  @ApiOperation({ summary: 'Clear auth cookies' })
+  @ApiResponse({ status: 200, description: 'Logged out successfully' })
+  logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+    return { message: 'Logged out successfully' };
   }
-
-  @Post('reset-password')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Update password using reset token' })
-  @ApiResponse({ status: 200, description: 'Password updated' })
-  @ApiResponse({ status: 400, description: 'Invalid token' })
-  async resetPassword(
-    @Body() dto: ResetPasswordDto,
-  ): Promise<{ message: string }> {
-    return this.resetPasswordUseCase.execute(dto);
-  }
-
-  @Patch('change-password')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Request a password change (sends confirmation email)',
-  })
-  @ApiResponse({ status: 200, description: 'Confirmation email sent' })
-  async requestChangePassword(
-    @CurrentUser() user: UserResponseDto,
-    @Body() dto: ChangePasswordDto,
-  ): Promise<{ message: string }> {
-    return this.requestPasswordChangeUseCase.execute(user.id, dto);
-  }
-
-  @Post('confirm-change-password')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Confirm password change using token' })
-  @ApiResponse({ status: 200, description: 'Password changed successfully' })
-  async confirmChangePassword(
-    @Body('token') token: string,
-  ): Promise<{ message: string }> {
-    return this.confirmPasswordChangeUseCase.execute(token);
-  }
-
-  @Get('me')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get the currently authenticated user' })
-  @ApiResponse({
-    status: 200,
-    description: 'Authenticated user profile',
-    type: UserResponseDto,
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  me(@CurrentUser() user: UserResponseDto): UserResponseDto {
-    return user;
-  }
-
-  @Get('google')
-  @UseGuards(GoogleAuthGuard)
-  @ApiOperation({ summary: 'Initialize OAuth flow with Google' })
-  @ApiResponse({
-    status: 302,
-    description: 'Redirects to Google authorization page',
-  })
-  googleAuth() { }
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
-  @ApiOperation({ summary: 'Google OAuth callback' })
+  @ApiOperation({ summary: 'Google OAuth callback setting Cookies' })
   @ApiResponse({
     status: 302,
-    description: 'Redirects to frontend with accessToken in query',
+    description: 'Redirects to frontend after setting Cookies',
   })
   async googleAuthCallback(
     @Req() req: Request,
@@ -177,7 +132,31 @@ export class AuthController {
     const { accessToken, refreshToken } = await this.googleLoginUseCase.execute(
       req.user as GoogleUser,
     );
+
+    this.setAuthCookies(res, accessToken, refreshToken);
+
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    res.redirect(`${frontendUrl}/auth/callback?token=${accessToken}&refreshToken=${refreshToken}`);
+    // Não passamos mais tokens na URL por segurança
+    res.redirect(`${frontendUrl}/auth/callback`);
+  }
+
+  private setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
+    const isProd = process.env.NODE_ENV === 'production';
+
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: 'strict',
+      maxAge: 3600 * 1000, // 1 hora
+      path: '/',
+    });
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: 'strict',
+      maxAge: 30 * 24 * 3600 * 1000, // 30 dias
+      path: '/',
+    });
   }
 }

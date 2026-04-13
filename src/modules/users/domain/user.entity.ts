@@ -1,3 +1,5 @@
+import { Exclude } from 'class-transformer';
+
 export enum UserRole {
   ADMIN = 'ADMIN',
   USER = 'USER',
@@ -8,6 +10,8 @@ export class UserEntity {
   id: string;
   name: string;
   email: string;
+
+  @Exclude()
   password: string | null;
   avatarUrl: string | null;
   phone: string | null;
