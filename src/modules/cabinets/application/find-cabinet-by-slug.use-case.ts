@@ -9,7 +9,7 @@ export class FindCabinetBySlugUseCase {
   async execute(slug: string): Promise<CabinetEntity> {
     const cabinet = await this.cabinetsRepository.findBySlug(slug);
     if (!cabinet) {
-      throw new NotFoundException(`Cabinet with slug "${slug}" not found`);
+      throw new NotFoundException('Gabinete não encontrado');
     }
     return cabinet;
   }

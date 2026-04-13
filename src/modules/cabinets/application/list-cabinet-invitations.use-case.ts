@@ -15,12 +15,12 @@ export class ListCabinetInvitationsUseCase {
   async execute(slug: string, userId: string) {
     const cabinet = await this.cabinetsRepository.findBySlug(slug);
     if (!cabinet) {
-      throw new NotFoundException('Cabinet not found');
+      throw new NotFoundException('Gabinete não encontrado');
     }
 
     const membership = await this.membersRepository.findMembership(userId, cabinet.id);
     if (!membership || membership.role !== CabinetRole.OWNER) {
-      throw new ForbiddenException('Only cabinet owners can list invitations');
+      throw new ForbiddenException('Apenas proprietários de gabinetes podem listar convites');
     }
 
     return this.invitationsRepository.findByCabinetId(cabinet.id);

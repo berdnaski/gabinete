@@ -29,7 +29,7 @@ export class GetCabinetDemandMetricsUseCase {
     const cabinet = await this.cabinetsRepository.findBySlug(input.cabinetSlug);
 
     if (!cabinet) {
-      throw new NotFoundException('Cabinet not found');
+      throw new NotFoundException('Gabinete não encontrado');
     }
 
     const membership = await this.cabinetMembersRepository.findMembership(
@@ -39,7 +39,7 @@ export class GetCabinetDemandMetricsUseCase {
 
     if (!membership) {
       throw new ForbiddenException(
-        'You do not have permission to view metrics for this cabinet.',
+        'Você não tem permissão para visualizar métricas deste gabinete.',
       );
     }
 

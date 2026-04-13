@@ -25,7 +25,7 @@ export class UpdateCabinetUseCase {
   ): Promise<CabinetEntity> {
     const existing = await this.cabinetsRepository.findById(input.id);
     if (!existing) {
-      throw new NotFoundException('Cabinet not found');
+      throw new NotFoundException('Gabinete não encontrado');
     }
 
     let slug: string | undefined;

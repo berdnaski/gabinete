@@ -9,7 +9,7 @@ export class DeleteDemandUseCase {
     const demand = await this.demandsRepository.findById(id);
 
     if (!demand) {
-      throw new NotFoundException('Demand not found');
+      throw new NotFoundException('Demanda não encontrada');
     }
 
     await this.demandsRepository.update(id, { disabledAt: new Date() });

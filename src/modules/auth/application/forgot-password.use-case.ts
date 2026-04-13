@@ -47,7 +47,7 @@ export class ForgotPasswordUseCase {
 
     return {
       message:
-        'If the email exists in our system, you will receive a recovery link shortly.',
+        'Se o e-mail existir em nosso sistema, você receberá um link de recuperação em breve.',
     };
   }
 }

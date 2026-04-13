@@ -20,7 +20,7 @@ export class AddCabinetMemberUseCase {
   async execute(input: AddCabinetMemberInput): Promise<CabinetMemberEntity> {
     const cabinet = await this.cabinetsRepository.findById(input.cabinetId);
     if (!cabinet) {
-      throw new NotFoundException('Cabinet not found');
+      throw new NotFoundException('Gabinete não encontrado');
     }
 
     return this.membersRepository.add({

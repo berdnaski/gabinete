@@ -8,7 +8,7 @@ export class ToggleDemandLikeUseCase {
   async execute(demandId: string, userId: string): Promise<boolean> {
     const demand = await this.demandsRepository.findById(demandId);
     if (!demand) {
-      throw new NotFoundException('Demand not found');
+      throw new NotFoundException('Demanda não encontrada');
     }
 
     return this.demandsRepository.toggleLike(demandId, userId);

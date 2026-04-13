@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { ICabinetsRepository } from '../domain/cabinets.repository.interface';
 import { ICabinetMembersRepository } from '../domain/cabinet-members.repository.interface';
 import { CabinetRole } from '../domain/cabinet-role.enum';
@@ -13,18 +13,16 @@ export class LeaveCabinetUseCase {
   async execute(slug: string, userId: string): Promise<{ message: string }> {
     const cabinet = await this.cabinetsRepository.findBySlug(slug);
     if (!cabinet) {
-      throw new NotFoundException('Cabinet not found');
+      throw new NotFoundException('Gabinete não encontrado');
     }
 
     const membership = await this.membersRepository.findMembership(userId, cabinet.id);
     if (!membership) {
-      throw new BadRequestException('You are not a member of this cabinet');
+      throw new ForbiddenException('Você não é membro deste gabinete');
     }
 
-    // Se for o OWNER, verificar se ele é o único dono.
-    // Em um sistema real, ele precisaria deletar o gabinete ou transferir a posse.
     if (membership.role === CabinetRole.OWNER) {
-      throw new BadRequestException('As the cabinet owner, you cannot leave. Transfer ownership or delete the cabinet instead.');
+      throw new BadRequestException('Proprietários não podem sair do gabinete. Transfira a propriedade primeiro ou exclua o gabinete.');
     }
 
     await this.membersRepository.remove(cabinet.id, userId);

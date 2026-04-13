@@ -21,12 +21,12 @@ export class AssignDemandUseCase {
   ) {
     const demand = await this.demandsRepository.findById(demandId);
     if (!demand) {
-      throw new NotFoundException('Demand not found');
+      throw new NotFoundException('Demanda não encontrada');
     }
 
     if (!demand.cabinetId) {
       throw new BadRequestException(
-        'Management of global demands is restricted to administrators. Claim it for a cabinet first.',
+        'O gerenciamento de demandas globais é restrito a administradores. Reivindique-a para um gabinete primeiro.',
       );
     }
 
@@ -38,7 +38,7 @@ export class AssignDemandUseCase {
 
     if (!requesterMembership) {
       throw new ForbiddenException(
-        'You do not have permission to manage demands from another cabinet.',
+        'Você não tem permissão para gerenciar demandas de outro gabinete.',
       );
     }
 
@@ -50,7 +50,7 @@ export class AssignDemandUseCase {
       assigneeMembership.cabinetId !== demand.cabinetId
     ) {
       throw new BadRequestException(
-        'The assignee must be a member of the cabinet responsible for this demand.',
+        'O responsável deve ser um membro do gabinete responsável por esta demanda.',
       );
     }
 

@@ -13,7 +13,7 @@ export class AddDemandEvidenceUseCase {
   async execute(demandId: string, files: Express.Multer.File[]): Promise<void> {
     const demand = await this.demandsRepository.findById(demandId);
     if (!demand) {
-      throw new NotFoundException('Demand not found');
+      throw new NotFoundException('Demanda não encontrada');
     }
 
     if (files && files.length > 0) {

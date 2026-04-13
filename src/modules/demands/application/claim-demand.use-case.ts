@@ -17,11 +17,11 @@ export class ClaimDemandUseCase {
   async execute(demandId: string, userId: string) {
     const demand = await this.demandsRepository.findById(demandId);
     if (!demand) {
-      throw new NotFoundException('Demand not found');
+      throw new NotFoundException('Demanda não encontrada');
     }
 
     if (demand.cabinetId) {
-      throw new BadRequestException('Demand is already assigned to a cabinet');
+      throw new BadRequestException('Esta demanda já está vinculada a um gabinete');
     }
 
     const memberships =
@@ -30,7 +30,7 @@ export class ClaimDemandUseCase {
 
     if (!membership) {
       throw new ForbiddenException(
-        'You must belong to a cabinet to claim demands',
+        'Você precisa pertencer a um gabinete para reivindicar demandas',
       );
     }
 

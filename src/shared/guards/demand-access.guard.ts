@@ -41,14 +41,14 @@ export class DemandAccessGuard implements CanActivate {
 
     const demand = await this.demandsRepository.findById(demandId);
     if (!demand) {
-      throw new NotFoundException('Demand not found');
+      throw new NotFoundException('Demanda não encontrada');
     }
 
     request.demand = demand;
 
     if (!demand.cabinetId) {
       throw new ForbiddenException(
-        'Management of global demands is restricted to administrators. Claim it for a cabinet first.',
+        'O gerenciamento de demandas globais é restrito a administradores. Reivindique-a para um gabinete primeiro.',
       );
     }
 
@@ -59,7 +59,7 @@ export class DemandAccessGuard implements CanActivate {
 
     if (!membership) {
       throw new ForbiddenException(
-        'You do not have permission to manage demands from another cabinet.',
+        'Você não tem permissão para gerenciar demandas de outro gabinete.',
       );
     }
 
@@ -69,7 +69,7 @@ export class DemandAccessGuard implements CanActivate {
 
     if (!isManager) {
       throw new ForbiddenException(
-        'Only cabinet owners or staff members can perform this action.',
+        'Apenas proprietários de gabinetes ou membros da equipe podem realizar esta ação.',
       );
     }
 

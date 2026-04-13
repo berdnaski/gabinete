@@ -16,12 +16,12 @@ export class MarkNotificationAsReadUseCase {
       await this.notificationsRepository.findById(notificationId);
 
     if (!notification) {
-      throw new NotFoundException('Notification not found');
+      throw new NotFoundException('Notificação não encontrada');
     }
 
     if (notification.userId !== userId) {
       throw new ForbiddenException(
-        'You can only mark your own notifications as read',
+        'Você só pode marcar suas próprias notificações como lidas',
       );
     }
 

@@ -14,26 +14,26 @@ export class AcceptCabinetInvitationUseCase {
   async execute(token: string, userId: string): Promise<{ message: string }> {
     const invite = await this.invitationsRepository.findByToken(token);
     if (!invite) {
-      throw new NotFoundException('Invitation not found');
+      throw new NotFoundException('Convite não encontrado');
     }
 
     if (new Date() > invite.expiresAt) {
-      throw new BadRequestException('Invitation has expired');
+      throw new BadRequestException('O convite expirou');
     }
 
     const user = await this.usersRepository.findById(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuário não encontrado');
     }
 
     if (user.email.toLowerCase() !== invite.email.toLowerCase()) {
-      throw new ForbiddenException('This invitation was sent to a different email address');
+      throw new ForbiddenException('Este convite foi enviado para um endereço de e-mail diferente');
     }
 
     const existingMember = await this.membersRepository.findMembership(userId, invite.cabinetId);
     if (existingMember) {
       await this.invitationsRepository.delete(invite.id);
-      return { message: 'User is already a member of this cabinet' };
+      return { message: 'O usuário já é membro deste gabinete' };
     }
 
     await this.membersRepository.add({
@@ -44,6 +44,6 @@ export class AcceptCabinetInvitationUseCase {
 
     await this.invitationsRepository.delete(invite.id);
 
-    return { message: 'Invitation accepted successfully' };
+    return { message: 'Convite aceito com sucesso' };
   }
 }

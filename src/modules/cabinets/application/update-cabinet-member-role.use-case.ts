@@ -20,25 +20,25 @@ export class UpdateCabinetMemberRoleUseCase {
   async execute(input: UpdateCabinetMemberRoleInput): Promise<{ message: string }> {
     const cabinet = await this.cabinetsRepository.findBySlug(input.slug);
     if (!cabinet) {
-      throw new NotFoundException('Cabinet not found');
+      throw new NotFoundException('Gabinete não encontrado');
     }
 
     const requesterMembership = await this.membersRepository.findMembership(input.requesterId, cabinet.id);
     if (!requesterMembership || requesterMembership.role !== CabinetRole.OWNER) {
-      throw new ForbiddenException('Only cabinet owners can update member roles');
+      throw new ForbiddenException('Apenas proprietários de gabinetes podem atualizar as funções dos membros');
     }
 
     if (input.targetUserId === input.requesterId) {
-      throw new BadRequestException('You cannot change your own role. Transfer ownership instead.');
+      throw new BadRequestException('Você não pode alterar seu próprio cargo. Em vez disso, transfira a propriedade.');
     }
 
     const targetMembership = await this.membersRepository.findMembership(input.targetUserId, cabinet.id);
     if (!targetMembership) {
-      throw new NotFoundException('User is not a member of this cabinet');
+      throw new NotFoundException('O usuário não é membro deste gabinete');
     }
 
     await this.membersRepository.updateRole(input.targetUserId, cabinet.id, input.newRole);
 
-    return { message: `Member role updated to ${input.newRole} successfully` };
+    return { message: 'Função do membro atualizada com sucesso' };
   }
 }

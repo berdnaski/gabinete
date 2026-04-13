@@ -16,7 +16,7 @@ export class CreateUserUseCase {
   async execute(data: CreateUserInput): Promise<UserEntity> {
     const existing = await this.usersRepository.findByEmail(data.email);
     if (existing) {
-      throw new ConflictException('Email already in use');
+      throw new ConflictException('O e-mail informado já está em uso');
     }
     const hashedPassword = await bcryptjs.hash(data.password, 10);
     const user = await this.usersRepository.create({

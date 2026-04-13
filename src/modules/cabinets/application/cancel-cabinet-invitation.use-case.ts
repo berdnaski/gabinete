@@ -13,16 +13,16 @@ export class CancelCabinetInvitationUseCase {
   async execute(invitationId: string, userId: string): Promise<{ message: string }> {
     const invite = await this.invitationsRepository.findById(invitationId);
     if (!invite) {
-      throw new NotFoundException('Invitation not found');
+      throw new NotFoundException('Convite não encontrado');
     }
 
     const membership = await this.membersRepository.findMembership(userId, invite.cabinetId);
     if (!membership || membership.role !== CabinetRole.OWNER) {
-      throw new ForbiddenException('Only cabinet owners can cancel invitations');
+      throw new ForbiddenException('Apenas proprietários de gabinetes podem cancelar convites');
     }
 
     await this.invitationsRepository.delete(invitationId);
 
-    return { message: 'Invitation canceled successfully' };
+    return { message: 'Convite cancelado com sucesso' };
   }
 }

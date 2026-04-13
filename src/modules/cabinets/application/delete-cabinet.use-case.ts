@@ -8,7 +8,7 @@ export class DeleteCabinetUseCase {
   async execute(id: string): Promise<void> {
     const existing = await this.cabinetsRepository.findById(id);
     if (!existing) {
-      throw new NotFoundException('Cabinet not found');
+      throw new NotFoundException('Gabinete não encontrado');
     }
     await this.cabinetsRepository.softDelete(id);
   }

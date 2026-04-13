@@ -32,7 +32,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(payload: JwtPayload) {
     const user = await this.findUserByIdUseCase.execute(payload.sub);
     if (!user || user.disabledAt !== null) {
-      throw new UnauthorizedException('User not found or disabled');
+      throw new UnauthorizedException('Usuário não encontrado ou desativado');
     }
     return {
       id: user.id,

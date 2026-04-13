@@ -17,7 +17,7 @@ export class UpdateDemandUseCase {
     const demand = await this.demandsRepository.findById(id);
 
     if (!demand) {
-      throw new NotFoundException('Demand not found');
+      throw new NotFoundException('Demanda não encontrada');
     }
 
     if (dto.status || dto.priority || dto.assigneeMemberId) {

@@ -285,7 +285,7 @@ export class DemandsController {
     files: Express.Multer.File[],
   ): Promise<void> {
     if (!files || files.length === 0) {
-      throw new BadRequestException('No files provided');
+      throw new BadRequestException('Nenhum arquivo enviado');
     }
     return this.addDemandEvidenceUseCase.execute(id, files);
   }

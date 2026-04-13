@@ -16,7 +16,7 @@ export class CreateDemandCommentUseCase {
   async execute(demandId: string, authorId: string, content: string) {
     const demand = await this.demandsRepository.findById(demandId);
     if (!demand) {
-      throw new NotFoundException('Demand not found');
+      throw new NotFoundException('Demanda não encontrada');
     }
 
     const membership = demand.cabinetId

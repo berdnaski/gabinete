@@ -9,7 +9,7 @@ export class RemoveCabinetMemberUseCase {
   async execute(cabinetId: string, userId: string, senderId: string): Promise<void> {
     const senderMembership = await this.membersRepository.findMembership(senderId, cabinetId);
     if (!senderMembership || senderMembership.role !== CabinetRole.OWNER) {
-      throw new ForbiddenException('Only cabinet owners can remove members');
+      throw new ForbiddenException('Apenas proprietários de gabinetes podem remover membros');
     }
 
     const membership = await this.membersRepository.findMembership(
@@ -17,11 +17,11 @@ export class RemoveCabinetMemberUseCase {
       cabinetId,
     );
     if (!membership) {
-      throw new NotFoundException('Membership not found');
+      throw new NotFoundException('Membro não encontrado');
     }
 
     if (userId === senderId) {
-      throw new ForbiddenException('Owners cannot remove themselves. Delete the cabinet instead.');
+      throw new ForbiddenException('Proprietários não podem se remover. Exclua o gabinete.');
     }
 
     await this.membersRepository.remove(cabinetId, userId);

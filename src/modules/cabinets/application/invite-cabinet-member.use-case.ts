@@ -28,24 +28,24 @@ export class InviteCabinetMemberUseCase {
   async execute(input: InviteCabinetMemberInput): Promise<{ message: string }> {
     const cabinet = await this.cabinetsRepository.findById(input.cabinetId);
     if (!cabinet) {
-      throw new NotFoundException('Cabinet not found');
+      throw new NotFoundException('Gabinete não encontrado');
     }
 
     const sender = await this.usersRepository.findById(input.senderId);
     if (!sender) {
-      throw new NotFoundException('Sender not found');
+      throw new NotFoundException('Remetente não encontrado');
     }
 
     const senderMembership = await this.membersRepository.findMembership(input.senderId, input.cabinetId);
     if (!senderMembership || senderMembership.role !== CabinetRole.OWNER) {
-      throw new ForbiddenException('Only cabinet owners can invite members');
+      throw new ForbiddenException('Apenas proprietários de gabinetes podem convidar membros');
     }
 
     const user = await this.usersRepository.findByEmail(input.email);
     if (user) {
       const existingMember = await this.membersRepository.findMembership(user.id, input.cabinetId);
       if (existingMember) {
-        throw new ForbiddenException('User is already a member of this cabinet');
+        throw new ForbiddenException('O usuário já é membro deste gabinete');
       }
     }
 
@@ -69,6 +69,6 @@ export class InviteCabinetMemberUseCase {
       senderName: sender.name,
     });
 
-    return { message: 'Invitation sent successfully' };
+    return { message: 'Convite enviado com sucesso' };
   }
 }

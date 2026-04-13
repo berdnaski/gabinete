@@ -10,11 +10,11 @@ export class GetCabinetInvitationUseCase {
   async execute(token: string) {
     const invite = await this.invitationsRepository.findByToken(token);
     if (!invite) {
-      throw new NotFoundException('Invitation not found');
+      throw new NotFoundException('Convite não encontrado');
     }
 
     if (new Date() > invite.expiresAt) {
-      throw new BadRequestException('Invitation has expired');
+      throw new BadRequestException('O convite expirou');
     }
 
     return {
