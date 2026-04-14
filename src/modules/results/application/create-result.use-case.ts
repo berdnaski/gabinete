@@ -1,6 +1,6 @@
 import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { ResultType } from '@prisma/client';
-import { StorageService } from 'src/shared/domain/services/storage.service';
+import { StorageService } from '../../../shared/domain/services/storage.service';
 import { ICabinetMembersRepository } from '../../cabinets/domain/cabinet-members.repository.interface';
 import { ICabinetsRepository } from '../../cabinets/domain/cabinets.repository.interface';
 import { IResultsRepository } from '../domain/results.repository.interface';

@@ -7,6 +7,9 @@ import { UpdateResultUseCase } from '../application/update-result.use-case';
 import { DeleteResultUseCase } from '../application/delete-result.use-case';
 import { AddResultImagesUseCase } from '../application/add-result-images.use-case';
 import { UploadResultProtocolUseCase } from '../application/upload-result-protocol.use-case';
+import { ResultAccessGuard } from '../../../shared/guards/result-access.guard';
+import { IResultsRepository } from '../domain/results.repository.interface';
+import { ICabinetMembersRepository } from '../../cabinets/domain/cabinet-members.repository.interface';
 import { ResultType } from '@prisma/client';
 
 describe('ResultsController', () => {
@@ -47,6 +50,9 @@ describe('ResultsController', () => {
         { provide: DeleteResultUseCase, useValue: { execute: jest.fn() } },
         { provide: AddResultImagesUseCase, useValue: { execute: jest.fn() } },
         { provide: UploadResultProtocolUseCase, useValue: { execute: jest.fn() } },
+        { provide: ResultAccessGuard, useValue: { canActivate: jest.fn().mockReturnValue(true) } },
+        { provide: IResultsRepository, useValue: { findById: jest.fn() } },
+        { provide: ICabinetMembersRepository, useValue: { findMembership: jest.fn() } },
       ],
     }).compile();
 
@@ -65,7 +71,7 @@ describe('ResultsController', () => {
       createResultUseCase.execute.mockResolvedValue(mockResult as any);
 
       const result = await controller.create(
-        { title: 'Test', description: 'Test', type: ResultType.INFRASTRUCTURE, cabinetId: 'cabinet-1' },
+        { title: 'Test', description: 'Test', type: ResultType.INFRASTRUCTURE, cabinetSlug: 'test-cabinet' },
         { id: 'user-1' } as any,
         {},
       );

@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { StorageService } from 'src/shared/domain/services/storage.service';
+import { StorageService } from '../../../shared/domain/services/storage.service';
 import { IResultsRepository } from '../domain/results.repository.interface';
 import sharp from 'sharp';
 

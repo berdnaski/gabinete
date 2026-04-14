@@ -2,8 +2,15 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { AddResultImagesUseCase } from './add-result-images.use-case';
 import { IResultsRepository } from '../domain/results.repository.interface';
-import { StorageService } from 'src/shared/domain/services/storage.service';
+import { StorageService } from '../../../shared/domain/services/storage.service';
 import { ResultType } from '@prisma/client';
+
+jest.mock('sharp', () => () => ({
+  rotate: jest.fn().mockReturnThis(),
+  resize: jest.fn().mockReturnThis(),
+  jpeg: jest.fn().mockReturnThis(),
+  toBuffer: jest.fn().mockResolvedValue(Buffer.from('fake-buffer')),
+}));
 
 describe('AddResultImagesUseCase', () => {
   let useCase: AddResultImagesUseCase;

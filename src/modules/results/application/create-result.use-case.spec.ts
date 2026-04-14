@@ -4,8 +4,16 @@ import { CreateResultUseCase } from './create-result.use-case';
 import { IResultsRepository } from '../domain/results.repository.interface';
 import { ICabinetsRepository } from '../../cabinets/domain/cabinets.repository.interface';
 import { ICabinetMembersRepository } from '../../cabinets/domain/cabinet-members.repository.interface';
+import { StorageService } from '../../../shared/domain/services/storage.service';
 import { ResultType } from '@prisma/client';
 import { CabinetRole } from '../../cabinets/domain/cabinet-role.enum';
+
+jest.mock('sharp', () => () => ({
+  rotate: jest.fn().mockReturnThis(),
+  resize: jest.fn().mockReturnThis(),
+  jpeg: jest.fn().mockReturnThis(),
+  toBuffer: jest.fn().mockResolvedValue(Buffer.from('fake-buffer')),
+}));
 
 describe('CreateResultUseCase', () => {
   let useCase: CreateResultUseCase;
@@ -39,7 +47,7 @@ describe('CreateResultUseCase', () => {
         { provide: IResultsRepository, useValue: { create: jest.fn() } },
         { provide: ICabinetsRepository, useValue: { findBySlug: jest.fn() } },
         { provide: ICabinetMembersRepository, useValue: { findMembership: jest.fn() } },
-        { provide: 'StorageService', useValue: { upload: jest.fn(), getUrl: jest.fn() } },
+        { provide: StorageService, useValue: { upload: jest.fn(), getUrl: jest.fn() } },
       ],
     }).compile();
 

@@ -10,8 +10,8 @@ import {
   UpdateResultInfo,
 } from '../domain/results.repository.interface';
 import { ResultEntityMapper } from './result-entity.mapper';
-import { PaginatedResult } from 'src/shared/domain/pagination.interface';
-import { PaginationHelper } from 'src/shared/application/pagination.helper';
+import { PaginatedResult } from '../../../shared/domain/pagination.interface';
+import { PaginationHelper } from '../../../shared/application/pagination.helper';
 
 const RESULT_INCLUDE = {
   images: true,

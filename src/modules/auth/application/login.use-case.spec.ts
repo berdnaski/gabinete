@@ -1,4 +1,5 @@
 import { UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { FindUserByEmailUseCase } from '../../users/application/find-user-by-email.use-case';
@@ -18,6 +19,10 @@ describe('JwtTokenService', () => {
         {
           provide: JwtService,
           useValue: new JwtService({ secret: 'test-secret' }),
+        },
+        {
+          provide: ConfigService,
+          useValue: { get: jest.fn().mockReturnValue(3600) },
         },
       ],
     }).compile();
@@ -62,6 +67,7 @@ describe('LoginUseCase', () => {
         { provide: ValidatePasswordUseCase, useValue: mockValidatePassword },
         { provide: JwtTokenService, useValue: mockJwtTokenService },
         { provide: ITokensRepository, useValue: mockTokensRepository },
+        { provide: ConfigService, useValue: { get: jest.fn().mockReturnValue(604800) } },
       ],
     }).compile();
 

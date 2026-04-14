@@ -16,7 +16,6 @@ export class ResultEntityMapper {
     entity.title = prismaModel.title;
     entity.description = prismaModel.description;
     entity.type = prismaModel.type;
-    entity.isPublic = prismaModel.isPublic;
     entity.cabinetId = prismaModel.cabinetId;
     entity.demandId = prismaModel.demandId;
     entity.protocolFileKey = prismaModel.protocolFileKey;

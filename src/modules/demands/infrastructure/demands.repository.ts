@@ -72,7 +72,10 @@ export class DemandsRepository implements IDemandsRepository {
         assigneeMemberId: data.assigneeMemberId,
         disabledAt: data.disabledAt,
       },
-      include: { evidences: true },
+      include: {
+        evidences: true,
+        results: { where: { disabledAt: null }, select: { id: true, title: true, description: true, type: true, createdAt: true, protocolFileKey: true, protocolFileUrl: true } },
+      },
     });
 
     return DemandEntityMapper.toDomain(updated);
@@ -110,6 +113,7 @@ export class DemandsRepository implements IDemandsRepository {
       },
       include: {
         evidences: true,
+        results: { where: { disabledAt: null }, select: { id: true, title: true, description: true, type: true, createdAt: true, protocolFileKey: true, protocolFileUrl: true } },
       },
     });
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ResultType } from '@prisma/client';
 import { IResultsRepository } from '../domain/results.repository.interface';
-import { PaginatedResult } from 'src/shared/domain/pagination.interface';
+import { PaginatedResult } from '../../../shared/domain/pagination.interface';
 import { ResultEntity } from '../domain/result.entity';
 
 export interface ListResultsInput {
@@ -25,7 +25,6 @@ export class ListResultsUseCase {
       search: input.search,
       page: input.page,
       limit: input.limit,
-      isPublicOnly: true,
     });
   }
 }

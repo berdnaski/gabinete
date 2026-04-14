@@ -1,6 +1,6 @@
 import { ResultType } from '@prisma/client';
 import { ResultEntity } from './result.entity';
-import { PaginatedResult, PaginationParams } from 'src/shared/domain/pagination.interface';
+import { PaginatedResult, PaginationParams } from '../../../shared/domain/pagination.interface';
 
 export interface CreateResultInfo {
   title: string;

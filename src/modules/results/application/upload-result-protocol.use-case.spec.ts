@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { UploadResultProtocolUseCase } from './upload-result-protocol.use-case';
 import { IResultsRepository } from '../domain/results.repository.interface';
-import { StorageService } from 'src/shared/domain/services/storage.service';
+import { StorageService } from '../../../shared/domain/services/storage.service';
 import { ResultType } from '@prisma/client';
 
 describe('UploadResultProtocolUseCase', () => {
