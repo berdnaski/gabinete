@@ -96,4 +96,15 @@ export class DemandEntity {
 
   @ApiProperty({ example: false })
   isLiked: boolean = false;
+
+  @ApiProperty({ type: Array, required: false, description: 'Resultados associados a esta demanda' })
+  results?: Array<{
+    id: string;
+    title: string;
+    description: string;
+    type: string;
+    createdAt: Date;
+    protocolFileKey: string | null;
+    protocolFileUrl: string | null;
+  }>;
 }

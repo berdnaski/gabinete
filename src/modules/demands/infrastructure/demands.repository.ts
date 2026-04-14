@@ -29,6 +29,7 @@ export class DemandsRepository implements IDemandsRepository {
       where: { id, disabledAt: null },
       include: {
         evidences: true,
+        results: { select: { id: true, title: true, description: true, type: true, createdAt: true, protocolFileKey: true, protocolFileUrl: true }, where: { disabledAt: null } },
         _count: { select: { likes: true } },
         likes: userId ? { where: { userId } } : false,
       },
@@ -179,6 +180,7 @@ export class DemandsRepository implements IDemandsRepository {
         orderBy: { createdAt: 'desc' },
         include: {
           evidences: true,
+          results: { select: { id: true, title: true, description: true, type: true, createdAt: true, protocolFileKey: true, protocolFileUrl: true }, where: { disabledAt: null } },
           reporter: true,
           category: {
             select: {
@@ -225,6 +227,7 @@ export class DemandsRepository implements IDemandsRepository {
         orderBy: { createdAt: 'desc' },
         include: {
           evidences: true,
+          results: { select: { id: true, title: true, description: true, type: true, createdAt: true, protocolFileKey: true, protocolFileUrl: true }, where: { disabledAt: null } },
           reporter: true,
           category: {
             select: {

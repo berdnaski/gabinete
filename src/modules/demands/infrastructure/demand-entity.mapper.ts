@@ -2,7 +2,10 @@ import { Prisma } from '@prisma/client';
 import { DemandEntity } from '../domain/demand.entity';
 
 export type DemandWithRelations = Prisma.DemandGetPayload<{
-  include: { evidences: true };
+  include: {
+    evidences: true;
+    results: { select: { id: true; title: true; description: true; type: true; createdAt: true; protocolFileKey: true; protocolFileUrl: true } };
+  };
 }> & {
   reporter?: { name: string; avatarUrl: string | null } | null;
   category?: { name: string } | null;
@@ -59,6 +62,18 @@ export class DemandEntityMapper {
 
     entity.likesCount = prismaModel._count?.likes ?? 0;
     entity.isLiked = userId ? !!prismaModel.likes?.length : false;
+
+    if (prismaModel.results) {
+      entity.results = prismaModel.results.map((r) => ({
+        id: r.id,
+        title: r.title,
+        description: r.description,
+        type: r.type,
+        createdAt: r.createdAt,
+        protocolFileKey: r.protocolFileKey,
+        protocolFileUrl: r.protocolFileUrl,
+      }));
+    }
 
     return entity;
   }

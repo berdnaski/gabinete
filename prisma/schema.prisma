@@ -40,12 +40,6 @@ enum ResultType {
   OTHER
 }
 
-enum ResultImageType {
-  BEFORE
-  AFTER
-  GENERAL
-}
-
 enum NotificationType {
   INFO
   SUCCESS
@@ -192,10 +186,10 @@ model Demand {
   cabinet        Cabinet?         @relation(fields: [cabinetId], references: [id])
   category       Category?        @relation(fields: [categoryId], references: [id])
   assigneeMember CabinetMember?   @relation("DemandAssignee", fields: [assigneeMemberId], references: [id])
-  evidences      DemandEvidence[]
-  likes          DemandLike[]
-  comments       DemandComment[]
-  results        Result[]
+  evidences DemandEvidence[]
+  likes     DemandLike[]
+  comments  DemandComment[]
+  results   Result[]
 
   @@index([cabinetId])
   @@index([categoryId])
@@ -248,15 +242,19 @@ model DemandComment {
 }
 
 model Result {
-  id          String     @id @default(uuid())
-  title       String
-  description String
-  type        ResultType
-  isPublic    Boolean    @default(false) @map("is_public")
-  cabinetId   String     @map("cabinet_id")
-  demandId    String?    @map("demand_id")
-  createdAt   DateTime   @default(now()) @map("created_at")
-  disabledAt  DateTime?  @map("disabled_at")
+  id                   String    @id @default(uuid())
+  title                String
+  description          String
+  type                 ResultType
+  cabinetId            String    @map("cabinet_id")
+  demandId             String?   @map("demand_id")
+  protocolFileKey      String?   @map("protocol_file_key")
+  protocolFileUrl      String?   @map("protocol_file_url")
+  protocolFileName     String?   @map("protocol_file_name")
+  protocolFileMimeType String?   @map("protocol_file_mime_type")
+  protocolFileSize     Int?      @map("protocol_file_size")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  disabledAt           DateTime? @map("disabled_at")
 
   cabinet Cabinet       @relation(fields: [cabinetId], references: [id])
   demand  Demand?       @relation(fields: [demandId], references: [id])
@@ -268,14 +266,14 @@ model Result {
 }
 
 model ResultImage {
-  id         String          @id @default(uuid())
+  id         String @id @default(uuid())
   url        String
-  storageKey String          @map("storage_key")
-  type       ResultImageType
-  resultId   String          @map("result_id")
+  storageKey String @map("storage_key")
+  resultId   String @map("result_id")
 
   result Result @relation(fields: [resultId], references: [id])
 
+  @@index([resultId])
   @@map("result_images")
 }
 

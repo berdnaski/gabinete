@@ -11,6 +11,7 @@ import { DemandsModule } from './modules/demands/infrastructure/demands.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { NotificationsModule } from './modules/notifications/infrastructure/notifications.module';
+import { ResultsModule } from './modules/results/infrastructure/results.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { NotificationsModule } from './modules/notifications/infrastructure/noti
     DemandsModule,
     EventEmitterModule.forRoot(),
     NotificationsModule,
+    ResultsModule,
   ],
   controllers: [],
   providers: [
