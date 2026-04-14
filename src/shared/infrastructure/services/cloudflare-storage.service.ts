@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   S3Client,
   PutObjectCommand,
@@ -15,6 +15,7 @@ import {
 
 @Injectable()
 export class CloudflareStorageService implements StorageService {
+  private readonly logger = new Logger(CloudflareStorageService.name);
   private readonly s3: S3Client;
   private readonly bucket: string;
 
@@ -45,12 +46,7 @@ export class CloudflareStorageService implements StorageService {
 
     await this.s3.send(command);
 
-    return {
-      path,
-      filename,
-      mimetype,
-      folder,
-    };
+    return { path, filename, mimetype, folder };
   }
 
   async getUrl(key: string): Promise<{ signedUrl: string }> {
@@ -60,45 +56,27 @@ export class CloudflareStorageService implements StorageService {
       const cleanBase = publicUrlBase.endsWith('/')
         ? publicUrlBase.slice(0, -1)
         : publicUrlBase;
-      return {
-        signedUrl: `${cleanBase}/${key}`,
-      };
+      return { signedUrl: `${cleanBase}/${key}` };
     }
 
     try {
-      const command = new GetObjectCommand({
-        Bucket: this.bucket,
-        Key: key,
-      });
-
-      const signedUrl = await getSignedUrl(this.s3, command, {
-        expiresIn: 3600,
-      });
-
-      return {
-        signedUrl,
-      };
+      const command = new GetObjectCommand({ Bucket: this.bucket, Key: key });
+      const signedUrl = await getSignedUrl(this.s3, command, { expiresIn: 3600 });
+      return { signedUrl };
     } catch (error) {
-      console.error('Error generating signed URL:', error);
+      this.logger.error('Error generating signed URL', error);
       throw new Error('Failed to generate file URL');
     }
   }
 
   async delete(key: string): Promise<void> {
     try {
-      const command = new DeleteObjectCommand({
-        Bucket: this.bucket,
-        Key: key,
-      });
-
+      const command = new DeleteObjectCommand({ Bucket: this.bucket, Key: key });
       await this.s3.send(command).catch((err) => {
-        console.warn(
-          `File ${key} could not be deleted or not found in R2`,
-          err,
-        );
+        this.logger.warn(`File ${key} could not be deleted or not found in R2`, err);
       });
     } catch (error) {
-      console.error('Error deleting object from R2:', error);
+      this.logger.error('Error deleting object from R2', error);
       throw error;
     }
   }

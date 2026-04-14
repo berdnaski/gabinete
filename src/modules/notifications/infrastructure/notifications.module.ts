@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { NotificationsGateway } from './notifications.gateway';
 import { INotificationsRepository } from '../domain/notifications.repository.interface';
-import { PrismaNotificationsRepository } from './prisma-notifications.repository';
+import { NotificationsRepository } from './notifications.repository';
 import { SendNotificationUseCase } from '../application/send-notification.use-case';
 import { ListNotificationsUseCase } from '../application/list-notifications.use-case';
 import { MarkNotificationAsReadUseCase } from '../application/mark-notification-as-read.use-case';
@@ -18,7 +18,7 @@ import { NotificationsController } from './notifications.controller';
     NotificationsGateway,
     {
       provide: INotificationsRepository,
-      useClass: PrismaNotificationsRepository,
+      useClass: NotificationsRepository,
     },
     SendNotificationUseCase,
     ListNotificationsUseCase,

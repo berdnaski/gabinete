@@ -16,7 +16,7 @@ export class AddDemandEvidenceUseCase {
 
   async execute(
     demandId: string,
-    userId: string,
+    userId: string | undefined,
     files: Express.Multer.File[],
   ): Promise<void> {
     const demand = await this.demandsRepository.findById(demandId);
@@ -49,14 +49,16 @@ export class AddDemandEvidenceUseCase {
         });
       }
 
-      const reporter = await this.usersRepository.findById(userId);
-      this.eventEmitter.emit('demand.evidence-added', {
-        demandId: demand.id,
-        cabinetId: demand.cabinetId,
-        demandTitle: demand.title,
-        reporterId: demand.reporterId,
-        reporterName: reporter?.name || 'O autor',
-      });
+      const reporter = userId ? await this.usersRepository.findById(userId) : null;
+      if (demand.reporterId) {
+        this.eventEmitter.emit('demand.evidence-added', {
+          demandId: demand.id,
+          cabinetId: demand.cabinetId,
+          demandTitle: demand.title,
+          reporterId: demand.reporterId,
+          reporterName: reporter?.name || 'O autor',
+        });
+      }
     }
   }
 }

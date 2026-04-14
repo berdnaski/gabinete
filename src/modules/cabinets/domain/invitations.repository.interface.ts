@@ -1,4 +1,5 @@
 import { CabinetRole } from './cabinet-role.enum';
+import { CabinetInvitationEntity } from './cabinet-invitation.entity';
 
 export interface CreateInvitationInput {
   email: string;
@@ -10,10 +11,10 @@ export interface CreateInvitationInput {
 
 export abstract class ICabinetInvitationsRepository {
   abstract create(data: CreateInvitationInput): Promise<void>;
-  abstract findByEmail(email: string): Promise<any[]>;
-  abstract findByToken(token: string): Promise<any | null>;
-  abstract findById(id: string): Promise<any | null>;
-  abstract findByCabinetId(cabinetId: string): Promise<any[]>;
+  abstract findByEmail(email: string): Promise<CabinetInvitationEntity[]>;
+  abstract findByToken(token: string): Promise<CabinetInvitationEntity | null>;
+  abstract findById(id: string): Promise<CabinetInvitationEntity | null>;
+  abstract findByCabinetId(cabinetId: string): Promise<CabinetInvitationEntity[]>;
   abstract delete(id: string): Promise<void>;
   abstract deleteManyByEmail(email: string): Promise<void>;
 }

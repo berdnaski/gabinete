@@ -20,9 +20,6 @@ import { JwtStrategy } from './jwt.strategy';
 import { ITokensRepository } from '../domain/tokens.repository.interface';
 import { TokensRepository } from './tokens.repository';
 
-import { AuthCookiesInterceptor } from './interceptors/auth-cookies.interceptor';
-import { ClearCookiesInterceptor } from './interceptors/clear-cookies.interceptor';
-
 @Module({
   imports: [
     UsersModule,
@@ -39,7 +36,7 @@ import { ClearCookiesInterceptor } from './interceptors/clear-cookies.intercepto
         return {
           secret,
           signOptions: {
-            expiresIn: parseInt(config.get<string>('JWT_EXPIRES_IN', '3600'), 10),
+            expiresIn: config.get<number>('JWT_EXPIRES_IN', 3600),
           },
         };
       },
@@ -62,8 +59,6 @@ import { ClearCookiesInterceptor } from './interceptors/clear-cookies.intercepto
     JwtStrategy,
     GoogleStrategy,
     GoogleLoginUseCase,
-    AuthCookiesInterceptor,
-    ClearCookiesInterceptor,
   ],
   controllers: [AuthController],
   exports: [JwtModule],

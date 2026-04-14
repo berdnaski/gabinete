@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
   UseInterceptors,
   UploadedFile,
@@ -55,6 +56,7 @@ import { CancelCabinetInvitationUseCase } from '../application/cancel-cabinet-in
 import { UpdateCabinetMemberRoleUseCase } from '../application/update-cabinet-member-role.use-case';
 import { LeaveCabinetUseCase } from '../application/leave-cabinet.use-case';
 import { UpdateCabinetMemberRoleDto } from '../dto/update-cabinet-member-role.dto';
+import { PaginationQueryDto } from '../../../shared/dto/pagination-query.dto';
 
 @ApiTags('cabinets')
 @Controller('cabinets')
@@ -95,11 +97,19 @@ export class CabinetsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'List all cabinets' })
-  @ApiResponse({ status: 200, type: [CabinetResponseDto] })
-  async list(): Promise<CabinetResponseDto[]> {
-    const cabinets = await this.listCabinetsUseCase.execute();
-    return cabinets.map((c) => this.toCabinetDto(c));
+  @ApiOperation({ summary: 'List all cabinets with pagination' })
+  @ApiResponse({
+    status: 200,
+    schema: {
+      properties: {
+        items: { type: 'array', items: { $ref: '#/components/schemas/CabinetResponseDto' } },
+        total: { type: 'number' },
+      },
+    },
+  })
+  async list(@Query() query: PaginationQueryDto) {
+    const result = await this.listCabinetsUseCase.execute(query);
+    return { items: result.items.map((c) => this.toCabinetDto(c)), total: result.total };
   }
 
   @Get(':slug')

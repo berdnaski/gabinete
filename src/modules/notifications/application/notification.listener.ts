@@ -16,11 +16,13 @@ export class NotificationListener {
 
   @OnEvent('demand.status-changed')
   async handleDemandStatusChanged(payload: {
-    userId: string;
+    userId: string | null;
     demandId: string;
     title: string;
     newStatus: string;
   }) {
+    if (!payload.userId) return;
+
     await this.sendNotification.execute({
       userId: payload.userId,
       title: 'Status da Demanda Atualizado',
@@ -45,10 +47,12 @@ export class NotificationListener {
 
   @OnEvent('demand.resolved')
   async handleDemandResolved(payload: {
-    userId: string;
+    userId: string | null;
     demandTitle: string;
     cabinetName: string;
   }) {
+    if (!payload.userId) return;
+
     await this.sendNotification.execute({
       userId: payload.userId,
       title: 'Demanda Resolvida!',
@@ -74,10 +78,12 @@ export class NotificationListener {
   @OnEvent('demand.claimed')
   async handleDemandClaimed(payload: {
     demandId: string;
-    reporterId: string;
+    reporterId: string | null;
     demandTitle: string;
     cabinetName: string;
   }) {
+    if (!payload.reporterId) return;
+
     await this.sendNotification.execute({
       userId: payload.reporterId,
       title: 'Demanda Reivindicada',
@@ -89,10 +95,12 @@ export class NotificationListener {
   @OnEvent('demand.liked')
   async handleDemandLiked(payload: {
     demandId: string;
-    reporterId: string;
+    reporterId: string | null;
     demandTitle: string;
     likerName: string;
   }) {
+    if (!payload.reporterId) return;
+
     await this.sendNotification.execute({
       userId: payload.reporterId,
       title: 'Sua demanda recebeu uma curtida!',
@@ -106,20 +114,22 @@ export class NotificationListener {
     demandId: string;
     cabinetId: string | null;
     demandTitle: string;
-    reporterId: string;
+    reporterId: string | null;
     reporterName: string;
   }) {
-    await this.sendNotification.execute({
-      userId: payload.reporterId,
-      title: 'Novas Evidências Anexadas',
-      message: `Novas evidências (fotos/documentos) foram adicionadas à sua demanda "${payload.demandTitle}" por ${payload.reporterName}.`,
-      type: NotificationType.INFO,
-    });
+    if (payload.reporterId) {
+      await this.sendNotification.execute({
+        userId: payload.reporterId,
+        title: 'Novas Evidências Anexadas',
+        message: `Novas evidências (fotos/documentos) foram adicionadas à sua demanda "${payload.demandTitle}" por ${payload.reporterName}.`,
+        type: NotificationType.INFO,
+      });
+    }
 
     if (payload.cabinetId) {
       const members = await this.cabinetMembersRepository.findByCabinetId(payload.cabinetId);
-      const toNotify = members.filter(member =>
-        member.role === CabinetRole.OWNER || member.role === CabinetRole.STAFF
+      const toNotify = members.filter(
+        (member) => member.role === CabinetRole.OWNER || member.role === CabinetRole.STAFF,
       );
 
       for (const member of toNotify) {

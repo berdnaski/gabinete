@@ -11,7 +11,7 @@ import {
 } from 'src/shared/domain/pagination.interface';
 
 @Injectable()
-export class PrismaNotificationsRepository implements INotificationsRepository {
+export class NotificationsRepository implements INotificationsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateNotificationInfo): Promise<NotificationEntity> {

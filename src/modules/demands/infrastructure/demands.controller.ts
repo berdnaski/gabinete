@@ -79,20 +79,61 @@ export class DemandsController {
   @Post()
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
   @ApiOperation({
-    summary: 'Creates a new Demand (Authenticated or Guest Flow)',
+    summary: 'Creates a new Demand (Authenticated or Guest Flow). Accepts optional evidence files in the same request.',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['title', 'description', 'address', 'neighborhood', 'city', 'state'],
+      properties: {
+        title: { type: 'string' },
+        description: { type: 'string' },
+        priority: { type: 'string', enum: ['LOW', 'MEDIUM', 'HIGH', 'URGENT'] },
+        address: { type: 'string' },
+        zipcode: { type: 'string' },
+        lat: { type: 'number' },
+        long: { type: 'number' },
+        neighborhood: { type: 'string' },
+        city: { type: 'string' },
+        state: { type: 'string' },
+        guestEmail: { type: 'string' },
+        cabinetId: { type: 'string' },
+        categoryId: { type: 'string' },
+        evidences: {
+          type: 'array',
+          items: { type: 'string', format: 'binary' },
+          description: 'Optional image files attached at creation time',
+        },
+      },
+    },
   })
   @ApiResponse({
     status: 201,
     type: DemandEntity,
-    description: 'Demand successfully created',
+    description: 'Demand successfully created (with evidences if provided)',
   })
   @ApiResponse({ status: 400, description: 'Validation error' })
+  @UseInterceptors(FilesInterceptor('evidences', 5))
   async create(
     @Body() dto: CreateDemandDto,
     @CurrentUser() user: UserEntity | null,
+    @UploadedFiles(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5_000_000 }),
+          new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
+          new MagicBytesValidator({
+            allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg'],
+          }),
+        ],
+        fileIsRequired: false,
+      }),
+    )
+    files?: Express.Multer.File[],
   ): Promise<DemandEntity> {
-    return this.createDemandUseCase.execute(dto, user?.id);
+    return this.createDemandUseCase.execute(dto, user?.id, files);
   }
 
   @Get()
@@ -276,7 +317,7 @@ export class DemandsController {
   @UseInterceptors(FilesInterceptor('evidences', 5))
   async uploadEvidence(
     @Param('id') id: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: UserEntity | null,
     @UploadedFiles(
       new ParseFilePipe({
         validators: [

@@ -9,8 +9,8 @@ import { PrismaService } from '../../database/prisma.service';
 import { PaginationHelper } from 'src/shared/application/pagination.helper';
 import { PaginatedResult } from 'src/shared/domain/pagination.interface';
 
-type PrismaUserWithMembers = Prisma.UserGetPayload<{
-  include: { cabinetMembers: { select: { id: true } } };
+type PrismaUserWithMemberCount = Prisma.UserGetPayload<{
+  include: { _count: { select: { cabinetMembers: true } } };
 }>;
 
 @Injectable()
@@ -18,18 +18,18 @@ export class UsersRepository implements IUsersRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findByEmail(email: string): Promise<UserEntity | null> {
-    const record = (await this.prisma.user.findFirst({
+    const record = await this.prisma.user.findFirst({
       where: { email, disabledAt: null },
-      include: { cabinetMembers: { select: { id: true } } },
-    })) as PrismaUserWithMembers | null;
+      include: { _count: { select: { cabinetMembers: true } } },
+    });
     return record ? this.toEntity(record) : null;
   }
 
   async findById(id: string): Promise<UserEntity | null> {
-    const record = (await this.prisma.user.findFirst({
+    const record = await this.prisma.user.findFirst({
       where: { id, disabledAt: null },
-      include: { cabinetMembers: { select: { id: true } } },
-    })) as PrismaUserWithMembers | null;
+      include: { _count: { select: { cabinetMembers: true } } },
+    });
     return record ? this.toEntity(record) : null;
   }
 
@@ -38,10 +38,10 @@ export class UsersRepository implements IUsersRepository {
     email: string;
     password: string;
   }): Promise<UserEntity> {
-    const record = (await this.prisma.user.create({
+    const record = await this.prisma.user.create({
       data,
-      include: { cabinetMembers: { select: { id: true } } },
-    })) as PrismaUserWithMembers;
+      include: { _count: { select: { cabinetMembers: true } } },
+    });
     return this.toEntity(record);
   }
 
@@ -58,27 +58,21 @@ export class UsersRepository implements IUsersRepository {
   ): Promise<UserEntity | null> {
     const account = await this.prisma.account.findUnique({
       where: {
-        provider_providerAccountId: {
-          provider,
-          providerAccountId,
-        },
+        provider_providerAccountId: { provider, providerAccountId },
       },
       include: {
         user: {
-          include: { cabinetMembers: { select: { id: true } } },
+          include: { _count: { select: { cabinetMembers: true } } },
         },
       },
     });
 
     if (!account?.user) return null;
-
-    return this.toEntity(account.user as PrismaUserWithMembers);
+    return this.toEntity(account.user as PrismaUserWithMemberCount);
   }
 
-  async createWithAccount(
-    data: CreateUserWithAccountData,
-  ): Promise<UserEntity> {
-    const record = (await this.prisma.user.create({
+  async createWithAccount(data: CreateUserWithAccountData): Promise<UserEntity> {
+    const record = await this.prisma.user.create({
       data: {
         name: data.name,
         email: data.email,
@@ -92,8 +86,8 @@ export class UsersRepository implements IUsersRepository {
           },
         },
       },
-      include: { cabinetMembers: { select: { id: true } } },
-    })) as PrismaUserWithMembers;
+      include: { _count: { select: { cabinetMembers: true } } },
+    });
     return this.toEntity(record);
   }
 
@@ -131,7 +125,7 @@ export class UsersRepository implements IUsersRepository {
       disabledAt?: Date;
     },
   ): Promise<UserEntity> {
-    const record = (await this.prisma.user.update({
+    const record = await this.prisma.user.update({
       where: { id },
       data: {
         name: data.name,
@@ -150,17 +144,17 @@ export class UsersRepository implements IUsersRepository {
         long: data.long,
         hasSetPassword: data.hasSetPassword,
       },
-      include: { cabinetMembers: { select: { id: true } } },
-    })) as PrismaUserWithMembers;
+      include: { _count: { select: { cabinetMembers: true } } },
+    });
     return this.toEntity(record);
   }
 
   async updateRole(id: string, role: UserRole): Promise<UserEntity> {
-    const record = (await this.prisma.user.update({
+    const record = await this.prisma.user.update({
       where: { id },
       data: { role },
-      include: { cabinetMembers: { select: { id: true } } },
-    })) as PrismaUserWithMembers;
+      include: { _count: { select: { cabinetMembers: true } } },
+    });
     return this.toEntity(record);
   }
 
@@ -171,9 +165,7 @@ export class UsersRepository implements IUsersRepository {
   }): Promise<PaginatedResult<UserEntity>> {
     const { skip, take } = PaginationHelper.getSkipTake(filters);
 
-    const where: Prisma.UserWhereInput = {
-      disabledAt: null,
-    };
+    const where: Prisma.UserWhereInput = { disabledAt: null };
 
     if (filters.search) {
       where.OR = [
@@ -188,18 +180,18 @@ export class UsersRepository implements IUsersRepository {
         skip,
         take,
         orderBy: { name: 'asc' },
-        include: { cabinetMembers: { select: { id: true } } },
-      }) as Promise<PrismaUserWithMembers[]>,
+        include: { _count: { select: { cabinetMembers: true } } },
+      }),
       this.prisma.user.count({ where }),
     ]);
 
     return {
-      items: items.map((item) => this.toEntity(item)),
+      items: items.map((item) => this.toEntity(item as PrismaUserWithMemberCount)),
       total,
     };
   }
 
-  private toEntity(record: PrismaUserWithMembers): UserEntity {
+  private toEntity(record: PrismaUserWithMemberCount): UserEntity {
     const entity = new UserEntity();
     entity.id = record.id;
     entity.name = record.name;
@@ -218,8 +210,7 @@ export class UsersRepository implements IUsersRepository {
     entity.lat = record.lat;
     entity.long = record.long;
     entity.hasSetPassword = record.hasSetPassword;
-    entity.isCabinetMember =
-      !!record.cabinetMembers && record.cabinetMembers.length > 0;
+    entity.isCabinetMember = record._count.cabinetMembers > 0;
     return entity;
   }
 }

@@ -3,6 +3,8 @@ import { PrismaService } from '../../database/prisma.service';
 import { Cabinet as PrismaCabinet } from '@prisma/client';
 import { CabinetEntity } from '../domain/cabinet.entity';
 import { ICabinetsRepository } from '../domain/cabinets.repository.interface';
+import { PaginatedResult, PaginationParams } from 'src/shared/domain/pagination.interface';
+import { PaginationHelper } from 'src/shared/application/pagination.helper';
 
 @Injectable()
 export class CabinetsRepository implements ICabinetsRepository {
@@ -35,20 +37,22 @@ export class CabinetsRepository implements ICabinetsRepository {
 
   async findSlugsByBaseName(baseSlug: string): Promise<string[]> {
     const records = await this.prisma.cabinet.findMany({
-      where: {
-        slug: { startsWith: baseSlug },
-        disabledAt: null,
-      },
+      where: { slug: { startsWith: baseSlug }, disabledAt: null },
       select: { slug: true },
     });
     return records.map((r) => r.slug);
   }
 
-  async list(): Promise<CabinetEntity[]> {
-    const records = await this.prisma.cabinet.findMany({
-      where: { disabledAt: null },
-    });
-    return records.map((r) => this.toEntity(r));
+  async list(params?: PaginationParams): Promise<PaginatedResult<CabinetEntity>> {
+    const { skip, take } = PaginationHelper.getSkipTake(params ?? { page: 1, limit: 100 });
+    const where = { disabledAt: null };
+
+    const [records, total] = await Promise.all([
+      this.prisma.cabinet.findMany({ where, skip, take, orderBy: { name: 'asc' } }),
+      this.prisma.cabinet.count({ where }),
+    ]);
+
+    return { items: records.map((r) => this.toEntity(r)), total };
   }
 
   async update(

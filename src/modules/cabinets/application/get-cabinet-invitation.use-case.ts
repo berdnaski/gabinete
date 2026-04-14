@@ -20,7 +20,7 @@ export class GetCabinetInvitationUseCase {
     return {
       email: invite.email,
       role: invite.role,
-      cabinetName: invite.cabinet.name,
+      cabinetName: invite.cabinet?.name,
       expiresAt: invite.expiresAt,
     };
   }
