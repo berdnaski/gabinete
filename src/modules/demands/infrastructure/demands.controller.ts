@@ -39,12 +39,16 @@ import { CreateDemandCommentUseCase } from '../application/create-demand-comment
 import { CreateDemandUseCase } from '../application/create-demand.use-case';
 import { DeleteDemandUseCase } from '../application/delete-demand.use-case';
 import { FindDemandUseCase } from '../application/find-demand.use-case';
+import { GetCabinetDashboardSummaryUseCase } from '../application/get-cabinet-dashboard-summary.use-case';
 import { GetCabinetDemandMetricsUseCase } from '../application/get-cabinet-demand-metrics.use-case';
 import { GetCabinetDemandHeatmapUseCase } from '../application/get-cabinet-demand-heatmap.use-case';
 import { DemandEntity } from '../domain/demand.entity';
 import { AssignDemandDto } from '../dto/assign-demand.dto';
 import { CreateDemandCommentDto } from '../dto/create-demand-comment.dto';
 import { CreateDemandDto } from '../dto/create-demand.dto';
+import { DemandCommentResponseDto } from '../dto/demand-comment-response.dto';
+import { GetCabinetDashboardSummaryQueryDto } from '../dto/get-cabinet-dashboard-summary-query.dto';
+import { GetCabinetDashboardSummaryResponseDto } from '../dto/get-cabinet-dashboard-summary-response.dto';
 import { GetCabinetDemandMetricsResponseDto } from '../dto/get-cabinet-demand-metrics-response.dto';
 import { GetCabinetDemandHeatmapResponseDto } from '../dto/get-cabinet-demand-heatmap-response.dto';
 import { ListCommentsDto } from '../dto/list-comments.dto';
@@ -77,6 +81,7 @@ export class DemandsController {
     private readonly listDemandCommentsUseCase: ListDemandCommentsUseCase,
     private readonly toggleDemandLikeUseCase: ToggleDemandLikeUseCase,
     private readonly getCabinetDemandMetricsUseCase: GetCabinetDemandMetricsUseCase,
+    private readonly getCabinetDashboardSummaryUseCase: GetCabinetDashboardSummaryUseCase,
     private readonly getCabinetDemandHeatmapUseCase: GetCabinetDemandHeatmapUseCase,
     private readonly listDemandNeighborhoodsUseCase: ListDemandNeighborhoodsUseCase,
     private readonly listDemandsByReporterUseCase: ListDemandsByReporterUseCase,
@@ -119,6 +124,12 @@ export class DemandsController {
     status: 201,
     type: DemandEntity,
     description: 'Demand successfully created (with evidences if provided)',
+  })
+  
+  @ApiResponse({
+    status: 201,
+    type: DemandEntity,
+    description: 'Demand successfully created',
   })
   @ApiResponse({ status: 400, description: 'Validation error' })
   @UseInterceptors(FilesInterceptor('evidences', 5))
@@ -189,6 +200,29 @@ export class DemandsController {
     return this.getCabinetDemandMetricsUseCase.execute({
       cabinetSlug: slug,
       userId: user.id,
+    });
+  }
+
+  @Get('cabinet/:slug/dashboard/summary')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get dashboard summary for a cabinet by slug (month/year filter)',
+  })
+  @ApiResponse({ status: 200, type: GetCabinetDashboardSummaryResponseDto })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Cabinet not found' })
+  async getCabinetDashboardSummary(
+    @Param('slug') slug: string,
+    @Query() query: GetCabinetDashboardSummaryQueryDto,
+    @CurrentUser() user: UserEntity,
+  ): Promise<GetCabinetDashboardSummaryResponseDto> {
+    return this.getCabinetDashboardSummaryUseCase.execute({
+      cabinetSlug: slug,
+      userId: user.id,
+      month: query.month,
+      year: query.year,
     });
   }
 
@@ -437,7 +471,10 @@ export class DemandsController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Demand not found' })
-  async listComments(@Param('id') id: string, @Query() query: ListCommentsDto) {
+  async listComments(
+    @Param('id') id: string,
+    @Query() query: ListCommentsDto,
+  ): Promise<{ items: DemandCommentResponseDto[]; total: number }> {
     return this.listDemandCommentsUseCase.execute(id, query);
   }
 
