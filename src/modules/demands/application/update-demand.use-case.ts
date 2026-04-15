@@ -51,6 +51,7 @@ export class UpdateDemandUseCase {
       if (dto.status === DemandStatus.RESOLVED) {
         this.eventEmitter.emit('demand.resolved', {
           userId: demand.reporterId,
+          demandId: demand.id,
           demandTitle: demand.title,
         });
       }
