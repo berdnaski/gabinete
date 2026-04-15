@@ -172,7 +172,7 @@ export class AuthController {
     status: 302,
     description: 'Redirects to Google authorization page',
   })
-  googleAuth() { }
+  googleAuth() {}
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)

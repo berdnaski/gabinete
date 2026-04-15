@@ -10,6 +10,7 @@ import { PrismaService } from '../../database/prisma.service';
 import { DemandEntity } from '../domain/demand.entity';
 import {
   CabinetDemandMetrics,
+  CabinetDashboardSummary,
   CreateDemandInfo,
   CreateEvidenceInfo,
   DemandCommentInfo,
@@ -22,7 +23,7 @@ import { DemandEntityMapper } from './demand-entity.mapper';
 
 @Injectable()
 export class DemandsRepository implements IDemandsRepository {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async findById(id: string, userId?: string): Promise<DemandEntity | null> {
     const demand = await this.prisma.demand.findUnique({
@@ -169,10 +170,10 @@ export class DemandsRepository implements IDemandsRepository {
       priority: priority || undefined,
       OR: search
         ? [
-          { title: { contains: search, mode: 'insensitive' } },
-          { description: { contains: search, mode: 'insensitive' } },
-          { neighborhood: { contains: search, mode: 'insensitive' } },
-        ]
+            { title: { contains: search, mode: 'insensitive' } },
+            { description: { contains: search, mode: 'insensitive' } },
+            { neighborhood: { contains: search, mode: 'insensitive' } },
+          ]
         : undefined,
     };
 
@@ -394,6 +395,54 @@ export class DemandsRepository implements IDemandsRepository {
     };
   }
 
+  async getCabinetDashboardSummary(
+    cabinetId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<CabinetDashboardSummary> {
+    const [totalDemands, resolvedDemands, mostActiveNeighborhood] =
+      await this.prisma.$transaction([
+        this.prisma.demand.count({
+          where: {
+            cabinetId,
+            disabledAt: null,
+            createdAt: { gte: startDate, lt: endDate },
+          },
+        }),
+        this.prisma.demand.count({
+          where: {
+            cabinetId,
+            disabledAt: null,
+            status: DemandStatus.RESOLVED,
+            createdAt: { gte: startDate, lt: endDate },
+          },
+        }),
+        this.prisma.demand.groupBy({
+          by: ['neighborhood'],
+          where: {
+            cabinetId,
+            disabledAt: null,
+            createdAt: { gte: startDate, lt: endDate },
+            neighborhood: { not: '' },
+          },
+          _count: { neighborhood: true },
+          orderBy: { _count: { neighborhood: 'desc' } },
+          take: 1,
+        }),
+      ]);
+
+    const neighborhoodWithMostDemands =
+      mostActiveNeighborhood.length > 0
+        ? mostActiveNeighborhood[0].neighborhood
+        : null;
+
+    return {
+      totalDemands,
+      resolvedDemands,
+      neighborhoodWithMostDemands,
+    };
+  }
+
   async getRawHeatmapPoints(startDate?: Date): Promise<RawHeatmapPoint[]> {
     const records = await this.prisma.demand.findMany({
       where: {
@@ -437,4 +486,3 @@ export class DemandsRepository implements IDemandsRepository {
     return demands.map((d) => d.neighborhood);
   }
 }
-
