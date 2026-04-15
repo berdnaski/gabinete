@@ -4,7 +4,17 @@ import { DemandEntity } from '../domain/demand.entity';
 export type DemandWithRelations = Prisma.DemandGetPayload<{
   include: {
     evidences: true;
-    results: { select: { id: true; title: true; description: true; type: true; createdAt: true; protocolFileKey: true; protocolFileUrl: true } };
+    results: {
+      select: {
+        id: true;
+        title: true;
+        description: true;
+        type: true;
+        createdAt: true;
+        protocolFileKey: true;
+        protocolFileUrl: true;
+      };
+    };
   };
 }> & {
   reporter?: { name: string; avatarUrl: string | null } | null;
@@ -14,7 +24,10 @@ export type DemandWithRelations = Prisma.DemandGetPayload<{
 };
 
 export class DemandEntityMapper {
-  static toDomain(prismaModel: DemandWithRelations, userId?: string): DemandEntity {
+  static toDomain(
+    prismaModel: DemandWithRelations,
+    userId?: string,
+  ): DemandEntity {
     const entity = new DemandEntity();
     entity.id = prismaModel.id;
     entity.title = prismaModel.title;
@@ -50,7 +63,10 @@ export class DemandEntityMapper {
 
     if (prismaModel.reporter !== undefined) {
       entity.reporter = prismaModel.reporter
-        ? { name: prismaModel.reporter.name, avatarUrl: prismaModel.reporter.avatarUrl }
+        ? {
+          name: prismaModel.reporter.name,
+          avatarUrl: prismaModel.reporter.avatarUrl,
+        }
         : null;
     }
 
