@@ -7,8 +7,7 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards,
-  BadRequestException,
+  UseGuards
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -276,7 +275,7 @@ export class DemandsController {
     return this.claimDemandUseCase.execute(id, user.id);
   }
 
-@Post(':id/evidence/presign')
+  @Post(':id/evidence/presign')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
