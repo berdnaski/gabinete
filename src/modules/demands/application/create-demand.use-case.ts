@@ -2,25 +2,20 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { DemandEntity } from '../domain/demand.entity';
 import {
   CreateDemandInfo,
-  CreateEvidenceInfo,
   IDemandsRepository,
-} from '../domain/demands.repository.interface';
+} from '../domain/demands.repository.interface'; 
 import { CreateDemandDto } from '../dto/create-demand.dto';
 import { DemandPriority } from '@prisma/client';
-import { StorageService } from '../../../shared/domain/services/storage.service';
-import sharp from 'sharp';
 
 @Injectable()
 export class CreateDemandUseCase {
   constructor(
     private readonly demandsRepository: IDemandsRepository,
-    private readonly storageService: StorageService,
   ) {}
 
   async execute(
     dto: CreateDemandDto,
     userId?: string,
-    files?: Express.Multer.File[],
   ): Promise<DemandEntity> {
 
     if (userId && dto.guestEmail) {
@@ -52,34 +47,6 @@ export class CreateDemandUseCase {
       categoryId: dto.categoryId || null,
     };
 
-    const evidences: CreateEvidenceInfo[] = [];
-
-    if (files && files.length > 0) {
-      for (const file of files) {
-        const sanitizedBuffer = await sharp(file.buffer)
-          .rotate()
-          .resize(1920, 1080, { fit: 'inside', withoutEnlargement: true })
-          .jpeg({ quality: 80, progressive: true })
-          .toBuffer();
-
-        const uploaded = await this.storageService.upload({
-          buffer: sanitizedBuffer,
-          filename: `${file.originalname.split('.')[0]}.jpg`,
-          mimetype: 'image/jpeg',
-          folder: 'demands/pending',
-        });
-
-        const urlInfo = await this.storageService.getUrl(uploaded.path);
-
-        evidences.push({
-          storageKey: uploaded.path,
-          url: urlInfo.signedUrl,
-          mimeType: 'image/jpeg',
-          size: sanitizedBuffer.length,
-        });
-      }
-    }
-
-    return this.demandsRepository.createWithEvidences(demandInfo, evidences);
+    return this.demandsRepository.createWithEvidences(demandInfo, []);
   }
 }
