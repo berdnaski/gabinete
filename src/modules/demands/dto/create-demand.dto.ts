@@ -94,8 +94,10 @@ export class CreateDemandDto {
   @IsOptional()
   @MaxLength(254)
   @ValidateIf(
-    (o: Record<string, unknown>) =>
-      typeof o.reporterId === 'undefined' || o.reporterId === null,
+    (o: Record<string, unknown>, value: unknown) =>
+      (typeof o.reporterId === 'undefined' || o.reporterId === null) &&
+      typeof value === 'string' &&
+      value.trim().length > 0,
   )
   guestEmail?: string;
 
