@@ -31,6 +31,8 @@ import { OptionalJwtAuthGuard } from '../../../shared/guards/optional-jwt-auth.g
 import { MagicBytesValidator } from '../../../shared/validators/magic-bytes.validator';
 import { UserEntity } from '../../users/domain/user.entity';
 import { AddDemandEvidenceUseCase } from '../application/add-demand-evidence.use-case';
+import { GenerateDemandEvidenceUploadUrlUseCase } from '../application/generate-demand-evidence-upload-url.use-case';
+import { ConfirmDemandEvidenceUseCase } from '../application/confirm-demand-evidence.use-case';
 import { AssignDemandUseCase } from '../application/assign-demand.use-case';
 import { ClaimDemandUseCase } from '../application/claim-demand.use-case';
 import { CreateDemandCommentUseCase } from '../application/create-demand-comment.use-case';
@@ -48,6 +50,8 @@ import { GetCabinetDemandHeatmapResponseDto } from '../dto/get-cabinet-demand-he
 import { ListCommentsDto } from '../dto/list-comments.dto';
 import { ListDemandsDto } from '../dto/list-demands.dto';
 import { UpdateDemandDto } from '../dto/update-demand.dto';
+import { GenerateEvidenceUploadUrlDto } from '../dto/generate-evidence-upload-url.dto';
+import { ConfirmEvidenceUploadDto } from '../dto/confirm-evidence-upload.dto';
 import { ListDemandsUseCase } from '../application/list-demands.use-case';
 import { UpdateDemandUseCase } from '../application/update-demand.use-case';
 import { ListDemandCommentsUseCase } from '../application/list-demand-comments.use-case';
@@ -61,6 +65,8 @@ export class DemandsController {
   constructor(
     private readonly createDemandUseCase: CreateDemandUseCase,
     private readonly addDemandEvidenceUseCase: AddDemandEvidenceUseCase,
+    private readonly generateDemandEvidenceUploadUrlUseCase: GenerateDemandEvidenceUploadUrlUseCase,
+    private readonly confirmDemandEvidenceUseCase: ConfirmDemandEvidenceUseCase,
     private readonly listDemandsUseCase: ListDemandsUseCase,
     private readonly findDemandUseCase: FindDemandUseCase,
     private readonly updateDemandUseCase: UpdateDemandUseCase,
@@ -335,6 +341,42 @@ export class DemandsController {
       throw new BadRequestException('Nenhum arquivo enviado');
     }
     return this.addDemandEvidenceUseCase.execute(id, user?.id, files);
+  }
+
+  @Post(':id/evidence/presign')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Generate a presigned URL for direct evidence upload to R2' })
+  @ApiResponse({
+    status: 201,
+    description: 'Presigned URL generated successfully',
+    schema: {
+      properties: {
+        uploadUrl: { type: 'string', example: 'https://...' },
+        storageKey: { type: 'string', example: 'demands/uuid/uuid.jpg' },
+      },
+    },
+  })
+  @ApiResponse({ status: 404, description: 'Demand not found' })
+  async generatePresignedUploadUrl(
+    @Param('id') id: string,
+    @Body() dto: GenerateEvidenceUploadUrlDto,
+  ) {
+    return this.generateDemandEvidenceUploadUrlUseCase.execute(id, dto.filename);
+  }
+
+  @Post(':id/evidence/confirm')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Confirm evidence upload and persist to database' })
+  @ApiResponse({ status: 201, description: 'Evidence confirmed successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid storage key format' })
+  @ApiResponse({ status: 404, description: 'Demand not found' })
+  async confirmEvidenceUpload(
+    @Param('id') id: string,
+    @Body() dto: ConfirmEvidenceUploadDto,
+  ): Promise<void> {
+    return this.confirmDemandEvidenceUseCase.execute(id, dto.storageKey, dto.size);
   }
 
   @Patch(':id/assign')

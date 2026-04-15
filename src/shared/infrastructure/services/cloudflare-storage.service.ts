@@ -80,4 +80,19 @@ export class CloudflareStorageService implements StorageService {
       throw error;
     }
   }
+
+  async getPresignedUploadUrl(key: string, mimetype: string, expiresIn = 600): Promise<string> {
+    try {
+      const command = new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        ContentType: mimetype,
+      });
+
+      return await getSignedUrl(this.s3, command, { expiresIn });
+    } catch (error) {
+      this.logger.error('Error generating presigned upload URL', error);
+      throw new Error('Failed to generate presigned upload URL');
+    }
+  }
 }

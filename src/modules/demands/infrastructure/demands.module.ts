@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { CreateDemandUseCase } from '../application/create-demand.use-case';
 import { AddDemandEvidenceUseCase } from '../application/add-demand-evidence.use-case';
+import { GenerateDemandEvidenceUploadUrlUseCase } from '../application/generate-demand-evidence-upload-url.use-case';
+import { ConfirmDemandEvidenceUseCase } from '../application/confirm-demand-evidence.use-case';
 import { ListDemandsUseCase } from '../application/list-demands.use-case';
 import { IDemandsRepository } from '../domain/demands.repository.interface';
 import { DemandsController } from './demands.controller';
@@ -33,6 +35,8 @@ import { ListDemandsByReporterUseCase } from '../application/list-demands-by-rep
     },
     CreateDemandUseCase,
     AddDemandEvidenceUseCase,
+    GenerateDemandEvidenceUploadUrlUseCase,
+    ConfirmDemandEvidenceUseCase,
     ListDemandsUseCase,
     FindDemandUseCase,
     UpdateDemandUseCase,

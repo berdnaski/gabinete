@@ -86,7 +86,10 @@ export class AuthController {
   ): Promise<AuthResponseDto> {
     const authData = await this.loginUseCase.execute(dto);
     this.setAuthCookies(res, authData.accessToken, authData.refreshToken);
-    return authData;
+    return {
+      accessToken: authData.accessToken,
+      expiresIn: authData.expiresIn,
+    };
   }
 
   @Post('refresh')
@@ -99,7 +102,10 @@ export class AuthController {
   ): Promise<AuthResponseDto> {
     const authData = await this.refreshTokenUseCase.execute(refreshToken);
     this.setAuthCookies(res, authData.accessToken, authData.refreshToken);
-    return authData;
+    return {
+      accessToken: authData.accessToken,
+      expiresIn: authData.expiresIn,
+    };
   }
 
   @Post('forgot-password')
