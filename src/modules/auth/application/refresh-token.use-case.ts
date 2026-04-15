@@ -11,7 +11,7 @@ export class RefreshTokenUseCase {
     private readonly jwtTokenService: JwtTokenService,
     private readonly tokensRepository: ITokensRepository,
     private readonly findUserById: FindUserByIdUseCase,
-  ) { }
+  ) {}
 
   async execute(refreshToken: string): Promise<AuthTokenEntity> {
     try {
@@ -35,7 +35,10 @@ export class RefreshTokenUseCase {
 
       const tokens = this.jwtTokenService.sign(user);
 
-      const refreshTokenExpiresIn = parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN ?? '604800', 10);
+      const refreshTokenExpiresIn = parseInt(
+        process.env.REFRESH_TOKEN_EXPIRES_IN ?? '604800',
+        10,
+      );
       const expiresAt = new Date();
       expiresAt.setSeconds(expiresAt.getSeconds() + refreshTokenExpiresIn);
 

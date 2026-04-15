@@ -25,18 +25,25 @@ describe('UpdateResultUseCase', () => {
     images: [],
   };
 
-  const updatedResult = { ...mockResult, title: 'New Title', description: 'New Description' };
+  const updatedResult = {
+    ...mockResult,
+    title: 'New Title',
+    description: 'New Description',
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UpdateResultUseCase,
-        { provide: IResultsRepository, useValue: { findById: jest.fn(), update: jest.fn() } },
+        {
+          provide: IResultsRepository,
+          useValue: { findById: jest.fn(), update: jest.fn() },
+        },
       ],
     }).compile();
 
     useCase = module.get<UpdateResultUseCase>(UpdateResultUseCase);
-    repository = module.get(IResultsRepository) as jest.Mocked<IResultsRepository>;
+    repository = module.get(IResultsRepository);
   });
 
   it('should update result', async () => {
@@ -55,8 +62,8 @@ describe('UpdateResultUseCase', () => {
   it('should throw NotFoundException when result not found', async () => {
     repository.findById.mockResolvedValue(null);
 
-    await expect(useCase.execute('invalid-id', { title: 'New Title' })).rejects.toThrow(
-      NotFoundException,
-    );
+    await expect(
+      useCase.execute('invalid-id', { title: 'New Title' }),
+    ).rejects.toThrow(NotFoundException);
   });
 });

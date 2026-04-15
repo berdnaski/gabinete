@@ -9,7 +9,7 @@ export class ToggleDemandLikeUseCase {
     private readonly demandsRepository: IDemandsRepository,
     private readonly usersRepository: IUsersRepository,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
   async execute(demandId: string, userId: string): Promise<boolean> {
     const demand = await this.demandsRepository.findById(demandId);

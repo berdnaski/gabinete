@@ -55,9 +55,15 @@ export class DefaultProcessor extends WorkerHost implements OnModuleInit {
         case JobName.SEND_EMAIL: {
           const data = job.data as SendEmailJobData;
           if (data.type === EmailType.VERIFICATION) {
-            await this.mailService.sendVerificationEmail(data.email, data.token);
+            await this.mailService.sendVerificationEmail(
+              data.email,
+              data.token,
+            );
           } else if (data.type === EmailType.PASSWORD_RESET) {
-            await this.mailService.sendPasswordResetEmail(data.email, data.token);
+            await this.mailService.sendPasswordResetEmail(
+              data.email,
+              data.token,
+            );
           } else if (data.type === EmailType.PASSWORD_CHANGE) {
             await this.mailService.sendPasswordChangeConfirmationEmail(
               data.email,
@@ -90,7 +96,7 @@ export class DefaultProcessor extends WorkerHost implements OnModuleInit {
     } catch (err) {
       this.logger.error(`Job failed: ${job.name} [id=${job.id}]`, err);
 
-      await this.discordService.sendError(err as any, {
+      await this.discordService.sendError(err, {
         method: 'BULLMQ_JOB',
         url: job.name,
         userId: 'system',

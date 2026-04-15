@@ -49,21 +49,30 @@ describe('ResultsController', () => {
         { provide: UpdateResultUseCase, useValue: { execute: jest.fn() } },
         { provide: DeleteResultUseCase, useValue: { execute: jest.fn() } },
         { provide: AddResultImagesUseCase, useValue: { execute: jest.fn() } },
-        { provide: UploadResultProtocolUseCase, useValue: { execute: jest.fn() } },
-        { provide: ResultAccessGuard, useValue: { canActivate: jest.fn().mockReturnValue(true) } },
+        {
+          provide: UploadResultProtocolUseCase,
+          useValue: { execute: jest.fn() },
+        },
+        {
+          provide: ResultAccessGuard,
+          useValue: { canActivate: jest.fn().mockReturnValue(true) },
+        },
         { provide: IResultsRepository, useValue: { findById: jest.fn() } },
-        { provide: ICabinetMembersRepository, useValue: { findMembership: jest.fn() } },
+        {
+          provide: ICabinetMembersRepository,
+          useValue: { findMembership: jest.fn() },
+        },
       ],
     }).compile();
 
     controller = module.get<ResultsController>(ResultsController);
-    createResultUseCase = module.get(CreateResultUseCase) as jest.Mocked<CreateResultUseCase>;
-    listResultsUseCase = module.get(ListResultsUseCase) as jest.Mocked<ListResultsUseCase>;
-    findResultUseCase = module.get(FindResultUseCase) as jest.Mocked<FindResultUseCase>;
-    updateResultUseCase = module.get(UpdateResultUseCase) as jest.Mocked<UpdateResultUseCase>;
-    deleteResultUseCase = module.get(DeleteResultUseCase) as jest.Mocked<DeleteResultUseCase>;
-    addResultImagesUseCase = module.get(AddResultImagesUseCase) as jest.Mocked<AddResultImagesUseCase>;
-    uploadResultProtocolUseCase = module.get(UploadResultProtocolUseCase) as jest.Mocked<UploadResultProtocolUseCase>;
+    createResultUseCase = module.get(CreateResultUseCase);
+    listResultsUseCase = module.get(ListResultsUseCase);
+    findResultUseCase = module.get(FindResultUseCase);
+    updateResultUseCase = module.get(UpdateResultUseCase);
+    deleteResultUseCase = module.get(DeleteResultUseCase);
+    addResultImagesUseCase = module.get(AddResultImagesUseCase);
+    uploadResultProtocolUseCase = module.get(UploadResultProtocolUseCase);
   });
 
   describe('POST /results', () => {
@@ -71,7 +80,12 @@ describe('ResultsController', () => {
       createResultUseCase.execute.mockResolvedValue(mockResult as any);
 
       const result = await controller.create(
-        { title: 'Test', description: 'Test', type: ResultType.INFRASTRUCTURE, cabinetSlug: 'test-cabinet' },
+        {
+          title: 'Test',
+          description: 'Test',
+          type: ResultType.INFRASTRUCTURE,
+          cabinetSlug: 'test-cabinet',
+        },
         { id: 'user-1' } as any,
         {},
       );
@@ -83,7 +97,10 @@ describe('ResultsController', () => {
 
   describe('GET /results', () => {
     it('should list results', async () => {
-      listResultsUseCase.execute.mockResolvedValue({ items: [mockResult], total: 1 } as any);
+      listResultsUseCase.execute.mockResolvedValue({
+        items: [mockResult],
+        total: 1,
+      } as any);
 
       const result = await controller.list({});
 

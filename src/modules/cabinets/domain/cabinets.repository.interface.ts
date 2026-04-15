@@ -1,5 +1,8 @@
 import { CabinetEntity } from './cabinet.entity';
-import { PaginatedResult, PaginationParams } from 'src/shared/domain/pagination.interface';
+import {
+  PaginatedResult,
+  PaginationParams,
+} from 'src/shared/domain/pagination.interface';
 
 export abstract class ICabinetsRepository {
   abstract create(data: {
@@ -16,7 +19,9 @@ export abstract class ICabinetsRepository {
 
   abstract findSlugsByBaseName(baseSlug: string): Promise<string[]>;
 
-  abstract list(params?: PaginationParams): Promise<PaginatedResult<CabinetEntity>>;
+  abstract list(
+    params?: PaginationParams,
+  ): Promise<PaginatedResult<CabinetEntity>>;
 
   abstract update(
     id: string,

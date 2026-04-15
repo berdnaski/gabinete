@@ -39,9 +39,14 @@ export class ResultAccessGuard implements CanActivate {
       throw new NotFoundException('Resultado não encontrado');
     }
 
-    const membership = await this.cabinetMembersRepository.findMembership(user.id, result.cabinetId);
+    const membership = await this.cabinetMembersRepository.findMembership(
+      user.id,
+      result.cabinetId,
+    );
     if (!membership) {
-      throw new ForbiddenException('Você não tem permissão para gerenciar resultados deste gabinete');
+      throw new ForbiddenException(
+        'Você não tem permissão para gerenciar resultados deste gabinete',
+      );
     }
 
     request.result = result;

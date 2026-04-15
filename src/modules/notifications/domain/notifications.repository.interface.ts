@@ -10,6 +10,7 @@ export interface CreateNotificationInfo {
   title: string;
   message: string;
   type: NotificationType;
+  link?: string;
 }
 
 export abstract class INotificationsRepository {

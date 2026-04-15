@@ -71,7 +71,9 @@ export class UsersRepository implements IUsersRepository {
     return this.toEntity(account.user as PrismaUserWithMemberCount);
   }
 
-  async createWithAccount(data: CreateUserWithAccountData): Promise<UserEntity> {
+  async createWithAccount(
+    data: CreateUserWithAccountData,
+  ): Promise<UserEntity> {
     const record = await this.prisma.user.create({
       data: {
         name: data.name,
@@ -186,7 +188,9 @@ export class UsersRepository implements IUsersRepository {
     ]);
 
     return {
-      items: items.map((item) => this.toEntity(item as PrismaUserWithMemberCount)),
+      items: items.map((item) =>
+        this.toEntity(item as PrismaUserWithMemberCount),
+      ),
       total,
     };
   }

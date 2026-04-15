@@ -12,7 +12,7 @@ export class AddDemandEvidenceUseCase {
     private readonly storageService: StorageService,
     private readonly usersRepository: IUsersRepository,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
   async execute(
     demandId: string,

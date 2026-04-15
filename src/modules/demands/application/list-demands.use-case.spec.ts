@@ -26,7 +26,7 @@ describe('ListDemandsUseCase', () => {
   it('should pass filters and userId to the repository', async () => {
     const filters = { search: 'luz', page: 1, limit: 10 };
     const userId = 'user-999';
-    
+
     demandsRepo.findAll.mockResolvedValue({
       items: [],
       total: 0,

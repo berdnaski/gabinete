@@ -13,7 +13,7 @@ import { DiscordService } from '../services/discord.service';
 export class AuditLogInterceptor implements NestInterceptor {
   private readonly logger = new Logger(AuditLogInterceptor.name);
 
-  constructor(private readonly discordService: DiscordService) { }
+  constructor(private readonly discordService: DiscordService) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const httpContext = context.switchToHttp();

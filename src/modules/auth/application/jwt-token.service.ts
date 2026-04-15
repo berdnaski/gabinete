@@ -13,7 +13,7 @@ export class JwtTokenService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-  ) { }
+  ) {}
 
   sign(user: { id: string; email: string }): AuthTokenEntity {
     const accessTokenExpiresIn = parseInt(
@@ -27,8 +27,12 @@ export class JwtTokenService {
 
     const payload: JwtPayload = { sub: user.id, email: user.email };
 
-    const accessToken = this.jwtService.sign(payload, { expiresIn: accessTokenExpiresIn });
-    const refreshToken = this.jwtService.sign(payload, { expiresIn: refreshTokenExpiresIn });
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: accessTokenExpiresIn,
+    });
+    const refreshToken = this.jwtService.sign(payload, {
+      expiresIn: refreshTokenExpiresIn,
+    });
 
     return { accessToken, refreshToken, expiresIn: accessTokenExpiresIn };
   }

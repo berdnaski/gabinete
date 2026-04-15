@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import * as crypto from 'crypto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ICabinetsRepository } from '../domain/cabinets.repository.interface';
@@ -26,7 +30,7 @@ export class InviteCabinetMemberUseCase {
     private readonly usersRepository: IUsersRepository,
     private readonly queueService: QueueService,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
   async execute(input: InviteCabinetMemberInput): Promise<{ message: string }> {
     const cabinet = await this.cabinetsRepository.findById(input.cabinetId);
@@ -39,20 +43,32 @@ export class InviteCabinetMemberUseCase {
       throw new NotFoundException('Remetente não encontrado');
     }
 
-    const senderMembership = await this.membersRepository.findMembership(input.senderId, input.cabinetId);
+    const senderMembership = await this.membersRepository.findMembership(
+      input.senderId,
+      input.cabinetId,
+    );
     if (!senderMembership || senderMembership.role !== CabinetRole.OWNER) {
-      throw new ForbiddenException('Apenas proprietários de gabinetes podem convidar membros');
+      throw new ForbiddenException(
+        'Apenas proprietários de gabinetes podem convidar membros',
+      );
     }
 
     const user = await this.usersRepository.findByEmail(input.email);
     if (user) {
-      if (user.role === UserRole.ADMIN || user.role === UserRole.MEMBER || user.isCabinetMember) {
+      if (
+        user.role === UserRole.ADMIN ||
+        user.role === UserRole.MEMBER ||
+        user.isCabinetMember
+      ) {
         throw new ForbiddenException(
           'Este usuário já possui um cargo administrativo ou já pertence a um gabinete.',
         );
       }
 
-      const existingMember = await this.membersRepository.findMembership(user.id, input.cabinetId);
+      const existingMember = await this.membersRepository.findMembership(
+        user.id,
+        input.cabinetId,
+      );
       if (existingMember) {
         throw new ForbiddenException('O usuário já é membro deste gabinete');
       }

@@ -13,7 +13,11 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileFieldsInterceptor, FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+  FilesInterceptor,
+} from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -63,7 +67,10 @@ export class ResultsController {
       properties: {
         title: { type: 'string' },
         description: { type: 'string' },
-        type: { type: 'string', enum: ['INFRASTRUCTURE', 'SOCIAL', 'LEGISLATIVE', 'OTHER'] },
+        type: {
+          type: 'string',
+          enum: ['INFRASTRUCTURE', 'SOCIAL', 'LEGISLATIVE', 'OTHER'],
+        },
         cabinetSlug: { type: 'string', description: 'Slug do seu gabinete' },
         demandId: { type: 'string', format: 'uuid' },
         images: { type: 'array', items: { type: 'string', format: 'binary' } },
@@ -83,14 +90,22 @@ export class ResultsController {
   async create(
     @Body() dto: CreateResultDto,
     @CurrentUser() user: UserEntity,
-    @UploadedFiles() files: { images?: Express.Multer.File[]; protocol?: Express.Multer.File[] },
+    @UploadedFiles()
+    files: { images?: Express.Multer.File[]; protocol?: Express.Multer.File[] },
   ): Promise<ResultEntity> {
     if (!files) files = {};
-    return this.createResultUseCase.execute(dto, user.id, files.images ?? [], files.protocol?.[0]);
+    return this.createResultUseCase.execute(
+      dto,
+      user.id,
+      files.images ?? [],
+      files.protocol?.[0],
+    );
   }
 
   @Get()
-  @ApiOperation({ summary: 'Lista resultados públicos com filtros e paginação' })
+  @ApiOperation({
+    summary: 'Lista resultados públicos com filtros e paginação',
+  })
   @ApiResponse({ status: 200, description: 'Lista paginada de resultados' })
   async list(@Query() query: ListResultsDto) {
     return this.listResultsUseCase.execute(query);
@@ -110,7 +125,10 @@ export class ResultsController {
   @ApiOperation({ summary: 'Atualiza resultado' })
   @ApiResponse({ status: 200, type: ResultEntity })
   @ApiResponse({ status: 403, description: 'Sem permissão' })
-  async update(@Param('id') id: string, @Body() dto: UpdateResultDto): Promise<ResultEntity> {
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateResultDto,
+  ): Promise<ResultEntity> {
     return this.updateResultUseCase.execute(id, dto);
   }
 

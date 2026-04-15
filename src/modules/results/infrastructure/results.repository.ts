@@ -58,7 +58,9 @@ export class ResultsRepository implements IResultsRepository {
     return result ? ResultEntityMapper.toDomain(result) : null;
   }
 
-  async findAll(filters: ListResultsFilters): Promise<PaginatedResult<ResultEntity>> {
+  async findAll(
+    filters: ListResultsFilters,
+  ): Promise<PaginatedResult<ResultEntity>> {
     const { skip, take } = PaginationHelper.getSkipTake(filters);
 
     const where = {
@@ -68,8 +70,15 @@ export class ResultsRepository implements IResultsRepository {
       type: filters.type ?? undefined,
       OR: filters.search
         ? [
-            { title: { contains: filters.search, mode: 'insensitive' as const } },
-            { description: { contains: filters.search, mode: 'insensitive' as const } },
+            {
+              title: { contains: filters.search, mode: 'insensitive' as const },
+            },
+            {
+              description: {
+                contains: filters.search,
+                mode: 'insensitive' as const,
+              },
+            },
           ]
         : undefined,
     };
@@ -113,7 +122,10 @@ export class ResultsRepository implements IResultsRepository {
     });
   }
 
-  async addImages(resultId: string, images: CreateResultImageInfo[]): Promise<void> {
+  async addImages(
+    resultId: string,
+    images: CreateResultImageInfo[],
+  ): Promise<void> {
     await this.prisma.resultImage.createMany({
       data: images.map((img) => ({
         resultId,
@@ -123,7 +135,10 @@ export class ResultsRepository implements IResultsRepository {
     });
   }
 
-  async setProtocol(resultId: string, protocol: ResultProtocolInfo): Promise<ResultEntity> {
+  async setProtocol(
+    resultId: string,
+    protocol: ResultProtocolInfo,
+  ): Promise<ResultEntity> {
     const result = await this.prisma.result.update({
       where: { id: resultId },
       data: {

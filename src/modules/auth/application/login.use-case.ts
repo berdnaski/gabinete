@@ -29,7 +29,10 @@ export class LoginUseCase {
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
-    const valid = await this.validatePasswordUseCase.execute(dto.password, user.password);
+    const valid = await this.validatePasswordUseCase.execute(
+      dto.password,
+      user.password,
+    );
     if (!valid) {
       throw new UnauthorizedException('Credenciais inválidas');
     }
@@ -41,7 +44,10 @@ export class LoginUseCase {
     }
 
     const tokens = this.jwtTokenService.sign(user);
-    const refreshTokenExpiresIn = this.configService.get<number>('REFRESH_TOKEN_EXPIRES_IN', 604800);
+    const refreshTokenExpiresIn = this.configService.get<number>(
+      'REFRESH_TOKEN_EXPIRES_IN',
+      604800,
+    );
     const expiresAt = new Date();
     expiresAt.setSeconds(expiresAt.getSeconds() + refreshTokenExpiresIn);
 

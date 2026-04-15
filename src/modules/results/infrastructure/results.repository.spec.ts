@@ -22,7 +22,12 @@ describe('ResultsRepository', () => {
     createdAt: new Date(),
     disabledAt: null,
     images: [],
-    cabinet: { id: 'cabinet-1', name: 'Cabinet', slug: 'cabinet', avatarUrl: null },
+    cabinet: {
+      id: 'cabinet-1',
+      name: 'Cabinet',
+      slug: 'cabinet',
+      avatarUrl: null,
+    },
     demand: null,
   };
 
@@ -35,7 +40,7 @@ describe('ResultsRepository', () => {
     }).compile();
 
     repository = module.get<ResultsRepository>(ResultsRepository);
-    prisma = module.get(PrismaService) as jest.Mocked<PrismaService>;
+    prisma = module.get(PrismaService);
   });
 
   describe('create', () => {

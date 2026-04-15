@@ -53,7 +53,7 @@ export class AuthController {
     private readonly confirmPasswordChangeUseCase: ConfirmPasswordChangeUseCase,
     private readonly googleLoginUseCase: GoogleLoginUseCase,
     private readonly refreshTokenUseCase: RefreshTokenUseCase,
-  ) { }
+  ) {}
 
   @Post('register')
   @ApiOperation({ summary: 'Register a new citizen account' })
@@ -95,7 +95,11 @@ export class AuthController {
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Refresh tokens via Cookies' })
-  @ApiResponse({ status: 200, description: 'New token pair set in Cookies', type: AuthResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'New token pair set in Cookies',
+    type: AuthResponseDto,
+  })
   async refresh(
     @RefreshToken() refreshToken: string,
     @Res({ passthrough: true }) res: express.Response,
@@ -115,7 +119,9 @@ export class AuthController {
     status: 200,
     description: 'Email sent successfully context message',
   })
-  async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<{ message: string }> {
+  async forgotPassword(
+    @Body() dto: ForgotPasswordDto,
+  ): Promise<{ message: string }> {
     return this.forgotPasswordUseCase.execute(dto);
   }
 
@@ -124,7 +130,9 @@ export class AuthController {
   @ApiOperation({ summary: 'Update password using reset token' })
   @ApiResponse({ status: 200, description: 'Password updated' })
   @ApiResponse({ status: 400, description: 'Invalid token' })
-  async resetPassword(@Body() dto: ResetPasswordDto): Promise<{ message: string }> {
+  async resetPassword(
+    @Body() dto: ResetPasswordDto,
+  ): Promise<{ message: string }> {
     return this.resetPasswordUseCase.execute(dto);
   }
 
@@ -147,7 +155,9 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Confirm password change using token' })
   @ApiResponse({ status: 200, description: 'Password changed successfully' })
-  async confirmChangePassword(@Body('token') token: string): Promise<{ message: string }> {
+  async confirmChangePassword(
+    @Body('token') token: string,
+  ): Promise<{ message: string }> {
     return this.confirmPasswordChangeUseCase.execute(token);
   }
 
@@ -172,7 +182,7 @@ export class AuthController {
     status: 302,
     description: 'Redirects to Google authorization page',
   })
-  googleAuth() { }
+  googleAuth() {}
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
@@ -195,13 +205,19 @@ export class AuthController {
     @Req() req: any,
     @Res() res: express.Response,
   ): Promise<void> {
-    const authData = await this.googleLoginUseCase.execute(req.user as GoogleUser);
+    const authData = await this.googleLoginUseCase.execute(
+      req.user as GoogleUser,
+    );
     this.setAuthCookies(res, authData.accessToken, authData.refreshToken);
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     res.redirect(`${frontendUrl}/auth/callback`);
   }
 
-  private setAuthCookies(res: express.Response, accessToken: string, refreshToken: string) {
+  private setAuthCookies(
+    res: express.Response,
+    accessToken: string,
+    refreshToken: string,
+  ) {
     const isProd = process.env.NODE_ENV === 'production';
     res.cookie('accessToken', accessToken, {
       httpOnly: true,

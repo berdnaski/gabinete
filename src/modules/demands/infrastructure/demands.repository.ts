@@ -10,6 +10,7 @@ import { PrismaService } from '../../database/prisma.service';
 import { DemandEntity } from '../domain/demand.entity';
 import {
   CabinetDemandMetrics,
+  CabinetDashboardSummary,
   CreateDemandInfo,
   CreateEvidenceInfo,
   DemandCommentInfo,
@@ -448,6 +449,78 @@ export class DemandsRepository implements IDemandsRepository {
       urgent: urgentOpenDemandsTotalCount,
       total: totalDemandsThisMonth,
       resolved: resolvedDemandsThisMonth,
+    };
+  }
+
+  async getCabinetDashboardSummary(
+    cabinetId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<CabinetDashboardSummary> {
+    const baseWhere = {
+      cabinetId,
+      disabledAt: null,
+      createdAt: { gte: startDate, lt: endDate },
+    };
+
+    const [total, resolved, topNeighborhoods, topCategories] =
+      await this.prisma.$transaction([
+        this.prisma.demand.count({ where: baseWhere }),
+        this.prisma.demand.count({
+          where: { ...baseWhere, status: DemandStatus.RESOLVED },
+        }),
+        this.prisma.demand.groupBy({
+          by: ['neighborhood'],
+          where: { ...baseWhere, neighborhood: { not: '' } },
+          _count: { neighborhood: true },
+          orderBy: { _count: { neighborhood: 'desc' } },
+          take: 1,
+        }),
+        this.prisma.demand.groupBy({
+          by: ['categoryId'],
+          where: { ...baseWhere, categoryId: { not: null } },
+          _count: { categoryId: true },
+          orderBy: { _count: { categoryId: 'desc' } },
+          take: 4,
+        }),
+      ]);
+
+    const mainNeighborhoods = topNeighborhoods.map((row) => {
+      const countData = row._count as { neighborhood: number };
+
+      return {
+        name: row.neighborhood,
+        total: countData.neighborhood,
+      };
+    });
+
+    const categoryIds = topCategories.map((c) => c.categoryId!);
+
+    const categoryRecords =
+      categoryIds.length > 0
+        ? await this.prisma.category.findMany({
+          where: { id: { in: categoryIds }, disabledAt: null },
+          select: { id: true, name: true },
+        })
+        : [];
+
+    const categoriesById = new Map(categoryRecords.map((c) => [c.id, c.name]));
+
+    const categories = topCategories.map((row) => {
+      const countData = row._count as { categoryId: number };
+
+      return {
+        id: row.categoryId!,
+        name: categoriesById.get(row.categoryId!) ?? 'Unknown',
+        total: countData.categoryId,
+      };
+    });
+
+    return {
+      total,
+      resolved,
+      mainNeighborhoods,
+      categories,
     };
   }
 

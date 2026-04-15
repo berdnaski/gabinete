@@ -21,8 +21,18 @@ describe('CreateResultUseCase', () => {
   let cabinetsRepository: jest.Mocked<ICabinetsRepository>;
   let cabinetMembersRepository: jest.Mocked<ICabinetMembersRepository>;
 
-  const mockCabinet = { id: 'cabinet-1', name: 'Test Cabinet', slug: 'test-cabinet', disabledAt: null };
-  const mockMembership = { id: 'member-1', userId: 'user-1', cabinetId: 'cabinet-1', role: CabinetRole.STAFF };
+  const mockCabinet = {
+    id: 'cabinet-1',
+    name: 'Test Cabinet',
+    slug: 'test-cabinet',
+    disabledAt: null,
+  };
+  const mockMembership = {
+    id: 'member-1',
+    userId: 'user-1',
+    cabinetId: 'cabinet-1',
+    role: CabinetRole.STAFF,
+  };
   const mockResult = {
     id: 'result-1',
     title: 'Test Result',
@@ -46,20 +56,28 @@ describe('CreateResultUseCase', () => {
         CreateResultUseCase,
         { provide: IResultsRepository, useValue: { create: jest.fn() } },
         { provide: ICabinetsRepository, useValue: { findBySlug: jest.fn() } },
-        { provide: ICabinetMembersRepository, useValue: { findMembership: jest.fn() } },
-        { provide: StorageService, useValue: { upload: jest.fn(), getUrl: jest.fn() } },
+        {
+          provide: ICabinetMembersRepository,
+          useValue: { findMembership: jest.fn() },
+        },
+        {
+          provide: StorageService,
+          useValue: { upload: jest.fn(), getUrl: jest.fn() },
+        },
       ],
     }).compile();
 
     useCase = module.get<CreateResultUseCase>(CreateResultUseCase);
-    resultsRepository = module.get(IResultsRepository) as jest.Mocked<IResultsRepository>;
-    cabinetsRepository = module.get(ICabinetsRepository) as jest.Mocked<ICabinetsRepository>;
-    cabinetMembersRepository = module.get(ICabinetMembersRepository) as jest.Mocked<ICabinetMembersRepository>;
+    resultsRepository = module.get(IResultsRepository);
+    cabinetsRepository = module.get(ICabinetsRepository);
+    cabinetMembersRepository = module.get(ICabinetMembersRepository);
   });
 
   it('should create result using cabinetSlug from authenticated user', async () => {
     cabinetsRepository.findBySlug.mockResolvedValue(mockCabinet as any);
-    cabinetMembersRepository.findMembership.mockResolvedValue(mockMembership as any);
+    cabinetMembersRepository.findMembership.mockResolvedValue(
+      mockMembership as any,
+    );
     resultsRepository.create.mockResolvedValue(mockResult as any);
 
     const result = await useCase.execute(
@@ -75,7 +93,10 @@ describe('CreateResultUseCase', () => {
 
     expect(result).toEqual(mockResult);
     expect(cabinetsRepository.findBySlug).toHaveBeenCalledWith('test-cabinet');
-    expect(cabinetMembersRepository.findMembership).toHaveBeenCalledWith('user-1', 'cabinet-1');
+    expect(cabinetMembersRepository.findMembership).toHaveBeenCalledWith(
+      'user-1',
+      'cabinet-1',
+    );
   });
 
   it('should throw NotFoundException when cabinet not found by slug', async () => {

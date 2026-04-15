@@ -12,7 +12,22 @@ export class NotificationListener {
     private readonly sendNotification: SendNotificationUseCase,
     private readonly usersRepository: IUsersRepository,
     private readonly cabinetMembersRepository: ICabinetMembersRepository,
-  ) { }
+  ) {}
+
+  @OnEvent('demand.created')
+  async handleDemandCreated(payload: {
+    userId: string;
+    demandId: string;
+    demandTitle: string;
+  }) {
+    await this.sendNotification.execute({
+      userId: payload.userId,
+      title: 'Demanda Registrada!',
+      message: `Sua demanda "${payload.demandTitle}" foi registrada com sucesso e está aguardando análise.`,
+      type: NotificationType.SUCCESS,
+      link: `/demands/${payload.demandId}`,
+    });
+  }
 
   @OnEvent('demand.status-changed')
   async handleDemandStatusChanged(payload: {
@@ -28,12 +43,14 @@ export class NotificationListener {
       title: 'Status da Demanda Atualizado',
       message: `A demanda "${payload.title}" mudou para o status: ${payload.newStatus}.`,
       type: NotificationType.INFO,
+      link: `/demands/${payload.demandId}`,
     });
   }
 
   @OnEvent('demand.comment-added')
   async handleDemandCommentAdded(payload: {
     userId: string;
+    demandId: string;
     authorName: string;
     demandTitle: string;
   }) {
@@ -42,22 +59,25 @@ export class NotificationListener {
       title: 'Novo Comentário',
       message: `${payload.authorName} comentou na sua demanda "${payload.demandTitle}".`,
       type: NotificationType.INFO,
+      link: `/demands/${payload.demandId}`,
     });
   }
 
   @OnEvent('demand.resolved')
   async handleDemandResolved(payload: {
     userId: string | null;
+    demandId: string;
     demandTitle: string;
-    cabinetName: string;
+    cabinetName?: string;
   }) {
     if (!payload.userId) return;
 
     await this.sendNotification.execute({
       userId: payload.userId,
       title: 'Demanda Resolvida!',
-      message: `A demanda "${payload.demandTitle}" foi marcada como resolvida pelo gabinete ${payload.cabinetName}.`,
+      message: `A demanda "${payload.demandTitle}" foi marcada como resolvida${payload.cabinetName ? ` pelo gabinete ${payload.cabinetName}` : ''}.`,
       type: NotificationType.SUCCESS,
+      link: `/demands/${payload.demandId}`,
     });
   }
 
@@ -72,6 +92,7 @@ export class NotificationListener {
       title: 'Nova Demanda Atribuída',
       message: `Você foi designado como responsável pela demanda "${payload.demandTitle}".`,
       type: NotificationType.INFO,
+      link: `/demands/${payload.demandId}`,
     });
   }
 
@@ -89,6 +110,7 @@ export class NotificationListener {
       title: 'Demanda Reivindicada',
       message: `Sua demanda "${payload.demandTitle}" foi assumida pelo gabinete ${payload.cabinetName}.`,
       type: NotificationType.INFO,
+      link: `/demands/${payload.demandId}`,
     });
   }
 
@@ -106,6 +128,7 @@ export class NotificationListener {
       title: 'Sua demanda recebeu uma curtida!',
       message: `${payload.likerName} curtiu sua demanda "${payload.demandTitle}".`,
       type: NotificationType.INFO,
+      link: `/demands/${payload.demandId}`,
     });
   }
 
@@ -123,13 +146,18 @@ export class NotificationListener {
         title: 'Novas Evidências Anexadas',
         message: `Novas evidências (fotos/documentos) foram adicionadas à sua demanda "${payload.demandTitle}" por ${payload.reporterName}.`,
         type: NotificationType.INFO,
+        link: `/demands/${payload.demandId}`,
       });
     }
 
     if (payload.cabinetId) {
-      const members = await this.cabinetMembersRepository.findByCabinetId(payload.cabinetId);
+      const members = await this.cabinetMembersRepository.findByCabinetId(
+        payload.cabinetId,
+      );
       const toNotify = members.filter(
-        (member) => member.role === CabinetRole.OWNER || member.role === CabinetRole.STAFF,
+        (member) =>
+          member.role === CabinetRole.OWNER ||
+          member.role === CabinetRole.STAFF,
       );
 
       for (const member of toNotify) {
@@ -138,6 +166,7 @@ export class NotificationListener {
           title: 'Novas Evidências Adicionadas',
           message: `${payload.reporterName} adicionou novos documentos à demanda "${payload.demandTitle}".`,
           type: NotificationType.INFO,
+          link: `/demands/${payload.demandId}`,
         });
       }
     }
@@ -156,6 +185,7 @@ export class NotificationListener {
         title: 'Novo Convite de Gabinete',
         message: `Você foi convidado por ${payload.senderName} para participar do gabinete ${payload.cabinetName}.`,
         type: NotificationType.INFO,
+        link: `/settings`,
       });
     }
   }
@@ -172,6 +202,7 @@ export class NotificationListener {
       title: 'Novo Membro no Gabinete',
       message: `${payload.memberName} aceitou o convite e agora faz parte do gabinete ${payload.cabinetName}.`,
       type: NotificationType.SUCCESS,
+      link: `/settings`,
     });
   }
 }

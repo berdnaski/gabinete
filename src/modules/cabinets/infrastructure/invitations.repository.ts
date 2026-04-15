@@ -9,10 +9,14 @@ import { CabinetInvitationEntity } from '../domain/cabinet-invitation.entity';
 import { CabinetRole } from '../domain/cabinet-role.enum';
 
 type PrismaInvitationWithCabinet = Prisma.CabinetInvitationGetPayload<{
-  include: { cabinet: { select: { id: true; name: true; slug: true; avatarUrl: true } } };
+  include: {
+    cabinet: { select: { id: true; name: true; slug: true; avatarUrl: true } };
+  };
 }>;
 
-type PrismaInvitation = Prisma.CabinetInvitationGetPayload<Record<string, never>>;
+type PrismaInvitation = Prisma.CabinetInvitationGetPayload<
+  Record<string, never>
+>;
 
 @Injectable()
 export class CabinetInvitationsRepository implements ICabinetInvitationsRepository {
@@ -44,7 +48,11 @@ export class CabinetInvitationsRepository implements ICabinetInvitationsReposito
   async findByEmail(email: string): Promise<CabinetInvitationEntity[]> {
     const records = await this.prisma.cabinetInvitation.findMany({
       where: { email },
-      include: { cabinet: { select: { id: true, name: true, slug: true, avatarUrl: true } } },
+      include: {
+        cabinet: {
+          select: { id: true, name: true, slug: true, avatarUrl: true },
+        },
+      },
     });
     return records.map((r) => this.toEntity(r));
   }
@@ -52,7 +60,11 @@ export class CabinetInvitationsRepository implements ICabinetInvitationsReposito
   async findByToken(token: string): Promise<CabinetInvitationEntity | null> {
     const record = await this.prisma.cabinetInvitation.findUnique({
       where: { token },
-      include: { cabinet: { select: { id: true, name: true, slug: true, avatarUrl: true } } },
+      include: {
+        cabinet: {
+          select: { id: true, name: true, slug: true, avatarUrl: true },
+        },
+      },
     });
     return record ? this.toEntity(record) : null;
   }
@@ -60,7 +72,11 @@ export class CabinetInvitationsRepository implements ICabinetInvitationsReposito
   async findById(id: string): Promise<CabinetInvitationEntity | null> {
     const record = await this.prisma.cabinetInvitation.findUnique({
       where: { id },
-      include: { cabinet: { select: { id: true, name: true, slug: true, avatarUrl: true } } },
+      include: {
+        cabinet: {
+          select: { id: true, name: true, slug: true, avatarUrl: true },
+        },
+      },
     });
     return record ? this.toEntity(record) : null;
   }
@@ -81,7 +97,9 @@ export class CabinetInvitationsRepository implements ICabinetInvitationsReposito
     await this.prisma.cabinetInvitation.deleteMany({ where: { email } });
   }
 
-  private toEntity(record: PrismaInvitationWithCabinet): CabinetInvitationEntity {
+  private toEntity(
+    record: PrismaInvitationWithCabinet,
+  ): CabinetInvitationEntity {
     const entity = new CabinetInvitationEntity();
     entity.id = record.id;
     entity.email = record.email;
@@ -94,7 +112,9 @@ export class CabinetInvitationsRepository implements ICabinetInvitationsReposito
     return entity;
   }
 
-  private toEntityWithoutCabinet(record: PrismaInvitation): CabinetInvitationEntity {
+  private toEntityWithoutCabinet(
+    record: PrismaInvitation,
+  ): CabinetInvitationEntity {
     const entity = new CabinetInvitationEntity();
     entity.id = record.id;
     entity.email = record.email;

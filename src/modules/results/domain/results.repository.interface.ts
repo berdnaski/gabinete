@@ -1,6 +1,9 @@
 import { ResultType } from '@prisma/client';
 import { ResultEntity } from './result.entity';
-import { PaginatedResult, PaginationParams } from '../../../shared/domain/pagination.interface';
+import {
+  PaginatedResult,
+  PaginationParams,
+} from '../../../shared/domain/pagination.interface';
 
 export interface CreateResultInfo {
   title: string;
@@ -46,9 +49,17 @@ export interface ListResultsFilters extends PaginationParams {
 export abstract class IResultsRepository {
   abstract create(data: CreateResultInfo): Promise<ResultEntity>;
   abstract findById(id: string): Promise<ResultEntity | null>;
-  abstract findAll(filters: ListResultsFilters): Promise<PaginatedResult<ResultEntity>>;
+  abstract findAll(
+    filters: ListResultsFilters,
+  ): Promise<PaginatedResult<ResultEntity>>;
   abstract update(id: string, data: UpdateResultInfo): Promise<ResultEntity>;
   abstract softDelete(id: string): Promise<void>;
-  abstract addImages(resultId: string, images: CreateResultImageInfo[]): Promise<void>;
-  abstract setProtocol(resultId: string, protocol: ResultProtocolInfo): Promise<ResultEntity>;
+  abstract addImages(
+    resultId: string,
+    images: CreateResultImageInfo[],
+  ): Promise<void>;
+  abstract setProtocol(
+    resultId: string,
+    protocol: ResultProtocolInfo,
+  ): Promise<ResultEntity>;
 }

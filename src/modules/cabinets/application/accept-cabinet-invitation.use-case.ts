@@ -5,7 +5,12 @@ import { ICabinetsRepository } from '../domain/cabinets.repository.interface';
 import { IUsersRepository } from '../../users/domain/users.repository.interface';
 import { UserRole } from '../../users/domain/user.entity';
 import { CabinetRole } from '../domain/cabinet-role.enum';
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 @Injectable()
 export class AcceptCabinetInvitationUseCase {
@@ -15,7 +20,7 @@ export class AcceptCabinetInvitationUseCase {
     private readonly usersRepository: IUsersRepository,
     private readonly cabinetsRepository: ICabinetsRepository,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
   async execute(token: string, userId: string): Promise<{ message: string }> {
     const invite = await this.invitationsRepository.findByToken(token);
@@ -33,10 +38,15 @@ export class AcceptCabinetInvitationUseCase {
     }
 
     if (user.email.toLowerCase() !== invite.email.toLowerCase()) {
-      throw new ForbiddenException('Este convite foi enviado para um endereço de e-mail diferente');
+      throw new ForbiddenException(
+        'Este convite foi enviado para um endereço de e-mail diferente',
+      );
     }
 
-    const existingMember = await this.membersRepository.findMembership(userId, invite.cabinetId);
+    const existingMember = await this.membersRepository.findMembership(
+      userId,
+      invite.cabinetId,
+    );
     if (existingMember) {
       await this.invitationsRepository.delete(invite.id);
       return { message: 'O usuário já é membro deste gabinete' };
@@ -56,7 +66,9 @@ export class AcceptCabinetInvitationUseCase {
 
     // Notificar o proprietário do gabinete
     const cabinet = await this.cabinetsRepository.findById(invite.cabinetId);
-    const members = await this.membersRepository.findByCabinetId(invite.cabinetId);
+    const members = await this.membersRepository.findByCabinetId(
+      invite.cabinetId,
+    );
     const owner = members.find((m) => m.role === CabinetRole.OWNER);
 
     if (owner && cabinet) {

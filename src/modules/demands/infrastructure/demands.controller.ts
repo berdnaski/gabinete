@@ -1,25 +1,16 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
-  FileTypeValidator,
   Get,
-  MaxFileSizeValidator,
   Param,
-  ParseFilePipe,
   Patch,
   Post,
   Query,
-  UploadedFiles,
-  UseGuards,
-  UseInterceptors,
+  UseGuards
 } from '@nestjs/common';
-import { FilesInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
-  ApiBody,
-  ApiConsumes,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -28,9 +19,7 @@ import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 import { DemandAccessGuard } from '../../../shared/guards/demand-access.guard';
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../../../shared/guards/optional-jwt-auth.guard';
-import { MagicBytesValidator } from '../../../shared/validators/magic-bytes.validator';
 import { UserEntity } from '../../users/domain/user.entity';
-import { AddDemandEvidenceUseCase } from '../application/add-demand-evidence.use-case';
 import { GenerateDemandEvidenceUploadUrlUseCase } from '../application/generate-demand-evidence-upload-url.use-case';
 import { ConfirmDemandEvidenceUseCase } from '../application/confirm-demand-evidence.use-case';
 import { AssignDemandUseCase } from '../application/assign-demand.use-case';
@@ -39,12 +28,16 @@ import { CreateDemandCommentUseCase } from '../application/create-demand-comment
 import { CreateDemandUseCase } from '../application/create-demand.use-case';
 import { DeleteDemandUseCase } from '../application/delete-demand.use-case';
 import { FindDemandUseCase } from '../application/find-demand.use-case';
+import { GetCabinetDashboardSummaryUseCase } from '../application/get-cabinet-dashboard-summary.use-case';
 import { GetCabinetDemandMetricsUseCase } from '../application/get-cabinet-demand-metrics.use-case';
 import { GetCabinetDemandHeatmapUseCase } from '../application/get-cabinet-demand-heatmap.use-case';
 import { DemandEntity } from '../domain/demand.entity';
 import { AssignDemandDto } from '../dto/assign-demand.dto';
 import { CreateDemandCommentDto } from '../dto/create-demand-comment.dto';
 import { CreateDemandDto } from '../dto/create-demand.dto';
+import { DemandCommentResponseDto } from '../dto/demand-comment-response.dto';
+import { GetCabinetDashboardSummaryQueryDto } from '../dto/get-cabinet-dashboard-summary-query.dto';
+import { GetCabinetDashboardSummaryResponseDto } from '../dto/get-cabinet-dashboard-summary-response.dto';
 import { GetCabinetDemandMetricsResponseDto } from '../dto/get-cabinet-demand-metrics-response.dto';
 import { GetCabinetDemandHeatmapResponseDto } from '../dto/get-cabinet-demand-heatmap-response.dto';
 import { ListCommentsDto } from '../dto/list-comments.dto';
@@ -64,7 +57,6 @@ import { ListDemandsByReporterUseCase } from '../application/list-demands-by-rep
 export class DemandsController {
   constructor(
     private readonly createDemandUseCase: CreateDemandUseCase,
-    private readonly addDemandEvidenceUseCase: AddDemandEvidenceUseCase,
     private readonly generateDemandEvidenceUploadUrlUseCase: GenerateDemandEvidenceUploadUrlUseCase,
     private readonly confirmDemandEvidenceUseCase: ConfirmDemandEvidenceUseCase,
     private readonly listDemandsUseCase: ListDemandsUseCase,
@@ -77,69 +69,34 @@ export class DemandsController {
     private readonly listDemandCommentsUseCase: ListDemandCommentsUseCase,
     private readonly toggleDemandLikeUseCase: ToggleDemandLikeUseCase,
     private readonly getCabinetDemandMetricsUseCase: GetCabinetDemandMetricsUseCase,
+    private readonly getCabinetDashboardSummaryUseCase: GetCabinetDashboardSummaryUseCase,
     private readonly getCabinetDemandHeatmapUseCase: GetCabinetDemandHeatmapUseCase,
     private readonly listDemandNeighborhoodsUseCase: ListDemandNeighborhoodsUseCase,
     private readonly listDemandsByReporterUseCase: ListDemandsByReporterUseCase,
-  ) { }
+  ) {}
 
   @Post()
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiConsumes('multipart/form-data')
   @ApiOperation({
-    summary: 'Creates a new Demand (Authenticated or Guest Flow). Accepts optional evidence files in the same request.',
-  })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      required: ['title', 'description', 'address', 'neighborhood', 'city', 'state'],
-      properties: {
-        title: { type: 'string' },
-        description: { type: 'string' },
-        priority: { type: 'string', enum: ['LOW', 'MEDIUM', 'HIGH', 'URGENT'] },
-        address: { type: 'string' },
-        zipcode: { type: 'string' },
-        lat: { type: 'number' },
-        long: { type: 'number' },
-        neighborhood: { type: 'string' },
-        city: { type: 'string' },
-        state: { type: 'string' },
-        guestEmail: { type: 'string' },
-        cabinetId: { type: 'string' },
-        categoryId: { type: 'string' },
-        evidences: {
-          type: 'array',
-          items: { type: 'string', format: 'binary' },
-          description: 'Optional image files attached at creation time',
-        },
-      },
-    },
+    summary: 'Creates a new Demand (Authenticated or Guest Flow). Evidence files are uploaded separately via presigned URLs.',
   })
   @ApiResponse({
     status: 201,
     type: DemandEntity,
-    description: 'Demand successfully created (with evidences if provided)',
+    description: 'Demand successfully created',
+  })
+  @ApiResponse({
+    status: 201,
+    type: DemandEntity,
+    description: 'Demand successfully created',
   })
   @ApiResponse({ status: 400, description: 'Validation error' })
-  @UseInterceptors(FilesInterceptor('evidences', 5))
   async create(
     @Body() dto: CreateDemandDto,
     @CurrentUser() user: UserEntity | null,
-    @UploadedFiles(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 5_000_000 }),
-          new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
-          new MagicBytesValidator({
-            allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg'],
-          }),
-        ],
-        fileIsRequired: false,
-      }),
-    )
-    files?: Express.Multer.File[],
   ): Promise<DemandEntity> {
-    return this.createDemandUseCase.execute(dto, user?.id, files);
+    return this.createDemandUseCase.execute(dto, user?.id);
   }
 
   @Get()
@@ -189,6 +146,29 @@ export class DemandsController {
     return this.getCabinetDemandMetricsUseCase.execute({
       cabinetSlug: slug,
       userId: user.id,
+    });
+  }
+
+  @Get('cabinet/:slug/dashboard/summary')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get dashboard summary for a cabinet by slug (month/year filter)',
+  })
+  @ApiResponse({ status: 200, type: GetCabinetDashboardSummaryResponseDto })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Cabinet not found' })
+  async getCabinetDashboardSummary(
+    @Param('slug') slug: string,
+    @Query() query: GetCabinetDashboardSummaryQueryDto,
+    @CurrentUser() user: UserEntity,
+  ): Promise<GetCabinetDashboardSummaryResponseDto> {
+    return this.getCabinetDashboardSummaryUseCase.execute({
+      cabinetSlug: slug,
+      userId: user.id,
+      month: query.month,
+      year: query.year,
     });
   }
 
@@ -295,58 +275,12 @@ export class DemandsController {
     return this.claimDemandUseCase.execute(id, user.id);
   }
 
-  @Post(':id/evidences')
-  @UseGuards(OptionalJwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Add evidences to an existing demand' })
-  @ApiResponse({ status: 201, description: 'Evidences uploaded successfully' })
-  @ApiResponse({
-    status: 400,
-    description: 'No files provided or invalid file type/size',
-  })
-  @ApiResponse({ status: 404, description: 'Demand not found' })
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        evidences: {
-          type: 'array',
-          items: {
-            type: 'string',
-            format: 'binary',
-          },
-        },
-      },
-    },
-  })
-  @UseInterceptors(FilesInterceptor('evidences', 5))
-  async uploadEvidence(
-    @Param('id') id: string,
-    @CurrentUser() user: UserEntity | null,
-    @UploadedFiles(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 5000000 }),
-          new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
-          new MagicBytesValidator({
-            allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg'],
-          }),
-        ],
-      }),
-    )
-    files: Express.Multer.File[],
-  ): Promise<void> {
-    if (!files || files.length === 0) {
-      throw new BadRequestException('Nenhum arquivo enviado');
-    }
-    return this.addDemandEvidenceUseCase.execute(id, user?.id, files);
-  }
-
   @Post(':id/evidence/presign')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Generate a presigned URL for direct evidence upload to R2' })
+  @ApiOperation({
+    summary: 'Generate a presigned URL for direct evidence upload to R2',
+  })
   @ApiResponse({
     status: 201,
     description: 'Presigned URL generated successfully',
@@ -362,7 +296,10 @@ export class DemandsController {
     @Param('id') id: string,
     @Body() dto: GenerateEvidenceUploadUrlDto,
   ) {
-    return this.generateDemandEvidenceUploadUrlUseCase.execute(id, dto.filename);
+    return this.generateDemandEvidenceUploadUrlUseCase.execute(
+      id,
+      dto.filename,
+    );
   }
 
   @Post(':id/evidence/confirm')
@@ -376,7 +313,11 @@ export class DemandsController {
     @Param('id') id: string,
     @Body() dto: ConfirmEvidenceUploadDto,
   ): Promise<void> {
-    return this.confirmDemandEvidenceUseCase.execute(id, dto.storageKey, dto.size);
+    return this.confirmDemandEvidenceUseCase.execute(
+      id,
+      dto.storageKey,
+      dto.size,
+    );
   }
 
   @Patch(':id/assign')
@@ -437,7 +378,10 @@ export class DemandsController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Demand not found' })
-  async listComments(@Param('id') id: string, @Query() query: ListCommentsDto) {
+  async listComments(
+    @Param('id') id: string,
+    @Query() query: ListCommentsDto,
+  ): Promise<{ items: DemandCommentResponseDto[]; total: number }> {
     return this.listDemandCommentsUseCase.execute(id, query);
   }
 

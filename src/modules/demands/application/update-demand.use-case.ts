@@ -11,7 +11,7 @@ export class UpdateDemandUseCase {
     private readonly demandsRepository: IDemandsRepository,
     private readonly cabinetMembersRepository: ICabinetMembersRepository,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
   async execute(id: string, dto: UpdateDemandDto, userId: string) {
     const demand = await this.demandsRepository.findById(id);
@@ -51,6 +51,7 @@ export class UpdateDemandUseCase {
       if (dto.status === DemandStatus.RESOLVED) {
         this.eventEmitter.emit('demand.resolved', {
           userId: demand.reporterId,
+          demandId: demand.id,
           demandTitle: demand.title,
         });
       }

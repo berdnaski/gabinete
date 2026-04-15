@@ -59,10 +59,17 @@ describe('AddDemandEvidenceUseCase', () => {
       buffer: Buffer.from('fake-image'),
       originalname: 'test.png',
     } as any;
-    
-    demandsRepo.findById.mockResolvedValue({ id: demandId, cabinetId: 'c1' } as any);
-    storageService.upload.mockResolvedValue({ path: 'demands/d-1/file.jpg' } as any);
-    storageService.getUrl.mockResolvedValue({ signedUrl: 'https://pub.r2.dev/demands/d-1/file.jpg' });
+
+    demandsRepo.findById.mockResolvedValue({
+      id: demandId,
+      cabinetId: 'c1',
+    } as any);
+    storageService.upload.mockResolvedValue({
+      path: 'demands/d-1/file.jpg',
+    } as any);
+    storageService.getUrl.mockResolvedValue({
+      signedUrl: 'https://pub.r2.dev/demands/d-1/file.jpg',
+    });
 
     await useCase.execute(demandId, 'u-1', [mockFile]);
 

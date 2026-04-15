@@ -64,6 +64,24 @@ export interface CabinetDemandMetrics {
   resolved: number;
 }
 
+export interface DashboardCategoryStat {
+  id: string;
+  name: string;
+  total: number;
+}
+
+export interface DashboardNeighborhoodStat {
+  name: string;
+  total: number;
+}
+
+export interface CabinetDashboardSummary {
+  total: number;
+  resolved: number;
+  mainNeighborhoods: DashboardNeighborhoodStat[];
+  categories: DashboardCategoryStat[];
+}
+
 export interface HeatmapPoint {
   lat: number;
   lng: number;
@@ -124,6 +142,11 @@ export abstract class IDemandsRepository {
   abstract getCabinetDemandMetrics(
     cabinetId: string,
   ): Promise<CabinetDemandMetrics>;
+  abstract getCabinetDashboardSummary(
+    cabinetId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<CabinetDashboardSummary>;
   abstract getRawHeatmapPoints(startDate?: Date): Promise<RawHeatmapPoint[]>;
   abstract getNeighborhoods(cabinetId?: string): Promise<string[]>;
 }
