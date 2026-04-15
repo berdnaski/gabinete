@@ -25,10 +25,13 @@ export class ClaimDemandUseCase {
     }
 
     if (demand.cabinetId) {
-      throw new BadRequestException('Esta demanda já está vinculada a um gabinete');
+      throw new BadRequestException(
+        'Esta demanda já está vinculada a um gabinete',
+      );
     }
 
-    const memberships = await this.cabinetMembersRepository.findByUserId(userId);
+    const memberships =
+      await this.cabinetMembersRepository.findByUserId(userId);
     const membership = memberships[0];
 
     if (!membership) {
@@ -37,9 +40,11 @@ export class ClaimDemandUseCase {
       );
     }
 
-    const cabinet = await this.cabinetsRepository.findById(membership.cabinetId);
+    const cabinet = await this.cabinetsRepository.findById(
+      membership.cabinetId,
+    );
     if (!cabinet) {
-        throw new NotFoundException('Gabinete não encontrado');
+      throw new NotFoundException('Gabinete não encontrado');
     }
 
     const updatedDemand = await this.demandsRepository.update(demandId, {
@@ -47,10 +52,10 @@ export class ClaimDemandUseCase {
     });
 
     this.eventEmitter.emit('demand.claimed', {
-        demandId,
-        reporterId: demand.reporterId,
-        demandTitle: demand.title,
-        cabinetName: cabinet.name,
+      demandId,
+      reporterId: demand.reporterId,
+      demandTitle: demand.title,
+      cabinetName: cabinet.name,
     });
 
     return updatedDemand;

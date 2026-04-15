@@ -34,7 +34,7 @@ describe('FindResultUseCase', () => {
     }).compile();
 
     useCase = module.get<FindResultUseCase>(FindResultUseCase);
-    repository = module.get(IResultsRepository) as jest.Mocked<IResultsRepository>;
+    repository = module.get(IResultsRepository);
   });
 
   it('should find result by id', async () => {
@@ -48,6 +48,8 @@ describe('FindResultUseCase', () => {
   it('should throw NotFoundException when result not found', async () => {
     repository.findById.mockResolvedValue(null);
 
-    await expect(useCase.execute('invalid-id')).rejects.toThrow(NotFoundException);
+    await expect(useCase.execute('invalid-id')).rejects.toThrow(
+      NotFoundException,
+    );
   });
 });

@@ -12,7 +12,7 @@ export class NotificationListener {
     private readonly sendNotification: SendNotificationUseCase,
     private readonly usersRepository: IUsersRepository,
     private readonly cabinetMembersRepository: ICabinetMembersRepository,
-  ) { }
+  ) {}
 
   @OnEvent('demand.status-changed')
   async handleDemandStatusChanged(payload: {
@@ -127,9 +127,13 @@ export class NotificationListener {
     }
 
     if (payload.cabinetId) {
-      const members = await this.cabinetMembersRepository.findByCabinetId(payload.cabinetId);
+      const members = await this.cabinetMembersRepository.findByCabinetId(
+        payload.cabinetId,
+      );
       const toNotify = members.filter(
-        (member) => member.role === CabinetRole.OWNER || member.role === CabinetRole.STAFF,
+        (member) =>
+          member.role === CabinetRole.OWNER ||
+          member.role === CabinetRole.STAFF,
       );
 
       for (const member of toNotify) {

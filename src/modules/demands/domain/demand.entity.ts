@@ -97,7 +97,11 @@ export class DemandEntity {
   @ApiProperty({ example: false })
   isLiked: boolean = false;
 
-  @ApiProperty({ type: Array, required: false, description: 'Resultados associados a esta demanda' })
+  @ApiProperty({
+    type: Array,
+    required: false,
+    description: 'Resultados associados a esta demanda',
+  })
   results?: Array<{
     id: string;
     title: string;

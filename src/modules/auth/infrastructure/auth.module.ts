@@ -31,7 +31,9 @@ import { TokensRepository } from './tokens.repository';
       useFactory: (config: ConfigService) => {
         const secret = config.get<string>('JWT_SECRET');
         if (!secret) {
-          throw new Error('JWT_SECRET must be defined in environment variables');
+          throw new Error(
+            'JWT_SECRET must be defined in environment variables',
+          );
         }
         return {
           secret,

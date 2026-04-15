@@ -164,3 +164,7 @@ The project strictly follows a modularized Clean Architecture approach. Code AI 
 ### 2026-04-10 — Feature: Cabinet Dashboard Summary (Month/Year Filter)
 **What:** Added `GET /demands/cabinet/:slug/dashboard/summary` endpoint with optional `month`/`year` query filters (defaults to current month/year). Implemented `GetCabinetDashboardSummaryUseCase` and a repository method to compute `totalDemands`, `resolvedDemands` (resolution rate), and `neighborhoodWithMostDemands` scoped to a cabinet and a month window.
 **Why:** Provides the dashboard with a single, permission-checked endpoint for month-based cabinet analytics while keeping query logic centralized and reusable at the repository layer.
+
+### 2026-04-15 — Change: Dashboard Summary Adds Top Categories and Neighborhoods
+**What:** Expanded `GET /demands/cabinet/:slug/dashboard/summary` to return `total`, `resolved`, `mainNeighborhoods` (top 4), and `categories` (top 4 with `id`/`name`/`total`) for the selected month window.
+**Why:** Enables the dashboard to render “most active categories” and “main neighborhoods” charts without multiple client-side queries while keeping analytics computation consistent on the server.

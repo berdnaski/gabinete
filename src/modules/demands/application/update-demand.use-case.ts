@@ -11,7 +11,7 @@ export class UpdateDemandUseCase {
     private readonly demandsRepository: IDemandsRepository,
     private readonly cabinetMembersRepository: ICabinetMembersRepository,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
   async execute(id: string, dto: UpdateDemandDto, userId: string) {
     const demand = await this.demandsRepository.findById(id);

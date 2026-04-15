@@ -61,7 +61,9 @@ export class CloudflareStorageService implements StorageService {
 
     try {
       const command = new GetObjectCommand({ Bucket: this.bucket, Key: key });
-      const signedUrl = await getSignedUrl(this.s3, command, { expiresIn: 3600 });
+      const signedUrl = await getSignedUrl(this.s3, command, {
+        expiresIn: 3600,
+      });
       return { signedUrl };
     } catch (error) {
       this.logger.error('Error generating signed URL', error);
@@ -71,9 +73,15 @@ export class CloudflareStorageService implements StorageService {
 
   async delete(key: string): Promise<void> {
     try {
-      const command = new DeleteObjectCommand({ Bucket: this.bucket, Key: key });
+      const command = new DeleteObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+      });
       await this.s3.send(command).catch((err) => {
-        this.logger.warn(`File ${key} could not be deleted or not found in R2`, err);
+        this.logger.warn(
+          `File ${key} could not be deleted or not found in R2`,
+          err,
+        );
       });
     } catch (error) {
       this.logger.error('Error deleting object from R2', error);
@@ -81,7 +89,11 @@ export class CloudflareStorageService implements StorageService {
     }
   }
 
-  async getPresignedUploadUrl(key: string, mimetype: string, expiresIn = 600): Promise<string> {
+  async getPresignedUploadUrl(
+    key: string,
+    mimetype: string,
+    expiresIn = 600,
+  ): Promise<string> {
     try {
       const command = new PutObjectCommand({
         Bucket: this.bucket,

@@ -13,7 +13,7 @@ export class GoogleLoginUseCase {
     private readonly usersRepository: IUsersRepository,
     private readonly jwtTokenService: JwtTokenService,
     private readonly tokensRepository: ITokensRepository,
-  ) { }
+  ) {}
 
   async execute(googleUser: GoogleUser): Promise<AuthTokenEntity> {
     let user = await this.usersRepository.findByProvider(
@@ -60,7 +60,10 @@ export class GoogleLoginUseCase {
   }
 
   private async saveRefreshToken(userId: string, refreshToken: string) {
-    const refreshTokenExpiresIn = parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN ?? '604800', 10);
+    const refreshTokenExpiresIn = parseInt(
+      process.env.REFRESH_TOKEN_EXPIRES_IN ?? '604800',
+      10,
+    );
     const expiresAt = new Date();
     expiresAt.setSeconds(expiresAt.getSeconds() + refreshTokenExpiresIn);
 

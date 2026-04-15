@@ -23,4 +23,4 @@ import { AuditLogInterceptor } from './infrastructure/interceptors/audit-log.int
   ],
   exports: [StorageService, MailModule, QueueModule, DiscordService],
 })
-export class SharedModule { }
+export class SharedModule {}

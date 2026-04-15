@@ -12,7 +12,7 @@ export class AddDemandEvidenceUseCase {
     private readonly storageService: StorageService,
     private readonly usersRepository: IUsersRepository,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
   async execute(
     demandId: string,
@@ -49,7 +49,9 @@ export class AddDemandEvidenceUseCase {
         });
       }
 
-      const reporter = userId ? await this.usersRepository.findById(userId) : null;
+      const reporter = userId
+        ? await this.usersRepository.findById(userId)
+        : null;
       if (demand.reporterId) {
         this.eventEmitter.emit('demand.evidence-added', {
           demandId: demand.id,

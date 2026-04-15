@@ -38,21 +38,33 @@ describe('UploadResultProtocolUseCase', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UploadResultProtocolUseCase,
-        { provide: IResultsRepository, useValue: { findById: jest.fn(), setProtocol: jest.fn() } },
-        { provide: StorageService, useValue: { delete: jest.fn(), upload: jest.fn(), getUrl: jest.fn() } },
+        {
+          provide: IResultsRepository,
+          useValue: { findById: jest.fn(), setProtocol: jest.fn() },
+        },
+        {
+          provide: StorageService,
+          useValue: { delete: jest.fn(), upload: jest.fn(), getUrl: jest.fn() },
+        },
       ],
     }).compile();
 
-    useCase = module.get<UploadResultProtocolUseCase>(UploadResultProtocolUseCase);
-    repository = module.get(IResultsRepository) as jest.Mocked<IResultsRepository>;
-    storageService = module.get(StorageService) as jest.Mocked<StorageService>;
+    useCase = module.get<UploadResultProtocolUseCase>(
+      UploadResultProtocolUseCase,
+    );
+    repository = module.get(IResultsRepository);
+    storageService = module.get(StorageService);
   });
 
   it('should upload protocol and delete old one', async () => {
     repository.findById.mockResolvedValue(mockResult as any);
     storageService.delete.mockResolvedValue(undefined);
-    storageService.upload.mockResolvedValue({ path: 'results/cabinet-1/protocols/new.pdf' } as any);
-    storageService.getUrl.mockResolvedValue({ signedUrl: 'https://example.com/new.pdf' });
+    storageService.upload.mockResolvedValue({
+      path: 'results/cabinet-1/protocols/new.pdf',
+    } as any);
+    storageService.getUrl.mockResolvedValue({
+      signedUrl: 'https://example.com/new.pdf',
+    });
     repository.setProtocol.mockResolvedValue(updatedResult as any);
 
     const mockFile = {
@@ -79,6 +91,8 @@ describe('UploadResultProtocolUseCase', () => {
       size: 2048,
     } as Express.Multer.File;
 
-    await expect(useCase.execute('invalid-id', mockFile)).rejects.toThrow(NotFoundException);
+    await expect(useCase.execute('invalid-id', mockFile)).rejects.toThrow(
+      NotFoundException,
+    );
   });
 });

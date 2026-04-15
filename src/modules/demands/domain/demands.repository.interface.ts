@@ -64,10 +64,22 @@ export interface CabinetDemandMetrics {
   resolved: number;
 }
 
+export interface DashboardCategoryStat {
+  id: string;
+  name: string;
+  total: number;
+}
+
+export interface DashboardNeighborhoodStat {
+  name: string;
+  total: number;
+}
+
 export interface CabinetDashboardSummary {
-  totalDemands: number;
-  resolvedDemands: number;
-  neighborhoodWithMostDemands: string | null;
+  total: number;
+  resolved: number;
+  mainNeighborhoods: DashboardNeighborhoodStat[];
+  categories: DashboardCategoryStat[];
 }
 
 export interface HeatmapPoint {

@@ -12,7 +12,10 @@ export class ResultCabinetInfo {
   @ApiProperty({ example: 'gabinete-vereador-silva' })
   slug: string;
 
-  @ApiProperty({ example: 'https://cdn.example.com/avatar.jpg', nullable: true })
+  @ApiProperty({
+    example: 'https://cdn.example.com/avatar.jpg',
+    nullable: true,
+  })
   avatarUrl: string | null;
 }
 
@@ -31,7 +34,9 @@ export class ResultEntity {
   @ApiProperty({ example: 'Recapeamento concluído na Rua Principal' })
   title: string;
 
-  @ApiProperty({ example: 'Executamos o recapeamento asfáltico no trecho indicado...' })
+  @ApiProperty({
+    example: 'Executamos o recapeamento asfáltico no trecho indicado...',
+  })
   description: string;
 
   @ApiProperty({ enum: ResultType })
@@ -46,7 +51,10 @@ export class ResultEntity {
   @ApiProperty({ example: 'results/uuid/protocol/uuid.pdf', nullable: true })
   protocolFileKey: string | null;
 
-  @ApiProperty({ example: 'https://cdn.example.com/results/uuid/protocol/uuid.pdf', nullable: true })
+  @ApiProperty({
+    example: 'https://cdn.example.com/results/uuid/protocol/uuid.pdf',
+    nullable: true,
+  })
   protocolFileUrl: string | null;
 
   @ApiProperty({ example: 'ordem-servico-123.pdf', nullable: true })

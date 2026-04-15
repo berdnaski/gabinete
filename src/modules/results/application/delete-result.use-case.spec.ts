@@ -29,12 +29,15 @@ describe('DeleteResultUseCase', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         DeleteResultUseCase,
-        { provide: IResultsRepository, useValue: { findById: jest.fn(), softDelete: jest.fn() } },
+        {
+          provide: IResultsRepository,
+          useValue: { findById: jest.fn(), softDelete: jest.fn() },
+        },
       ],
     }).compile();
 
     useCase = module.get<DeleteResultUseCase>(DeleteResultUseCase);
-    repository = module.get(IResultsRepository) as jest.Mocked<IResultsRepository>;
+    repository = module.get(IResultsRepository);
   });
 
   it('should soft delete result', async () => {
@@ -48,6 +51,8 @@ describe('DeleteResultUseCase', () => {
   it('should throw NotFoundException when result not found', async () => {
     repository.findById.mockResolvedValue(null);
 
-    await expect(useCase.execute('invalid-id')).rejects.toThrow(NotFoundException);
+    await expect(useCase.execute('invalid-id')).rejects.toThrow(
+      NotFoundException,
+    );
   });
 });

@@ -30,7 +30,18 @@ export class DemandsRepository implements IDemandsRepository {
       where: { id, disabledAt: null },
       include: {
         evidences: true,
-        results: { select: { id: true, title: true, description: true, type: true, createdAt: true, protocolFileKey: true, protocolFileUrl: true }, where: { disabledAt: null } },
+        results: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            type: true,
+            createdAt: true,
+            protocolFileKey: true,
+            protocolFileUrl: true,
+          },
+          where: { disabledAt: null },
+        },
         _count: { select: { likes: true } },
         likes: userId ? { where: { userId } } : false,
       },
@@ -75,7 +86,18 @@ export class DemandsRepository implements IDemandsRepository {
       },
       include: {
         evidences: true,
-        results: { where: { disabledAt: null }, select: { id: true, title: true, description: true, type: true, createdAt: true, protocolFileKey: true, protocolFileUrl: true } },
+        results: {
+          where: { disabledAt: null },
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            type: true,
+            createdAt: true,
+            protocolFileKey: true,
+            protocolFileUrl: true,
+          },
+        },
       },
     });
 
@@ -114,7 +136,18 @@ export class DemandsRepository implements IDemandsRepository {
       },
       include: {
         evidences: true,
-        results: { where: { disabledAt: null }, select: { id: true, title: true, description: true, type: true, createdAt: true, protocolFileKey: true, protocolFileUrl: true } },
+        results: {
+          where: { disabledAt: null },
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            type: true,
+            createdAt: true,
+            protocolFileKey: true,
+            protocolFileUrl: true,
+          },
+        },
       },
     });
 
@@ -185,7 +218,18 @@ export class DemandsRepository implements IDemandsRepository {
         orderBy: { createdAt: 'desc' },
         include: {
           evidences: true,
-          results: { select: { id: true, title: true, description: true, type: true, createdAt: true, protocolFileKey: true, protocolFileUrl: true }, where: { disabledAt: null } },
+          results: {
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              type: true,
+              createdAt: true,
+              protocolFileKey: true,
+              protocolFileUrl: true,
+            },
+            where: { disabledAt: null },
+          },
           reporter: true,
           category: {
             select: {
@@ -218,9 +262,9 @@ export class DemandsRepository implements IDemandsRepository {
       status: filters.status,
       OR: filters.search
         ? [
-          { title: { contains: filters.search, mode: 'insensitive' } },
-          { description: { contains: filters.search, mode: 'insensitive' } },
-        ]
+            { title: { contains: filters.search, mode: 'insensitive' } },
+            { description: { contains: filters.search, mode: 'insensitive' } },
+          ]
         : undefined,
     };
 
@@ -232,7 +276,18 @@ export class DemandsRepository implements IDemandsRepository {
         orderBy: { createdAt: 'desc' },
         include: {
           evidences: true,
-          results: { select: { id: true, title: true, description: true, type: true, createdAt: true, protocolFileKey: true, protocolFileUrl: true }, where: { disabledAt: null } },
+          results: {
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              type: true,
+              createdAt: true,
+              protocolFileKey: true,
+              protocolFileUrl: true,
+            },
+            where: { disabledAt: null },
+          },
           reporter: true,
           category: {
             select: {
@@ -400,46 +455,70 @@ export class DemandsRepository implements IDemandsRepository {
     startDate: Date,
     endDate: Date,
   ): Promise<CabinetDashboardSummary> {
-    const [totalDemands, resolvedDemands, mostActiveNeighborhood] =
+    const baseWhere = {
+      cabinetId,
+      disabledAt: null,
+      createdAt: { gte: startDate, lt: endDate },
+    };
+
+    const [total, resolved, topNeighborhoods, topCategories] =
       await this.prisma.$transaction([
+        this.prisma.demand.count({ where: baseWhere }),
         this.prisma.demand.count({
-          where: {
-            cabinetId,
-            disabledAt: null,
-            createdAt: { gte: startDate, lt: endDate },
-          },
-        }),
-        this.prisma.demand.count({
-          where: {
-            cabinetId,
-            disabledAt: null,
-            status: DemandStatus.RESOLVED,
-            createdAt: { gte: startDate, lt: endDate },
-          },
+          where: { ...baseWhere, status: DemandStatus.RESOLVED },
         }),
         this.prisma.demand.groupBy({
           by: ['neighborhood'],
-          where: {
-            cabinetId,
-            disabledAt: null,
-            createdAt: { gte: startDate, lt: endDate },
-            neighborhood: { not: '' },
-          },
+          where: { ...baseWhere, neighborhood: { not: '' } },
           _count: { neighborhood: true },
           orderBy: { _count: { neighborhood: 'desc' } },
           take: 1,
         }),
+        this.prisma.demand.groupBy({
+          by: ['categoryId'],
+          where: { ...baseWhere, categoryId: { not: null } },
+          _count: { categoryId: true },
+          orderBy: { _count: { categoryId: 'desc' } },
+          take: 4,
+        }),
       ]);
 
-    const neighborhoodWithMostDemands =
-      mostActiveNeighborhood.length > 0
-        ? mostActiveNeighborhood[0].neighborhood
-        : null;
+    const mainNeighborhoods = topNeighborhoods.map((row) => {
+      const countData = row._count as { neighborhood: number };
+
+      return {
+        name: row.neighborhood,
+        total: countData.neighborhood,
+      };
+    });
+
+    const categoryIds = topCategories.map((c) => c.categoryId!);
+
+    const categoryRecords =
+      categoryIds.length > 0
+        ? await this.prisma.category.findMany({
+            where: { id: { in: categoryIds }, disabledAt: null },
+            select: { id: true, name: true },
+          })
+        : [];
+
+    const categoriesById = new Map(categoryRecords.map((c) => [c.id, c.name]));
+
+    const categories = topCategories.map((row) => {
+      const countData = row._count as { categoryId: number };
+
+      return {
+        id: row.categoryId!,
+        name: categoriesById.get(row.categoryId!) ?? 'Unknown',
+        total: countData.categoryId,
+      };
+    });
 
     return {
-      totalDemands,
-      resolvedDemands,
-      neighborhoodWithMostDemands,
+      total,
+      resolved,
+      mainNeighborhoods,
+      categories,
     };
   }
 

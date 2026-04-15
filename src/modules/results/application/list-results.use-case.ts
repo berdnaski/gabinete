@@ -17,7 +17,9 @@ export interface ListResultsInput {
 export class ListResultsUseCase {
   constructor(private readonly resultsRepository: IResultsRepository) {}
 
-  async execute(input: ListResultsInput): Promise<PaginatedResult<ResultEntity>> {
+  async execute(
+    input: ListResultsInput,
+  ): Promise<PaginatedResult<ResultEntity>> {
     return this.resultsRepository.findAll({
       cabinetId: input.cabinetId,
       demandId: input.demandId,

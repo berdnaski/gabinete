@@ -24,11 +24,11 @@ export class DiscordService {
   private readonly webhookUrl: string | undefined;
 
   private static readonly COLORS = {
-    ERROR: 0xE74C3C,
-    SUCCESS: 0x2ECC71,
-    INFO: 0x3498DB,
-    WARNING: 0xF1C40F,
-    AUDIT: 0x95A5A6,
+    ERROR: 0xe74c3c,
+    SUCCESS: 0x2ecc71,
+    INFO: 0x3498db,
+    WARNING: 0xf1c40f,
+    AUDIT: 0x95a5a6,
   };
 
   private static readonly ASSETS = {
@@ -41,11 +41,16 @@ export class DiscordService {
     this.webhookUrl = this.configService.get<string>('DISCORD_WEBHOOK_URL');
 
     if (!this.webhookUrl) {
-      this.logger.warn('DISCORD_WEBHOOK_URL is not defined. Discord logging will be disabled.');
+      this.logger.warn(
+        'DISCORD_WEBHOOK_URL is not defined. Discord logging will be disabled.',
+      );
     }
   }
 
-  async sendError(error: Error, context: { method: string; url: string; userId?: string; ip?: string }) {
+  async sendError(
+    error: Error,
+    context: { method: string; url: string; userId?: string; ip?: string },
+  ) {
     if (!this.webhookUrl) return;
 
     const stackTrace = error.stack
@@ -61,9 +66,21 @@ export class DiscordService {
       description: `**Message:** ${error.message}`,
       color: DiscordService.COLORS.ERROR,
       fields: [
-        { name: '🌐 Route', value: `\`${context.method} ${context.url}\``, inline: true },
-        { name: '👤 User', value: context.userId ? `\`${context.userId}\`` : '`Guest`', inline: true },
-        { name: '📍 Source IP', value: `\`${context.ip || 'Unknown'}\``, inline: true },
+        {
+          name: '🌐 Route',
+          value: `\`${context.method} ${context.url}\``,
+          inline: true,
+        },
+        {
+          name: '👤 User',
+          value: context.userId ? `\`${context.userId}\`` : '`Guest`',
+          inline: true,
+        },
+        {
+          name: '📍 Source IP',
+          value: `\`${context.ip || 'Unknown'}\``,
+          inline: true,
+        },
         { name: '🛠️ Stack Trace', value: stackTrace },
       ],
       timestamp: new Date().toISOString(),
@@ -99,9 +116,17 @@ export class DiscordService {
       description: data.details,
       color: DiscordService.COLORS.AUDIT,
       fields: [
-        { name: '🌐 Request', value: `\`${data.method} ${data.url}\``, inline: true },
+        {
+          name: '🌐 Request',
+          value: `\`${data.method} ${data.url}\``,
+          inline: true,
+        },
         { name: '🚥 Status', value: `\`${data.status}\``, inline: true },
-        { name: '👤 User', value: data.userId ? `\`${data.userId}\`` : '`System`', inline: true },
+        {
+          name: '👤 User',
+          value: data.userId ? `\`${data.userId}\`` : '`System`',
+          inline: true,
+        },
         { name: '📦 Data Summary', value: payloadStr },
       ],
       timestamp: new Date().toISOString(),
@@ -113,11 +138,17 @@ export class DiscordService {
 
   private sanitize(obj: any): any {
     if (!obj || typeof obj !== 'object') return obj;
-    const sensitiveKeys = ['password', 'token', 'secret', 'client_secret', 'key'];
+    const sensitiveKeys = [
+      'password',
+      'token',
+      'secret',
+      'client_secret',
+      'key',
+    ];
     const sanitized = { ...obj };
 
     for (const key of Object.keys(sanitized)) {
-      if (sensitiveKeys.some(sk => key.toLowerCase().includes(sk))) {
+      if (sensitiveKeys.some((sk) => key.toLowerCase().includes(sk))) {
         sanitized[key] = '********';
       } else if (typeof sanitized[key] === 'object') {
         sanitized[key] = this.sanitize(sanitized[key]);

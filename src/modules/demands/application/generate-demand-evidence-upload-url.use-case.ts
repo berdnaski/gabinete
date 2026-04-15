@@ -8,9 +8,12 @@ export class GenerateDemandEvidenceUploadUrlUseCase {
   constructor(
     private readonly demandsRepository: IDemandsRepository,
     private readonly storageService: StorageService,
-  ) { }
+  ) {}
 
-  async execute(demandId: string, filename: string): Promise<{ uploadUrl: string; storageKey: string }> {
+  async execute(
+    demandId: string,
+    filename: string,
+  ): Promise<{ uploadUrl: string; storageKey: string }> {
     const demand = await this.demandsRepository.findById(demandId);
     if (!demand) {
       throw new NotFoundException('Demanda não encontrada');

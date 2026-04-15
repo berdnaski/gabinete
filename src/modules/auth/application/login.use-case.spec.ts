@@ -67,7 +67,10 @@ describe('LoginUseCase', () => {
         { provide: ValidatePasswordUseCase, useValue: mockValidatePassword },
         { provide: JwtTokenService, useValue: mockJwtTokenService },
         { provide: ITokensRepository, useValue: mockTokensRepository },
-        { provide: ConfigService, useValue: { get: jest.fn().mockReturnValue(604800) } },
+        {
+          provide: ConfigService,
+          useValue: { get: jest.fn().mockReturnValue(604800) },
+        },
       ],
     }).compile();
 

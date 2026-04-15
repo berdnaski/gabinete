@@ -6,8 +6,7 @@ export class OptionalJwtAuthGuard extends AuthGuard('jwt') {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     try {
       await super.canActivate(context);
-    } catch {
-    }
+    } catch {}
     return true;
   }
 

@@ -14,7 +14,9 @@ export abstract class ICabinetInvitationsRepository {
   abstract findByEmail(email: string): Promise<CabinetInvitationEntity[]>;
   abstract findByToken(token: string): Promise<CabinetInvitationEntity | null>;
   abstract findById(id: string): Promise<CabinetInvitationEntity | null>;
-  abstract findByCabinetId(cabinetId: string): Promise<CabinetInvitationEntity[]>;
+  abstract findByCabinetId(
+    cabinetId: string,
+  ): Promise<CabinetInvitationEntity[]>;
   abstract delete(id: string): Promise<void>;
   abstract deleteManyByEmail(email: string): Promise<void>;
 }

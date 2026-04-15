@@ -38,20 +38,30 @@ describe('AddResultImagesUseCase', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AddResultImagesUseCase,
-        { provide: IResultsRepository, useValue: { findById: jest.fn(), addImages: jest.fn() } },
-        { provide: StorageService, useValue: { upload: jest.fn(), getUrl: jest.fn() } },
+        {
+          provide: IResultsRepository,
+          useValue: { findById: jest.fn(), addImages: jest.fn() },
+        },
+        {
+          provide: StorageService,
+          useValue: { upload: jest.fn(), getUrl: jest.fn() },
+        },
       ],
     }).compile();
 
     useCase = module.get<AddResultImagesUseCase>(AddResultImagesUseCase);
-    repository = module.get(IResultsRepository) as jest.Mocked<IResultsRepository>;
-    storageService = module.get(StorageService) as jest.Mocked<StorageService>;
+    repository = module.get(IResultsRepository);
+    storageService = module.get(StorageService);
   });
 
   it('should add images to result', async () => {
     repository.findById.mockResolvedValue(mockResult as any);
-    storageService.upload.mockResolvedValue({ path: 'results/cabinet-1/uuid.jpg' } as any);
-    storageService.getUrl.mockResolvedValue({ signedUrl: 'https://example.com/image.jpg' });
+    storageService.upload.mockResolvedValue({
+      path: 'results/cabinet-1/uuid.jpg',
+    } as any);
+    storageService.getUrl.mockResolvedValue({
+      signedUrl: 'https://example.com/image.jpg',
+    });
 
     const mockFile = {
       originalname: 'test.jpg',
@@ -75,6 +85,8 @@ describe('AddResultImagesUseCase', () => {
       size: 1024,
     } as Express.Multer.File;
 
-    await expect(useCase.execute('invalid-id', [mockFile])).rejects.toThrow(NotFoundException);
+    await expect(useCase.execute('invalid-id', [mockFile])).rejects.toThrow(
+      NotFoundException,
+    );
   });
 });

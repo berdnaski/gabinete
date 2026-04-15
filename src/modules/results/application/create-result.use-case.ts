@@ -1,4 +1,8 @@
-import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { ResultType } from '@prisma/client';
 import { StorageService } from '../../../shared/domain/services/storage.service';
 import { ICabinetMembersRepository } from '../../cabinets/domain/cabinet-members.repository.interface';
@@ -35,7 +39,10 @@ export class CreateResultUseCase {
       throw new NotFoundException('Gabinete não encontrado');
     }
 
-    const membership = await this.cabinetMembersRepository.findMembership(userId, cabinet.id);
+    const membership = await this.cabinetMembersRepository.findMembership(
+      userId,
+      cabinet.id,
+    );
     if (!membership) {
       throw new ForbiddenException('Você não é membro deste gabinete');
     }

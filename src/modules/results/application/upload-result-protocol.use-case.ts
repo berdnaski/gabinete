@@ -10,14 +10,19 @@ export class UploadResultProtocolUseCase {
     private readonly storageService: StorageService,
   ) {}
 
-  async execute(resultId: string, file: Express.Multer.File): Promise<ResultEntity> {
+  async execute(
+    resultId: string,
+    file: Express.Multer.File,
+  ): Promise<ResultEntity> {
     const result = await this.resultsRepository.findById(resultId);
     if (!result) {
       throw new NotFoundException('Resultado não encontrado');
     }
 
     if (result.protocolFileKey) {
-      await this.storageService.delete(result.protocolFileKey).catch(() => null);
+      await this.storageService
+        .delete(result.protocolFileKey)
+        .catch(() => null);
     }
 
     const uploaded = await this.storageService.upload({

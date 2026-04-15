@@ -22,7 +22,6 @@ export class CreateDemandUseCase {
     userId?: string,
     files?: Express.Multer.File[],
   ): Promise<DemandEntity> {
-
     if (userId && dto.guestEmail) {
       throw new BadRequestException(
         'Authenticated users cannot provide a guest email',

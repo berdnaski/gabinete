@@ -16,5 +16,9 @@ export abstract class StorageService {
   abstract upload(props: UploadProps): Promise<UploadResult>;
   abstract getUrl(key: string): Promise<{ signedUrl: string }>;
   abstract delete(key: string): Promise<void>;
-  abstract getPresignedUploadUrl(key: string, mimetype: string, expiresIn?: number): Promise<string>;
+  abstract getPresignedUploadUrl(
+    key: string,
+    mimetype: string,
+    expiresIn?: number,
+  ): Promise<string>;
 }

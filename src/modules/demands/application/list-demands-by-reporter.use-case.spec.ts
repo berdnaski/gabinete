@@ -20,15 +20,22 @@ describe('ListDemandsByReporterUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<ListDemandsByReporterUseCase>(ListDemandsByReporterUseCase);
+    useCase = module.get<ListDemandsByReporterUseCase>(
+      ListDemandsByReporterUseCase,
+    );
     demandsRepo = module.get(IDemandsRepository);
   });
 
   it('should pass reporterId, filters and userId correctly to the repository', async () => {
     const reporterId = 'rep-1';
-    const filters = { status: DemandStatus.SUBMITTED, search: 'buraco', page: 1, limit: 10 };
+    const filters = {
+      status: DemandStatus.SUBMITTED,
+      search: 'buraco',
+      page: 1,
+      limit: 10,
+    };
     const userId = 'user-123';
-    
+
     demandsRepo.findByReporter.mockResolvedValue({
       items: [],
       total: 0,

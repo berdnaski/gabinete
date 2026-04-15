@@ -35,7 +35,7 @@ describe('ListResultsUseCase', () => {
     }).compile();
 
     useCase = module.get<ListResultsUseCase>(ListResultsUseCase);
-    repository = module.get(IResultsRepository) as jest.Mocked<IResultsRepository>;
+    repository = module.get(IResultsRepository);
   });
 
   it('should list all public results with pagination', async () => {

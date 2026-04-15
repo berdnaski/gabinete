@@ -85,19 +85,27 @@ export class DemandsController {
     private readonly getCabinetDemandHeatmapUseCase: GetCabinetDemandHeatmapUseCase,
     private readonly listDemandNeighborhoodsUseCase: ListDemandNeighborhoodsUseCase,
     private readonly listDemandsByReporterUseCase: ListDemandsByReporterUseCase,
-  ) { }
+  ) {}
 
   @Post()
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
   @ApiOperation({
-    summary: 'Creates a new Demand (Authenticated or Guest Flow). Accepts optional evidence files in the same request.',
+    summary:
+      'Creates a new Demand (Authenticated or Guest Flow). Accepts optional evidence files in the same request.',
   })
   @ApiBody({
     schema: {
       type: 'object',
-      required: ['title', 'description', 'address', 'neighborhood', 'city', 'state'],
+      required: [
+        'title',
+        'description',
+        'address',
+        'neighborhood',
+        'city',
+        'state',
+      ],
       properties: {
         title: { type: 'string' },
         description: { type: 'string' },
@@ -125,7 +133,6 @@ export class DemandsController {
     type: DemandEntity,
     description: 'Demand successfully created (with evidences if provided)',
   })
-  
   @ApiResponse({
     status: 201,
     type: DemandEntity,
@@ -380,7 +387,9 @@ export class DemandsController {
   @Post(':id/evidence/presign')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Generate a presigned URL for direct evidence upload to R2' })
+  @ApiOperation({
+    summary: 'Generate a presigned URL for direct evidence upload to R2',
+  })
   @ApiResponse({
     status: 201,
     description: 'Presigned URL generated successfully',
@@ -396,7 +405,10 @@ export class DemandsController {
     @Param('id') id: string,
     @Body() dto: GenerateEvidenceUploadUrlDto,
   ) {
-    return this.generateDemandEvidenceUploadUrlUseCase.execute(id, dto.filename);
+    return this.generateDemandEvidenceUploadUrlUseCase.execute(
+      id,
+      dto.filename,
+    );
   }
 
   @Post(':id/evidence/confirm')
@@ -410,7 +422,11 @@ export class DemandsController {
     @Param('id') id: string,
     @Body() dto: ConfirmEvidenceUploadDto,
   ): Promise<void> {
-    return this.confirmDemandEvidenceUseCase.execute(id, dto.storageKey, dto.size);
+    return this.confirmDemandEvidenceUseCase.execute(
+      id,
+      dto.storageKey,
+      dto.size,
+    );
   }
 
   @Patch(':id/assign')

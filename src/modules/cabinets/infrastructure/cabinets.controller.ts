@@ -76,7 +76,7 @@ export class CabinetsController {
     private readonly leaveCabinetUseCase: LeaveCabinetUseCase,
     private readonly listCabinetMembersUseCase: ListCabinetMembersUseCase,
     private readonly removeCabinetMemberUseCase: RemoveCabinetMemberUseCase,
-  ) { }
+  ) {}
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -102,14 +102,20 @@ export class CabinetsController {
     status: 200,
     schema: {
       properties: {
-        items: { type: 'array', items: { $ref: '#/components/schemas/CabinetResponseDto' } },
+        items: {
+          type: 'array',
+          items: { $ref: '#/components/schemas/CabinetResponseDto' },
+        },
         total: { type: 'number' },
       },
     },
   })
   async list(@Query() query: PaginationQueryDto) {
     const result = await this.listCabinetsUseCase.execute(query);
-    return { items: result.items.map((c) => this.toCabinetDto(c)), total: result.total };
+    return {
+      items: result.items.map((c) => this.toCabinetDto(c)),
+      total: result.total,
+    };
   }
 
   @Get(':slug')
@@ -249,10 +255,7 @@ export class CabinetsController {
   @ApiResponse({ status: 200, description: 'Invitation canceled' })
   @ApiResponse({ status: 403, description: 'Only owners can cancel' })
   @ApiResponse({ status: 404, description: 'Invitation not found' })
-  async cancelInvite(
-    @Param('id') id: string,
-    @CurrentUser() user: UserEntity,
-  ) {
+  async cancelInvite(@Param('id') id: string, @CurrentUser() user: UserEntity) {
     return this.cancelCabinetInvitationUseCase.execute(id, user.id);
   }
 
