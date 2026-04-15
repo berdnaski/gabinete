@@ -5,6 +5,7 @@ export class NotificationEntity {
   title: string;
   message: string;
   type: NotificationType;
+  link: string | null;
   userId: string;
   readAt: Date | null;
   createdAt: Date;

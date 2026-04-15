@@ -21,6 +21,7 @@ export class NotificationsRepository implements INotificationsRepository {
         title: data.title,
         message: data.message,
         type: data.type,
+        link: data.link ?? null,
       },
     });
 

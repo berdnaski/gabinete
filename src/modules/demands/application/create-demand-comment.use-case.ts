@@ -39,6 +39,7 @@ export class CreateDemandCommentUseCase {
       const author = await this.usersRepository.findById(authorId);
       this.eventEmitter.emit('demand.comment-added', {
         userId: demand.reporterId,
+        demandId,
         authorName: author?.name || 'Alguém',
         demandTitle: demand.title,
       });

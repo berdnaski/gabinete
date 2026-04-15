@@ -3,14 +3,16 @@ import { DemandEntity } from '../domain/demand.entity';
 import {
   CreateDemandInfo,
   IDemandsRepository,
-} from '../domain/demands.repository.interface'; 
+} from '../domain/demands.repository.interface';
 import { CreateDemandDto } from '../dto/create-demand.dto';
 import { DemandPriority } from '@prisma/client';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class CreateDemandUseCase {
   constructor(
     private readonly demandsRepository: IDemandsRepository,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async execute(
@@ -46,6 +48,16 @@ export class CreateDemandUseCase {
       categoryId: dto.categoryId || null,
     };
 
-    return this.demandsRepository.createWithEvidences(demandInfo, []);
+    const demand = await this.demandsRepository.createWithEvidences(demandInfo, []);
+
+    if (userId) {
+      this.eventEmitter.emit('demand.created', {
+        userId,
+        demandId: demand.id,
+        demandTitle: demand.title,
+      });
+    }
+
+    return demand;
   }
 }
