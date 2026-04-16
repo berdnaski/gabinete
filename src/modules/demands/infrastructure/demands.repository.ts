@@ -44,7 +44,7 @@ export class DemandsRepository implements IDemandsRepository {
           },
           where: { disabledAt: null },
         },
-        _count: { select: { likes: true } },
+        _count: { select: { likes: true, comments: true } },
         likes: userId ? { where: { userId } } : false,
       },
     });
@@ -100,6 +100,7 @@ export class DemandsRepository implements IDemandsRepository {
             protocolFileUrl: true,
           },
         },
+        _count: { select: { likes: true, comments: true } },
       },
     });
 
@@ -238,7 +239,7 @@ export class DemandsRepository implements IDemandsRepository {
               name: true,
             },
           },
-          _count: { select: { likes: true } },
+          _count: { select: { likes: true, comments: true } },
           likes: userId ? { where: { userId } } : false,
         },
       }),
@@ -296,7 +297,7 @@ export class DemandsRepository implements IDemandsRepository {
               name: true,
             },
           },
-          _count: { select: { likes: true } },
+          _count: { select: { likes: true, comments: true } },
           likes: userId ? { where: { userId } } : false,
         },
       }),

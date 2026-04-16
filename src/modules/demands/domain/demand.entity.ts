@@ -94,6 +94,9 @@ export class DemandEntity {
   @ApiProperty({ example: 42 })
   likesCount: number = 0;
 
+  @ApiProperty({ example: 42 })
+  commentsCount: number = 0;
+
   @ApiProperty({ example: false })
   isLiked: boolean = false;
 

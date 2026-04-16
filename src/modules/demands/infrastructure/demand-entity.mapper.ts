@@ -19,7 +19,7 @@ export type DemandWithRelations = Prisma.DemandGetPayload<{
 }> & {
   reporter?: { name: string; avatarUrl: string | null } | null;
   category?: { name: string } | null;
-  _count?: { likes: number };
+  _count?: { likes: number; comments: number };
   likes?: { userId: string }[];
 };
 
@@ -77,6 +77,8 @@ export class DemandEntityMapper {
     }
 
     entity.likesCount = prismaModel._count?.likes ?? 0;
+    entity.commentsCount = prismaModel._count?.comments ?? 0;
+
     entity.isLiked = userId ? !!prismaModel.likes?.length : false;
 
     if (prismaModel.results) {

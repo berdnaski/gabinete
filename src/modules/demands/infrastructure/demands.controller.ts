@@ -7,7 +7,7 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -73,13 +73,14 @@ export class DemandsController {
     private readonly getCabinetDemandHeatmapUseCase: GetCabinetDemandHeatmapUseCase,
     private readonly listDemandNeighborhoodsUseCase: ListDemandNeighborhoodsUseCase,
     private readonly listDemandsByReporterUseCase: ListDemandsByReporterUseCase,
-  ) {}
+  ) { }
 
   @Post()
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Creates a new Demand (Authenticated or Guest Flow). Evidence files are uploaded separately via presigned URLs.',
+    summary:
+      'Creates a new Demand (Authenticated or Guest Flow). Evidence files are uploaded separately via presigned URLs.',
   })
   @ApiResponse({
     status: 201,
