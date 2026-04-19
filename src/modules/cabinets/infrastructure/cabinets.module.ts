@@ -20,6 +20,7 @@ import { ListCabinetInvitationsUseCase } from '../application/list-cabinet-invit
 import { CancelCabinetInvitationUseCase } from '../application/cancel-cabinet-invitation.use-case';
 import { UpdateCabinetMemberRoleUseCase } from '../application/update-cabinet-member-role.use-case';
 import { LeaveCabinetUseCase } from '../application/leave-cabinet.use-case';
+import { GetCurrentUserCabinetsUseCase } from '../application/get-current-user-cabinets.use-case';
 import { CabinetInvitationsRepository } from './invitations.repository';
 import { UsersModule } from '../../users/infrastructure/users.module';
 
@@ -47,6 +48,7 @@ import { UsersModule } from '../../users/infrastructure/users.module';
     LeaveCabinetUseCase,
     ListCabinetMembersUseCase,
     RemoveCabinetMemberUseCase,
+    GetCurrentUserCabinetsUseCase,
   ],
   controllers: [CabinetsController],
   exports: [

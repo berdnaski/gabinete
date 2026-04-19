@@ -34,5 +34,7 @@ export abstract class ICabinetsRepository {
     },
   ): Promise<CabinetEntity>;
 
+  abstract findByUserId(userId: string): Promise<CabinetEntity[]>;
+
   abstract softDelete(id: string): Promise<void>;
 }

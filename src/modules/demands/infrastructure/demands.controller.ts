@@ -51,6 +51,7 @@ import { ListDemandCommentsUseCase } from '../application/list-demand-comments.u
 import { ToggleDemandLikeUseCase } from '../application/toggle-demand-like.use-case';
 import { ListDemandNeighborhoodsUseCase } from '../application/list-demand-neighborhoods.use-case';
 import { ListDemandsByReporterUseCase } from '../application/list-demands-by-reporter.use-case';
+import { ListCabinetDemandsUseCase } from '../application/list-cabinet-demands.use-case';
 
 @ApiTags('demands')
 @Controller('demands')
@@ -73,6 +74,7 @@ export class DemandsController {
     private readonly getCabinetDemandHeatmapUseCase: GetCabinetDemandHeatmapUseCase,
     private readonly listDemandNeighborhoodsUseCase: ListDemandNeighborhoodsUseCase,
     private readonly listDemandsByReporterUseCase: ListDemandsByReporterUseCase,
+    private readonly listCabinetDemandsUseCase: ListCabinetDemandsUseCase,
   ) { }
 
   @Post()
@@ -192,6 +194,23 @@ export class DemandsController {
     @CurrentUser() user: UserEntity,
   ) {
     return this.listDemandsByReporterUseCase.execute(user.id, query, user.id);
+  }
+
+  @Get('cabinet/:slug')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List all demands for a cabinet by slug' })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated list of demands for the cabinet',
+  })
+  @ApiResponse({ status: 404, description: 'Cabinet not found' })
+  async listCabinetDemands(
+    @Param('slug') slug: string,
+    @Query() query: ListDemandsDto,
+    @CurrentUser() user: UserEntity | null,
+  ) {
+    return this.listCabinetDemandsUseCase.execute(slug, query, user?.id);
   }
 
   @Get('neighborhoods')

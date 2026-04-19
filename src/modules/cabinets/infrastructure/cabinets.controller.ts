@@ -55,6 +55,7 @@ import { ListCabinetInvitationsUseCase } from '../application/list-cabinet-invit
 import { CancelCabinetInvitationUseCase } from '../application/cancel-cabinet-invitation.use-case';
 import { UpdateCabinetMemberRoleUseCase } from '../application/update-cabinet-member-role.use-case';
 import { LeaveCabinetUseCase } from '../application/leave-cabinet.use-case';
+import { GetCurrentUserCabinetsUseCase } from '../application/get-current-user-cabinets.use-case';
 import { UpdateCabinetMemberRoleDto } from '../dto/update-cabinet-member-role.dto';
 import { PaginationQueryDto } from '../../../shared/dto/pagination-query.dto';
 
@@ -76,6 +77,7 @@ export class CabinetsController {
     private readonly leaveCabinetUseCase: LeaveCabinetUseCase,
     private readonly listCabinetMembersUseCase: ListCabinetMembersUseCase,
     private readonly removeCabinetMemberUseCase: RemoveCabinetMemberUseCase,
+    private readonly getCurrentUserCabinetsUseCase: GetCurrentUserCabinetsUseCase,
   ) {}
 
   @Post()
@@ -116,6 +118,22 @@ export class CabinetsController {
       items: result.items.map((c) => this.toCabinetDto(c)),
       total: result.total,
     };
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List cabinets the current user belongs to' })
+  @ApiResponse({
+    status: 200,
+    type: [CabinetResponseDto],
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async listMyCabinets(
+    @CurrentUser() user: UserEntity,
+  ): Promise<CabinetResponseDto[]> {
+    const cabinets = await this.getCurrentUserCabinetsUseCase.execute(user.id);
+    return cabinets.map((c) => this.toCabinetDto(c));
   }
 
   @Get(':slug')

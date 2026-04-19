@@ -81,6 +81,17 @@ export class CabinetsRepository implements ICabinetsRepository {
     return this.toEntity(record);
   }
 
+  async findByUserId(userId: string): Promise<CabinetEntity[]> {
+    const records = await this.prisma.cabinet.findMany({
+      where: {
+        disabledAt: null,
+        members: { some: { userId } },
+      },
+      orderBy: { name: 'asc' },
+    });
+    return records.map((r) => this.toEntity(r));
+  }
+
   async softDelete(id: string): Promise<void> {
     await this.prisma.cabinet.update({
       where: { id },
