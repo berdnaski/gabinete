@@ -5,6 +5,7 @@ import {
   CallHandler,
   Logger,
 } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { DiscordService } from '../services/discord.service';
@@ -17,32 +18,40 @@ export class AuditLogInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const httpContext = context.switchToHttp();
-    const request = httpContext.getRequest();
-    const { method, url, body } = request;
+    const request = httpContext.getRequest<
+      Request & { user?: { id: string } }
+    >();
+    const method = request.method;
+    const url = request.url;
+    const body = request.body as unknown;
 
     if (method === 'GET') {
       return next.handle();
     }
 
-    if (url.includes('debug')) {
+    if (typeof url === 'string' && url.includes('debug')) {
       return next.handle();
     }
 
     return next.handle().pipe(
       tap({
-        next: (data) => {
-          const response = httpContext.getResponse();
+        next: () => {
+          const response = httpContext.getResponse<Response>();
           const statusCode = response.statusCode;
 
           if (statusCode >= 200 && statusCode < 300) {
-            this.logToDiscord(request, statusCode, body);
+            void this.logToDiscord(request, statusCode, body);
           }
         },
       }),
     );
   }
 
-  private async logToDiscord(request: any, status: number, body: any) {
+  private async logToDiscord(
+    request: Request & { user?: { id: string } },
+    status: number,
+    body: unknown,
+  ) {
     try {
       const action = this.mapMethodToAction(request.method, request.url);
 
@@ -56,7 +65,10 @@ export class AuditLogInterceptor implements NestInterceptor {
         payload: body,
       });
     } catch (err) {
-      this.logger.error('Failed to send audit log to Discord', err);
+      this.logger.error(
+        'Failed to send audit log to Discord',
+        err instanceof Error ? err.stack : String(err),
+      );
     }
   }
 

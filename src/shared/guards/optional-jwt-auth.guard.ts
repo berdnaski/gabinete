@@ -6,7 +6,9 @@ export class OptionalJwtAuthGuard extends AuthGuard('jwt') {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     try {
       await super.canActivate(context);
-    } catch {}
+    } catch {
+      // Ignore if JWT is invalid or missing, as this guard is optional
+    }
     return true;
   }
 

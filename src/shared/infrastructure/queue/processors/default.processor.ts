@@ -94,15 +94,16 @@ export class DefaultProcessor extends WorkerHost implements OnModuleInit {
           this.logger.warn(`No handler for job: ${job.name}`);
       }
     } catch (err) {
-      this.logger.error(`Job failed: ${job.name} [id=${job.id}]`, err);
+      const error = err instanceof Error ? err : new Error(String(err));
+      this.logger.error(`Job failed: ${job.name} [id=${job.id}]`, error.stack);
 
-      await this.discordService.sendError(err, {
+      await this.discordService.sendError(error, {
         method: 'BULLMQ_JOB',
         url: job.name,
         userId: 'system',
       });
 
-      throw err;
+      throw error;
     }
   }
 }

@@ -362,6 +362,8 @@ export class CabinetsController {
     dto.userId = entity.userId;
     dto.cabinetId = entity.cabinetId;
     dto.role = entity.role;
+    dto.userName = entity.userName ?? '';
+    dto.userAvatarUrl = entity.userAvatarUrl ?? null;
     return dto;
   }
 }

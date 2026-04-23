@@ -13,4 +13,13 @@ export class CabinetMemberResponseDto {
 
   @ApiProperty({ enum: CabinetRole, example: CabinetRole.STAFF })
   role: CabinetRole;
+
+  @ApiProperty({ example: 'João Silva' })
+  userName: string;
+
+  @ApiProperty({
+    example: 'https://cdn.example.com/avatar.jpg',
+    nullable: true,
+  })
+  userAvatarUrl: string | null;
 }

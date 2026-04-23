@@ -31,9 +31,14 @@ export class GetCabinetDemandHeatmapUseCase {
       }
 
       return {
+        id: p.id,
         lat: p.lat,
         lng: p.long,
         weight: p.priority === DemandPriority.URGENT ? 3 : 1,
+        title: p.title,
+        status: p.status,
+        categoryName: p.categoryName,
+        neighborhood: p.neighborhood,
       };
     });
 

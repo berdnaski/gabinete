@@ -6,4 +6,6 @@ export class CabinetEntity {
   description: string | null;
   avatarUrl: string | null;
   disabledAt: Date | null;
+  score: number;
+  demand_count: number;
 }

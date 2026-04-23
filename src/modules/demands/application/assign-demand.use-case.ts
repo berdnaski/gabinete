@@ -18,7 +18,7 @@ export class AssignDemandUseCase {
 
   async execute(
     demandId: string,
-    assigneeMemberId: string,
+    assigneeMemberId: string | null,
     requesterId: string,
   ) {
     const demand = await this.demandsRepository.findById(demandId);
@@ -44,28 +44,34 @@ export class AssignDemandUseCase {
       );
     }
 
-    const assigneeMembership =
-      await this.cabinetMembersRepository.findById(assigneeMemberId);
+    if (assigneeMemberId) {
+      const assigneeMembership =
+        await this.cabinetMembersRepository.findById(assigneeMemberId);
 
-    if (
-      !assigneeMembership ||
-      assigneeMembership.cabinetId !== demand.cabinetId
-    ) {
-      throw new BadRequestException(
-        'O responsável deve ser um membro do gabinete responsável por esta demanda.',
-      );
+      if (
+        !assigneeMembership ||
+        assigneeMembership.cabinetId !== demand.cabinetId
+      ) {
+        throw new BadRequestException(
+          'O responsável deve ser um membro do gabinete responsável por esta demanda.',
+        );
+      }
+
+      const updatedDemand = await this.demandsRepository.update(demandId, {
+        assigneeMemberId,
+      });
+
+      this.eventEmitter.emit('demand.assigned', {
+        demandId,
+        assigneeUserId: assigneeMembership.userId,
+        demandTitle: demand.title,
+      });
+
+      return updatedDemand;
     }
 
-    const updatedDemand = await this.demandsRepository.update(demandId, {
-      assigneeMemberId,
+    return this.demandsRepository.update(demandId, {
+      assigneeMemberId: null,
     });
-
-    this.eventEmitter.emit('demand.assigned', {
-      demandId,
-      assigneeUserId: assigneeMembership.userId,
-      demandTitle: demand.title,
-    });
-
-    return updatedDemand;
   }
 }

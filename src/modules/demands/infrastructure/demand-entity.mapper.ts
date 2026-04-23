@@ -19,6 +19,7 @@ export type DemandWithRelations = Prisma.DemandGetPayload<{
 }> & {
   reporter?: { name: string; avatarUrl: string | null } | null;
   category?: { name: string } | null;
+  cabinet?: { name: string; slug: string; avatarUrl: string | null } | null;
   _count?: { likes: number; comments: number };
   likes?: { userId: string }[];
 };
@@ -42,7 +43,9 @@ export class DemandEntityMapper {
     entity.city = prismaModel.city;
     entity.state = prismaModel.state;
     entity.reporterId = prismaModel.reporterId;
-    entity.guestEmail = prismaModel.guestEmail;
+    entity.guestEmail = prismaModel.guestEmail
+      ? prismaModel.guestEmail.replace(/^(.{2})(.*)(@.*)$/, '$1***$3')
+      : null;
     entity.cabinetId = prismaModel.cabinetId;
     entity.categoryId = prismaModel.categoryId;
     entity.assigneeMemberId = prismaModel.assigneeMemberId;
@@ -64,15 +67,25 @@ export class DemandEntityMapper {
     if (prismaModel.reporter !== undefined) {
       entity.reporter = prismaModel.reporter
         ? {
-          name: prismaModel.reporter.name,
-          avatarUrl: prismaModel.reporter.avatarUrl,
-        }
+            name: prismaModel.reporter.name,
+            avatarUrl: prismaModel.reporter.avatarUrl,
+          }
         : null;
     }
 
     if (prismaModel.category !== undefined) {
       entity.category = prismaModel.category
         ? { name: prismaModel.category.name }
+        : null;
+    }
+
+    if (prismaModel.cabinet !== undefined) {
+      entity.cabinet = prismaModel.cabinet
+        ? {
+            name: prismaModel.cabinet.name,
+            slug: prismaModel.cabinet.slug,
+            avatarUrl: prismaModel.cabinet.avatarUrl,
+          }
         : null;
     }
 

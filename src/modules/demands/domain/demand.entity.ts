@@ -18,6 +18,17 @@ export class DemandCategoryInfo {
   name: string;
 }
 
+export class DemandCabinetInfo {
+  @ApiProperty({ example: 'Gabinete São Paulo' })
+  name: string;
+
+  @ApiProperty({ example: 'gabinete-sao-paulo' })
+  slug: string;
+
+  @ApiProperty({ nullable: true })
+  avatarUrl: string | null;
+}
+
 export class DemandEntity {
   @ApiProperty({ example: 'uuid-demand-id' })
   id: string;
@@ -90,6 +101,9 @@ export class DemandEntity {
 
   @ApiProperty({ type: DemandCategoryInfo, required: false, nullable: true })
   category?: DemandCategoryInfo | null;
+
+  @ApiProperty({ type: DemandCabinetInfo, required: false, nullable: true })
+  cabinet?: DemandCabinetInfo | null;
 
   @ApiProperty({ example: 42 })
   likesCount: number = 0;

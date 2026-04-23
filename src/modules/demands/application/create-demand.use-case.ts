@@ -15,10 +15,7 @@ export class CreateDemandUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async execute(
-    dto: CreateDemandDto,
-    userId?: string,
-  ): Promise<DemandEntity> {
+  async execute(dto: CreateDemandDto, userId?: string): Promise<DemandEntity> {
     if (userId && dto.guestEmail) {
       throw new BadRequestException(
         'Authenticated users cannot provide a guest email',
@@ -48,7 +45,10 @@ export class CreateDemandUseCase {
       categoryId: dto.categoryId || null,
     };
 
-    const demand = await this.demandsRepository.createWithEvidences(demandInfo, []);
+    const demand = await this.demandsRepository.createWithEvidences(
+      demandInfo,
+      [],
+    );
 
     if (userId) {
       this.eventEmitter.emit('demand.created', {

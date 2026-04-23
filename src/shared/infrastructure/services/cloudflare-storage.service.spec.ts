@@ -23,7 +23,7 @@ describe('CloudflareStorageService', () => {
     }).compile();
 
     service = module.get<CloudflareStorageService>(CloudflareStorageService);
-    s3Client = service['s3'] as any;
+    s3Client = service['s3'] as unknown as jest.Mocked<S3Client>;
   });
 
   describe('getUrl', () => {

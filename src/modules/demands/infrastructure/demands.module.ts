@@ -26,6 +26,7 @@ import { ListDemandNeighborhoodsUseCase } from '../application/list-demand-neigh
 import { ListDemandsByReporterUseCase } from '../application/list-demands-by-reporter.use-case';
 import { GetCabinetDashboardSummaryUseCase } from '../application/get-cabinet-dashboard-summary.use-case';
 import { ListCabinetDemandsUseCase } from '../application/list-cabinet-demands.use-case';
+import { UnlinkDemandUseCase } from '../application/unlink-demand.use-case';
 
 @Module({
   imports: [AuthModule, CabinetsModule, UsersModule],
@@ -54,6 +55,7 @@ import { ListCabinetDemandsUseCase } from '../application/list-cabinet-demands.u
     ListDemandNeighborhoodsUseCase,
     ListDemandsByReporterUseCase,
     ListCabinetDemandsUseCase,
+    UnlinkDemandUseCase,
     DemandAccessGuard,
   ],
 })

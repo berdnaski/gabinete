@@ -52,6 +52,7 @@ import { ToggleDemandLikeUseCase } from '../application/toggle-demand-like.use-c
 import { ListDemandNeighborhoodsUseCase } from '../application/list-demand-neighborhoods.use-case';
 import { ListDemandsByReporterUseCase } from '../application/list-demands-by-reporter.use-case';
 import { ListCabinetDemandsUseCase } from '../application/list-cabinet-demands.use-case';
+import { UnlinkDemandUseCase } from '../application/unlink-demand.use-case';
 
 @ApiTags('demands')
 @Controller('demands')
@@ -75,7 +76,8 @@ export class DemandsController {
     private readonly listDemandNeighborhoodsUseCase: ListDemandNeighborhoodsUseCase,
     private readonly listDemandsByReporterUseCase: ListDemandsByReporterUseCase,
     private readonly listCabinetDemandsUseCase: ListCabinetDemandsUseCase,
-  ) { }
+    private readonly unlinkDemandUseCase: UnlinkDemandUseCase,
+  ) {}
 
   @Post()
   @UseGuards(OptionalJwtAuthGuard)
@@ -270,6 +272,25 @@ export class DemandsController {
   @ApiResponse({ status: 404, description: 'Demand not found' })
   async delete(@Param('id') id: string) {
     return this.deleteDemandUseCase.execute(id);
+  }
+
+  @Patch(':id/unlink')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Unlink a demand from its cabinet' })
+  @ApiResponse({ status: 200, type: DemandEntity })
+  @ApiResponse({
+    status: 400,
+    description: 'Demand is not linked to any cabinet',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 403,
+    description: 'Caller is not a member of the demand cabinet',
+  })
+  @ApiResponse({ status: 404, description: 'Demand not found' })
+  async unlink(@Param('id') id: string, @CurrentUser() user: UserEntity) {
+    return this.unlinkDemandUseCase.execute(id, user.id);
   }
 
   @Post(':id/claim')

@@ -5,4 +5,6 @@ export class CabinetMemberEntity {
   userId: string;
   cabinetId: string;
   role: CabinetRole;
+  userName?: string;
+  userAvatarUrl?: string | null;
 }

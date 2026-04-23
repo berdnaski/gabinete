@@ -23,7 +23,7 @@ import { DemandEntityMapper } from './demand-entity.mapper';
 
 @Injectable()
 export class DemandsRepository implements IDemandsRepository {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async findById(id: string, userId?: string): Promise<DemandEntity | null> {
     const demand = await this.prisma.demand.findUnique({
@@ -32,6 +32,7 @@ export class DemandsRepository implements IDemandsRepository {
         evidences: true,
         reporter: true,
         category: true,
+        cabinet: { select: { name: true, slug: true, avatarUrl: true } },
         results: {
           select: {
             id: true,
@@ -206,10 +207,10 @@ export class DemandsRepository implements IDemandsRepository {
       priority: priority || undefined,
       OR: search
         ? [
-          { title: { contains: search, mode: 'insensitive' } },
-          { description: { contains: search, mode: 'insensitive' } },
-          { neighborhood: { contains: search, mode: 'insensitive' } },
-        ]
+            { title: { contains: search, mode: 'insensitive' } },
+            { description: { contains: search, mode: 'insensitive' } },
+            { neighborhood: { contains: search, mode: 'insensitive' } },
+          ]
         : undefined,
     };
 
@@ -239,6 +240,7 @@ export class DemandsRepository implements IDemandsRepository {
               name: true,
             },
           },
+          cabinet: { select: { name: true, slug: true, avatarUrl: true } },
           _count: { select: { likes: true, comments: true } },
           likes: userId ? { where: { userId } } : false,
         },
@@ -265,9 +267,9 @@ export class DemandsRepository implements IDemandsRepository {
       status: filters.status,
       OR: filters.search
         ? [
-          { title: { contains: filters.search, mode: 'insensitive' } },
-          { description: { contains: filters.search, mode: 'insensitive' } },
-        ]
+            { title: { contains: filters.search, mode: 'insensitive' } },
+            { description: { contains: filters.search, mode: 'insensitive' } },
+          ]
         : undefined,
     };
 
@@ -297,6 +299,7 @@ export class DemandsRepository implements IDemandsRepository {
               name: true,
             },
           },
+          cabinet: { select: { name: true, slug: true, avatarUrl: true } },
           _count: { select: { likes: true, comments: true } },
           likes: userId ? { where: { userId } } : false,
         },
@@ -500,9 +503,9 @@ export class DemandsRepository implements IDemandsRepository {
     const categoryRecords =
       categoryIds.length > 0
         ? await this.prisma.category.findMany({
-          where: { id: { in: categoryIds }, disabledAt: null },
-          select: { id: true, name: true },
-        })
+            where: { id: { in: categoryIds }, disabledAt: null },
+            select: { id: true, name: true },
+          })
         : [];
 
     const categoriesById = new Map(categoryRecords.map((c) => [c.id, c.name]));
@@ -534,18 +537,26 @@ export class DemandsRepository implements IDemandsRepository {
         createdAt: startDate ? { gte: startDate } : undefined,
       },
       select: {
+        id: true,
         lat: true,
         long: true,
         priority: true,
         neighborhood: true,
+        title: true,
+        status: true,
+        category: { select: { name: true } },
       },
     });
 
     return records.map((r) => ({
+      id: r.id,
       lat: r.lat!,
       long: r.long!,
       priority: r.priority,
       neighborhood: r.neighborhood,
+      title: r.title,
+      status: r.status,
+      categoryName: r.category?.name ?? '',
     }));
   }
 

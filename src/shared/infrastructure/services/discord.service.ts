@@ -98,7 +98,7 @@ export class DiscordService {
     url: string;
     userId?: string;
     status: number;
-    payload?: any;
+    payload?: unknown;
   }) {
     if (!this.webhookUrl) return;
 
@@ -136,7 +136,7 @@ export class DiscordService {
     await this.postToDiscord({ embeds: [embed] });
   }
 
-  private sanitize(obj: any): any {
+  private sanitize(obj: unknown): unknown {
     if (!obj || typeof obj !== 'object') return obj;
     const sensitiveKeys = [
       'password',
@@ -145,19 +145,21 @@ export class DiscordService {
       'client_secret',
       'key',
     ];
-    const sanitized = { ...obj };
+
+    const sanitized = { ...(obj as Record<string, unknown>) };
 
     for (const key of Object.keys(sanitized)) {
+      const val = sanitized[key];
       if (sensitiveKeys.some((sk) => key.toLowerCase().includes(sk))) {
         sanitized[key] = '********';
-      } else if (typeof sanitized[key] === 'object') {
-        sanitized[key] = this.sanitize(sanitized[key]);
+      } else if (val && typeof val === 'object') {
+        sanitized[key] = this.sanitize(val);
       }
     }
     return sanitized;
   }
 
-  private async postToDiscord(payload: any) {
+  private async postToDiscord(payload: Record<string, unknown>) {
     if (!this.webhookUrl) return;
     try {
       await fetch(this.webhookUrl, {
@@ -170,7 +172,10 @@ export class DiscordService {
         }),
       });
     } catch (err) {
-      this.logger.error('Failed to post to Discord', err);
+      this.logger.error(
+        'Failed to post to Discord',
+        err instanceof Error ? err.stack : String(err),
+      );
     }
   }
 }

@@ -56,7 +56,7 @@ describe('ResultsRepository', () => {
       });
 
       expect(result).toBeDefined();
-      expect(prisma.result.create).toHaveBeenCalled();
+      expect(prisma.result.create as any).toHaveBeenCalled();
     });
   });
 
@@ -67,7 +67,7 @@ describe('ResultsRepository', () => {
       const result = await repository.findById('result-1');
 
       expect(result).toBeDefined();
-      expect(prisma.result.findUnique).toHaveBeenCalledWith(
+      expect(prisma.result.findUnique as any).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: 'result-1', disabledAt: null },
         }),
@@ -101,10 +101,10 @@ describe('ResultsRepository', () => {
 
       await repository.softDelete('result-1');
 
-      expect(prisma.result.update).toHaveBeenCalledWith(
+      expect(prisma.result.update as any).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: 'result-1' },
-          data: { disabledAt: expect.any(Date) },
+          data: { disabledAt: expect.any(Date) as Date },
         }),
       );
     });

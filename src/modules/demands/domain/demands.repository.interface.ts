@@ -83,9 +83,14 @@ export interface CabinetDashboardSummary {
 }
 
 export interface HeatmapPoint {
+  id: string;
   lat: number;
   lng: number;
   weight: number;
+  title: string;
+  status: string;
+  categoryName: string;
+  neighborhood: string | null;
 }
 
 export interface HeatmapData {
@@ -98,10 +103,14 @@ export interface HeatmapData {
 }
 
 export interface RawHeatmapPoint {
+  id: string;
   lat: number;
   long: number;
   priority: DemandPriority;
-  neighborhood: string;
+  neighborhood: string | null;
+  title: string;
+  status: string;
+  categoryName: string;
 }
 
 export abstract class IDemandsRepository {

@@ -39,6 +39,7 @@ import { DeleteAccountUseCase } from '../application/delete-account.use-case';
 import { ListUsersDto } from '../dto/list-users.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { UserResponseDto } from '../dto/user-response.dto';
+import { CurrentUser } from 'src/shared/decorators/current-user.decorator';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -70,8 +71,26 @@ export class UsersController {
     type: UserResponseDto,
   })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async findById(@Param('id') id: string) {
-    return this.findUserByIdUseCase.execute(id);
+  async findById(
+    @Param('id') id: string,
+    @CurrentUser() requester: UserResponseDto,
+  ) {
+    const user = await this.findUserByIdUseCase.execute(id);
+
+    const isSelf = requester.id === user.id;
+    const isAdmin = requester.role === UserRole.ADMIN;
+
+    if (isSelf || isAdmin) {
+      return user;
+    }
+
+    return {
+      id: user.id,
+      name: user.name,
+      avatarUrl: user.avatarUrl,
+      role: user.role,
+      isCabinetMember: user.isCabinetMember,
+    };
   }
 
   @Patch(':id')

@@ -4,6 +4,14 @@ import { CabinetMemberEntity } from '../domain/cabinet-member.entity';
 import { ICabinetMembersRepository } from '../domain/cabinet-members.repository.interface';
 import { CabinetRole } from '../domain/cabinet-role.enum';
 
+type RawMember = {
+  id: string;
+  userId: string;
+  cabinetId: string;
+  role: string;
+  user?: { name: string; avatarUrl: string | null } | null;
+};
+
 @Injectable()
 export class CabinetMembersRepository implements ICabinetMembersRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -39,6 +47,7 @@ export class CabinetMembersRepository implements ICabinetMembersRepository {
   async findByCabinetId(cabinetId: string): Promise<CabinetMemberEntity[]> {
     const records = await this.prisma.cabinetMember.findMany({
       where: { cabinetId },
+      include: { user: { select: { name: true, avatarUrl: true } } },
     });
     return records.map((r) => this.toEntity(r));
   }
@@ -71,17 +80,14 @@ export class CabinetMembersRepository implements ICabinetMembersRepository {
     });
   }
 
-  private toEntity(record: {
-    id: string;
-    userId: string;
-    cabinetId: string;
-    role: string;
-  }): CabinetMemberEntity {
+  private toEntity(record: RawMember): CabinetMemberEntity {
     const entity = new CabinetMemberEntity();
     entity.id = record.id;
     entity.userId = record.userId;
     entity.cabinetId = record.cabinetId;
     entity.role = record.role as CabinetRole;
+    entity.userName = record.user?.name;
+    entity.userAvatarUrl = record.user?.avatarUrl ?? null;
     return entity;
   }
 }

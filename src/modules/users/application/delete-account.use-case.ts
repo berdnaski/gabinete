@@ -12,7 +12,6 @@ export class DeleteAccountUseCase {
       throw new NotFoundException('User not found');
     }
 
-    // Perform soft delete by setting disabledAt
     await this.usersRepository.update(id, { disabledAt: new Date() });
   }
 }

@@ -95,7 +95,7 @@ export class ResultsRepository implements IResultsRepository {
     ]);
 
     return {
-      items: items.map(ResultEntityMapper.toDomain),
+      items: items.map((item) => ResultEntityMapper.toDomain(item)),
       total,
     };
   }

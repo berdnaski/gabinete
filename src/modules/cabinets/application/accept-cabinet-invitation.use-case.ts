@@ -64,7 +64,6 @@ export class AcceptCabinetInvitationUseCase {
 
     await this.invitationsRepository.delete(invite.id);
 
-    // Notificar o proprietário do gabinete
     const cabinet = await this.cabinetsRepository.findById(invite.cabinetId);
     const members = await this.membersRepository.findByCabinetId(
       invite.cabinetId,

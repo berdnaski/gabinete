@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { Cabinet as PrismaCabinet } from '@prisma/client';
+import { Cabinet as PrismaCabinet, DemandStatus } from '@prisma/client';
 import { CabinetEntity } from '../domain/cabinet.entity';
 import { ICabinetsRepository } from '../domain/cabinets.repository.interface';
 import {
@@ -27,6 +27,9 @@ export class CabinetsRepository implements ICabinetsRepository {
   async findById(id: string): Promise<CabinetEntity | null> {
     const record = await this.prisma.cabinet.findFirst({
       where: { id, disabledAt: null },
+      include: {
+        _count: { select: { demands: { where: { disabledAt: null } } } },
+      },
     });
     return record ? this.toEntity(record) : null;
   }
@@ -34,6 +37,9 @@ export class CabinetsRepository implements ICabinetsRepository {
   async findBySlug(slug: string): Promise<CabinetEntity | null> {
     const record = await this.prisma.cabinet.findFirst({
       where: { slug, disabledAt: null },
+      include: {
+        _count: { select: { demands: { where: { disabledAt: null } } } },
+      },
     });
     return record ? this.toEntity(record) : null;
   }
@@ -60,6 +66,11 @@ export class CabinetsRepository implements ICabinetsRepository {
         skip,
         take,
         orderBy: { name: 'asc' },
+        include: {
+          _count: {
+            select: { demands: { where: { disabledAt: null } } },
+          },
+        },
       }),
       this.prisma.cabinet.count({ where }),
     ]);
@@ -99,7 +110,9 @@ export class CabinetsRepository implements ICabinetsRepository {
     });
   }
 
-  private toEntity(record: PrismaCabinet): CabinetEntity {
+  private toEntity(
+    record: PrismaCabinet & { _count?: { demands?: number } },
+  ): CabinetEntity {
     const entity = new CabinetEntity();
     entity.id = record.id;
     entity.name = record.name;
@@ -108,6 +121,8 @@ export class CabinetsRepository implements ICabinetsRepository {
     entity.description = record.description;
     entity.avatarUrl = record.avatarUrl;
     entity.disabledAt = record.disabledAt;
+    entity.score = record.score ?? 0;
+    entity.demand_count = record._count?.demands ?? 0;
     return entity;
   }
 }
