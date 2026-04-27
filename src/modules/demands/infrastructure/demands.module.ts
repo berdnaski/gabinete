@@ -27,6 +27,7 @@ import { ListDemandsByReporterUseCase } from '../application/list-demands-by-rep
 import { GetCabinetDashboardSummaryUseCase } from '../application/get-cabinet-dashboard-summary.use-case';
 import { ListCabinetDemandsUseCase } from '../application/list-cabinet-demands.use-case';
 import { UnlinkDemandUseCase } from '../application/unlink-demand.use-case';
+import { UpdateDemandProgressUseCase } from '../application/update-demand-progress.use-case';
 
 @Module({
   imports: [AuthModule, CabinetsModule, UsersModule],
@@ -56,6 +57,7 @@ import { UnlinkDemandUseCase } from '../application/unlink-demand.use-case';
     ListDemandsByReporterUseCase,
     ListCabinetDemandsUseCase,
     UnlinkDemandUseCase,
+    UpdateDemandProgressUseCase,
     DemandAccessGuard,
   ],
 })

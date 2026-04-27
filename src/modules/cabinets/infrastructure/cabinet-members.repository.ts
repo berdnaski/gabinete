@@ -9,7 +9,7 @@ type RawMember = {
   userId: string;
   cabinetId: string;
   role: string;
-  user?: { name: string; avatarUrl: string | null } | null;
+  user?: { name: string; avatarUrl: string | null; email?: string } | null;
 };
 
 @Injectable()
@@ -47,7 +47,7 @@ export class CabinetMembersRepository implements ICabinetMembersRepository {
   async findByCabinetId(cabinetId: string): Promise<CabinetMemberEntity[]> {
     const records = await this.prisma.cabinetMember.findMany({
       where: { cabinetId },
-      include: { user: { select: { name: true, avatarUrl: true } } },
+      include: { user: { select: { name: true, avatarUrl: true, email: true } } },
     });
     return records.map((r) => this.toEntity(r));
   }
@@ -88,6 +88,7 @@ export class CabinetMembersRepository implements ICabinetMembersRepository {
     entity.role = record.role as CabinetRole;
     entity.userName = record.user?.name;
     entity.userAvatarUrl = record.user?.avatarUrl ?? null;
+    entity.userEmail = record.user?.email ?? null;
     return entity;
   }
 }

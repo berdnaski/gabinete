@@ -172,6 +172,7 @@ export class DemandsRepository implements IDemandsRepository {
       status,
       priority,
       search,
+      assigneeMemberId,
     } = filters;
 
     const parseArray = (
@@ -205,6 +206,7 @@ export class DemandsRepository implements IDemandsRepository {
         : undefined,
       status: status || undefined,
       priority: priority || undefined,
+      assigneeMemberId: assigneeMemberId || undefined,
       OR: search
         ? [
             { title: { contains: search, mode: 'insensitive' } },
@@ -359,6 +361,7 @@ export class DemandsRepository implements IDemandsRepository {
         id: item.id,
         content: item.content,
         isCabinetResponse: item.isCabinetResponse,
+        isStatusUpdate: item.isCabinetResponse && item.content.startsWith('Status atualizado para'),
         demandId: item.demandId,
         authorId: item.authorId,
         authorName: item.author.name,

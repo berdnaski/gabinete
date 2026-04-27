@@ -53,6 +53,8 @@ import { ListDemandNeighborhoodsUseCase } from '../application/list-demand-neigh
 import { ListDemandsByReporterUseCase } from '../application/list-demands-by-reporter.use-case';
 import { ListCabinetDemandsUseCase } from '../application/list-cabinet-demands.use-case';
 import { UnlinkDemandUseCase } from '../application/unlink-demand.use-case';
+import { UpdateDemandProgressUseCase } from '../application/update-demand-progress.use-case';
+import { UpdateDemandProgressDto } from '../dto/update-demand-progress.dto';
 
 @ApiTags('demands')
 @Controller('demands')
@@ -77,6 +79,7 @@ export class DemandsController {
     private readonly listDemandsByReporterUseCase: ListDemandsByReporterUseCase,
     private readonly listCabinetDemandsUseCase: ListCabinetDemandsUseCase,
     private readonly unlinkDemandUseCase: UnlinkDemandUseCase,
+    private readonly updateDemandProgressUseCase: UpdateDemandProgressUseCase,
   ) {}
 
   @Post()
@@ -424,6 +427,28 @@ export class DemandsController {
     @Query() query: ListCommentsDto,
   ): Promise<{ items: DemandCommentResponseDto[]; total: number }> {
     return this.listDemandCommentsUseCase.execute(id, query);
+  }
+
+  @Patch(':id/progress')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update demand progress — status + optional note in one action' })
+  @ApiResponse({ status: 200, type: DemandEntity })
+  @ApiResponse({ status: 400, description: 'Demand not linked to a cabinet' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Not a cabinet member' })
+  @ApiResponse({ status: 404, description: 'Demand not found' })
+  async updateProgress(
+    @Param('id') id: string,
+    @Body() dto: UpdateDemandProgressDto,
+    @CurrentUser() user: UserEntity,
+  ) {
+    return this.updateDemandProgressUseCase.execute(
+      id,
+      user.id,
+      dto.status,
+      dto.note,
+    );
   }
 
   @Post(':id/like')

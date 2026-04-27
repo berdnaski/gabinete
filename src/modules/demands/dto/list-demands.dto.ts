@@ -64,6 +64,11 @@ export class ListDemandsDto {
   @IsOptional()
   reporterId?: string;
 
+  @ApiPropertyOptional({ description: 'Filter by assignee cabinet member ID' })
+  @IsUUID()
+  @IsOptional()
+  assigneeMemberId?: string;
+
   @ApiPropertyOptional({ minimum: 1, default: 1 })
   @Type(() => Number)
   @IsInt()

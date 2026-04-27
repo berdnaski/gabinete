@@ -22,4 +22,7 @@ export class CabinetMemberResponseDto {
     nullable: true,
   })
   userAvatarUrl: string | null;
+
+  @ApiProperty({ example: 'joao@email.com', nullable: true })
+  userEmail: string | null;
 }

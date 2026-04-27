@@ -38,10 +38,19 @@ export class NotificationListener {
   }) {
     if (!payload.userId) return;
 
+    const STATUS_LABELS: Record<string, string> = {
+      SUBMITTED: 'Enviada',
+      IN_ANALYSIS: 'Em Análise',
+      IN_PROGRESS: 'Em Progresso',
+      RESOLVED: 'Resolvida',
+      REJECTED: 'Rejeitada',
+      CANCELED: 'Cancelada',
+    };
+
     await this.sendNotification.execute({
       userId: payload.userId,
       title: 'Status da Demanda Atualizado',
-      message: `A demanda "${payload.title}" mudou para o status: ${payload.newStatus}.`,
+      message: `A demanda "${payload.title}" mudou para o status: ${STATUS_LABELS[payload.newStatus] ?? payload.newStatus}.`,
       type: NotificationType.INFO,
       link: `/demands/${payload.demandId}`,
     });

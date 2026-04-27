@@ -7,4 +7,5 @@ export class CabinetMemberEntity {
   role: CabinetRole;
   userName?: string;
   userAvatarUrl?: string | null;
+  userEmail?: string | null;
 }

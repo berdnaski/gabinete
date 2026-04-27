@@ -39,6 +39,7 @@ export interface ListDemandsFilters extends PaginationParams {
   categories?: string | string[];
   neighborhoods?: string | string[];
   search?: string;
+  assigneeMemberId?: string;
 }
 
 export interface ListReporterDemandsFilters extends PaginationParams {
@@ -50,6 +51,7 @@ export interface DemandCommentInfo {
   id: string;
   content: string;
   isCabinetResponse: boolean;
+  isStatusUpdate: boolean;
   demandId: string;
   authorId: string;
   authorName: string;
