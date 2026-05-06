@@ -46,4 +46,7 @@ export class UserResponseDto {
 
   @ApiProperty({ example: false })
   isCabinetMember: boolean;
+
+  @ApiProperty({ required: false, nullable: true, type: Date })
+  termsAcceptedAt: Date | null;
 }

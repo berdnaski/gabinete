@@ -18,4 +18,16 @@ export class CabinetResponseDto {
 
   @ApiPropertyOptional({ nullable: true, example: 'contato@gabinete.gov.br' })
   email: string | null;
+
+  @ApiProperty({ example: 0 })
+  score: number;
+
+  @ApiProperty({ example: 0 })
+  demand_count: number;
+
+  @ApiProperty({ example: 0 })
+  in_progress_count: number;
+
+  @ApiProperty({ example: 0 })
+  resolved_count: number;
 }

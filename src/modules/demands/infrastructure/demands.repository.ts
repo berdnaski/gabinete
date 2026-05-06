@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DemandPriority, DemandStatus, Prisma } from '@prisma/client';
-import { addMonths, startOfMonth, subHours } from 'date-fns';
+import { addMonths, startOfMonth, subDays, subHours } from 'date-fns';
 import { PaginationHelper } from 'src/shared/application/pagination.helper';
 import {
   PaginatedResult,
@@ -11,9 +11,12 @@ import { DemandEntity } from '../domain/demand.entity';
 import {
   CabinetDemandMetrics,
   CabinetDashboardSummary,
+  CabinetStatusCounts,
   CreateDemandInfo,
   CreateEvidenceInfo,
   DemandCommentInfo,
+  DemandTrendDetailedPoint,
+  DemandTrendPoint,
   IDemandsRepository,
   ListDemandsFilters,
   ListReporterDemandsFilters,
@@ -86,6 +89,7 @@ export class DemandsRepository implements IDemandsRepository {
         cabinetId: data.cabinetId,
         assigneeMemberId: data.assigneeMemberId,
         disabledAt: data.disabledAt,
+        termsAcceptedAt: data.termsAcceptedAt,
       },
       include: {
         evidences: true,
@@ -129,6 +133,7 @@ export class DemandsRepository implements IDemandsRepository {
         guestEmail: data.guestEmail,
         cabinetId: data.cabinetId,
         categoryId: data.categoryId,
+        termsAcceptedAt: data.termsAcceptedAt,
         evidences: {
           create: evidences.map((evidence) => ({
             storageKey: evidence.storageKey,
@@ -170,6 +175,7 @@ export class DemandsRepository implements IDemandsRepository {
       categories,
       neighborhoods,
       status,
+      statuses,
       priority,
       search,
       assigneeMemberId,
@@ -204,7 +210,9 @@ export class DemandsRepository implements IDemandsRepository {
       neighborhood: parsedNeighborhoods?.length
         ? { in: parsedNeighborhoods }
         : undefined,
-      status: status || undefined,
+      status: statuses?.length
+        ? { in: statuses }
+        : status || undefined,
       priority: priority || undefined,
       assigneeMemberId: assigneeMemberId || undefined,
       OR: search
@@ -221,7 +229,7 @@ export class DemandsRepository implements IDemandsRepository {
         where,
         skip,
         take,
-        orderBy: { createdAt: 'desc' },
+        orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
         include: {
           evidences: true,
           results: {
@@ -280,7 +288,7 @@ export class DemandsRepository implements IDemandsRepository {
         where,
         skip,
         take,
-        orderBy: { createdAt: 'desc' },
+        orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
         include: {
           evidences: true,
           results: {
@@ -407,55 +415,57 @@ export class DemandsRepository implements IDemandsRepository {
     const startOfMonthUtc = startOfMonth(now);
     const startOfNextMonthUtc = addMonths(startOfMonthUtc, 1);
 
+    const baseWhere = { cabinetId, disabledAt: null };
+
     const [
       newDemandsLast24HoursCount,
       urgentOpenDemandsTotalCount,
       totalDemandsThisMonth,
       resolvedDemandsThisMonth,
+      statusGroups,
     ] = await this.prisma.$transaction([
       this.prisma.demand.count({
-        where: {
-          cabinetId,
-          disabledAt: null,
-          createdAt: { gte: last24Hours },
-        },
+        where: { ...baseWhere, createdAt: { gte: last24Hours } },
       }),
       this.prisma.demand.count({
         where: {
-          cabinetId,
-          disabledAt: null,
+          ...baseWhere,
           priority: DemandPriority.URGENT,
-          status: {
-            notIn: [
-              DemandStatus.RESOLVED,
-              DemandStatus.REJECTED,
-              DemandStatus.CANCELED,
-            ],
-          },
+          status: { notIn: [DemandStatus.RESOLVED, DemandStatus.REJECTED, DemandStatus.CANCELED] },
         },
       }),
       this.prisma.demand.count({
-        where: {
-          cabinetId,
-          disabledAt: null,
-          createdAt: { gte: startOfMonthUtc, lt: startOfNextMonthUtc },
-        },
+        where: { ...baseWhere, createdAt: { gte: startOfMonthUtc, lt: startOfNextMonthUtc } },
       }),
       this.prisma.demand.count({
-        where: {
-          cabinetId,
-          disabledAt: null,
-          status: DemandStatus.RESOLVED,
-          createdAt: { gte: startOfMonthUtc, lt: startOfNextMonthUtc },
-        },
+        where: { ...baseWhere, status: DemandStatus.RESOLVED, createdAt: { gte: startOfMonthUtc, lt: startOfNextMonthUtc } },
+      }),
+      this.prisma.demand.groupBy({
+        by: ['status'],
+        where: baseWhere,
+        _count: { status: true },
+        orderBy: { status: 'asc' },
       }),
     ]);
+
+    const statusCounts: CabinetStatusCounts = {
+      SUBMITTED: 0,
+      IN_ANALYSIS: 0,
+      IN_PROGRESS: 0,
+      RESOLVED: 0,
+      REJECTED: 0,
+      CANCELED: 0,
+    };
+    for (const row of statusGroups) {
+      statusCounts[row.status] = (row._count as { status: number }).status;
+    }
 
     return {
       new: newDemandsLast24HoursCount,
       urgent: urgentOpenDemandsTotalCount,
       total: totalDemandsThisMonth,
       resolved: resolvedDemandsThisMonth,
+      statusCounts,
     };
   }
 
@@ -561,6 +571,80 @@ export class DemandsRepository implements IDemandsRepository {
       status: r.status,
       categoryName: r.category?.name ?? '',
     }));
+  }
+
+  async getDemandTrend(cabinetId: string, days: number): Promise<DemandTrendPoint[]> {
+    const startDate = subDays(new Date(), days - 1);
+    startDate.setHours(0, 0, 0, 0);
+
+    const rows = await this.prisma.$queryRaw<{ date: Date; count: bigint }[]>`
+      SELECT DATE(created_at) as date, COUNT(*)::int as count
+      FROM demands
+      WHERE cabinet_id = ${cabinetId}
+        AND disabled_at IS NULL
+        AND created_at >= ${startDate}
+      GROUP BY DATE(created_at)
+      ORDER BY date ASC
+    `;
+
+    const dateMap = new Map(
+      rows.map((r) => [new Date(r.date).toISOString().split('T')[0], Number(r.count)]),
+    );
+
+    const trend: DemandTrendPoint[] = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const d = subDays(new Date(), i);
+      const dateStr = d.toISOString().split('T')[0];
+      trend.push({ date: dateStr, count: dateMap.get(dateStr) ?? 0 });
+    }
+
+    return trend;
+  }
+
+  async getDemandTrendDetailed(cabinetId: string, days: number): Promise<DemandTrendDetailedPoint[]> {
+    const startDate = subDays(new Date(), days - 1);
+    startDate.setHours(0, 0, 0, 0);
+
+    const createdRows = await this.prisma.$queryRaw<{ date: Date; count: bigint }[]>`
+      SELECT DATE(created_at) as date, COUNT(*)::int as count
+      FROM demands
+      WHERE cabinet_id = ${cabinetId}
+        AND disabled_at IS NULL
+        AND created_at >= ${startDate}
+      GROUP BY DATE(created_at)
+      ORDER BY date ASC
+    `;
+
+    const resolvedRows = await this.prisma.$queryRaw<{ date: Date; count: bigint }[]>`
+      SELECT DATE(updated_at) as date, COUNT(*)::int as count
+      FROM demands
+      WHERE cabinet_id = ${cabinetId}
+        AND disabled_at IS NULL
+        AND status = 'RESOLVED'
+        AND updated_at >= ${startDate}
+      GROUP BY DATE(updated_at)
+      ORDER BY date ASC
+    `;
+
+    const createdMap = new Map(
+      createdRows.map((r) => [new Date(r.date).toISOString().split('T')[0], Number(r.count)]),
+    );
+    const resolvedMap = new Map(
+      resolvedRows.map((r) => [new Date(r.date).toISOString().split('T')[0], Number(r.count)]),
+    );
+
+    const trend: DemandTrendDetailedPoint[] = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const d = subDays(new Date(), i);
+      const dateStr = d.toISOString().split('T')[0];
+      trend.push({
+        date: dateStr,
+        created: createdMap.get(dateStr) ?? 0,
+        resolved: resolvedMap.get(dateStr) ?? 0,
+      });
+    }
+
+    return trend;
   }
 
   async getNeighborhoods(cabinetId?: string): Promise<string[]> {

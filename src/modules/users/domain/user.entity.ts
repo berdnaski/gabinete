@@ -26,5 +26,6 @@ export class UserEntity {
   isVerified: boolean;
   hasSetPassword: boolean;
   isCabinetMember: boolean;
+  termsAcceptedAt: Date | null;
   disabledAt: Date | null;
 }

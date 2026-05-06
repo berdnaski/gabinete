@@ -40,6 +40,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       avatarUrl: user.avatarUrl,
       hasSetPassword: user.hasSetPassword,
       isCabinetMember: user.isCabinetMember,
+      termsAcceptedAt: user.termsAcceptedAt,
     };
   }
 }

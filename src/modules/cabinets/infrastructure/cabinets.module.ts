@@ -21,6 +21,7 @@ import { CancelCabinetInvitationUseCase } from '../application/cancel-cabinet-in
 import { UpdateCabinetMemberRoleUseCase } from '../application/update-cabinet-member-role.use-case';
 import { LeaveCabinetUseCase } from '../application/leave-cabinet.use-case';
 import { GetCurrentUserCabinetsUseCase } from '../application/get-current-user-cabinets.use-case';
+import { CabinetScoringListener } from '../application/cabinet-scoring.listener';
 import { CabinetInvitationsRepository } from './invitations.repository';
 import { UsersModule } from '../../users/infrastructure/users.module';
 
@@ -49,6 +50,7 @@ import { UsersModule } from '../../users/infrastructure/users.module';
     ListCabinetMembersUseCase,
     RemoveCabinetMemberUseCase,
     GetCurrentUserCabinetsUseCase,
+    CabinetScoringListener,
   ],
   controllers: [CabinetsController],
   exports: [

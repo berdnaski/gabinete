@@ -66,6 +66,7 @@ model User {
   long         Float?
 
   isVerified Boolean   @default(false) @map("is_verified")
+  termsAcceptedAt DateTime? @map("terms_accepted_at")
   disabledAt DateTime? @map("disabled_at")
 
   accounts        Account[]
@@ -180,6 +181,7 @@ model Demand {
   assigneeMemberId String?        @map("assignee_member_id")
   createdAt        DateTime       @default(now()) @map("created_at")
   updatedAt        DateTime       @updatedAt @map("updated_at")
+  termsAcceptedAt  DateTime?      @map("terms_accepted_at")
   disabledAt       DateTime?      @map("disabled_at")
 
   reporter       User?            @relation("DemandReporter", fields: [reporterId], references: [id], onDelete: SetNull)

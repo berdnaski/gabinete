@@ -20,6 +20,7 @@ export class ListDemandsUseCase {
         categories: filters.categories,
         neighborhoods: filters.neighborhoods,
         status: filters.status,
+        statuses: filters.statuses,
         priority: filters.priority,
         search: filters.search,
         page,

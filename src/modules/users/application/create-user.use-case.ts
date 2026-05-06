@@ -7,6 +7,7 @@ export interface CreateUserInput {
   name: string;
   email: string;
   password: string;
+  termsAccepted?: boolean;
 }
 
 @Injectable()
@@ -23,6 +24,7 @@ export class CreateUserUseCase {
       name: data.name,
       email: data.email,
       password: hashedPassword,
+      termsAcceptedAt: data.termsAccepted ? new Date() : undefined,
     });
     await this.usersRepository.claimGuestDemands(user.id, user.email);
     return user;

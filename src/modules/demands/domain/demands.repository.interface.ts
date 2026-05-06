@@ -21,6 +21,7 @@ export interface CreateDemandInfo {
   guestEmail?: string | null;
   cabinetId?: string | null;
   categoryId?: string | null;
+  termsAcceptedAt?: Date | null;
 }
 
 export interface CreateEvidenceInfo {
@@ -34,6 +35,7 @@ export interface ListDemandsFilters extends PaginationParams {
   cabinetId?: string;
   unassignedOnly?: boolean;
   status?: DemandStatus;
+  statuses?: DemandStatus[];
   priority?: DemandPriority;
   categoryId?: string;
   categories?: string | string[];
@@ -59,11 +61,21 @@ export interface DemandCommentInfo {
   createdAt: Date;
 }
 
+export interface CabinetStatusCounts {
+  SUBMITTED: number;
+  IN_ANALYSIS: number;
+  IN_PROGRESS: number;
+  RESOLVED: number;
+  REJECTED: number;
+  CANCELED: number;
+}
+
 export interface CabinetDemandMetrics {
   new: number;
   urgent: number;
   total: number;
   resolved: number;
+  statusCounts: CabinetStatusCounts;
 }
 
 export interface DashboardCategoryStat {
@@ -82,6 +94,17 @@ export interface CabinetDashboardSummary {
   resolved: number;
   mainNeighborhoods: DashboardNeighborhoodStat[];
   categories: DashboardCategoryStat[];
+}
+
+export interface DemandTrendPoint {
+  date: string;
+  count: number;
+}
+
+export interface DemandTrendDetailedPoint {
+  date: string;
+  created: number;
+  resolved: number;
 }
 
 export interface HeatmapPoint {
@@ -160,4 +183,6 @@ export abstract class IDemandsRepository {
   ): Promise<CabinetDashboardSummary>;
   abstract getRawHeatmapPoints(startDate?: Date): Promise<RawHeatmapPoint[]>;
   abstract getNeighborhoods(cabinetId?: string): Promise<string[]>;
+  abstract getDemandTrend(cabinetId: string, days: number): Promise<DemandTrendPoint[]>;
+  abstract getDemandTrendDetailed(cabinetId: string, days: number): Promise<DemandTrendDetailedPoint[]>;
 }

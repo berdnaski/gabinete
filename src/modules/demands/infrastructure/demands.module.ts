@@ -25,6 +25,8 @@ import { GetCabinetDemandHeatmapUseCase } from '../application/get-cabinet-deman
 import { ListDemandNeighborhoodsUseCase } from '../application/list-demand-neighborhoods.use-case';
 import { ListDemandsByReporterUseCase } from '../application/list-demands-by-reporter.use-case';
 import { GetCabinetDashboardSummaryUseCase } from '../application/get-cabinet-dashboard-summary.use-case';
+import { GetCabinetDemandTrendUseCase } from '../application/get-cabinet-demand-trend.use-case';
+import { GetCabinetDemandTrendDetailedUseCase } from '../application/get-cabinet-demand-trend-detailed.use-case';
 import { ListCabinetDemandsUseCase } from '../application/list-cabinet-demands.use-case';
 import { UnlinkDemandUseCase } from '../application/unlink-demand.use-case';
 import { UpdateDemandProgressUseCase } from '../application/update-demand-progress.use-case';
@@ -58,6 +60,8 @@ import { UpdateDemandProgressUseCase } from '../application/update-demand-progre
     ListCabinetDemandsUseCase,
     UnlinkDemandUseCase,
     UpdateDemandProgressUseCase,
+    GetCabinetDemandTrendUseCase,
+    GetCabinetDemandTrendDetailedUseCase,
     DemandAccessGuard,
   ],
 })

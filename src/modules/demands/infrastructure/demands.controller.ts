@@ -29,6 +29,8 @@ import { CreateDemandUseCase } from '../application/create-demand.use-case';
 import { DeleteDemandUseCase } from '../application/delete-demand.use-case';
 import { FindDemandUseCase } from '../application/find-demand.use-case';
 import { GetCabinetDashboardSummaryUseCase } from '../application/get-cabinet-dashboard-summary.use-case';
+import { GetCabinetDemandTrendUseCase } from '../application/get-cabinet-demand-trend.use-case';
+import { GetCabinetDemandTrendDetailedUseCase } from '../application/get-cabinet-demand-trend-detailed.use-case';
 import { GetCabinetDemandMetricsUseCase } from '../application/get-cabinet-demand-metrics.use-case';
 import { GetCabinetDemandHeatmapUseCase } from '../application/get-cabinet-demand-heatmap.use-case';
 import { DemandEntity } from '../domain/demand.entity';
@@ -37,6 +39,7 @@ import { CreateDemandCommentDto } from '../dto/create-demand-comment.dto';
 import { CreateDemandDto } from '../dto/create-demand.dto';
 import { DemandCommentResponseDto } from '../dto/demand-comment-response.dto';
 import { GetCabinetDashboardSummaryQueryDto } from '../dto/get-cabinet-dashboard-summary-query.dto';
+import { GetCabinetDemandTrendQueryDto } from '../dto/get-cabinet-demand-trend-query.dto';
 import { GetCabinetDashboardSummaryResponseDto } from '../dto/get-cabinet-dashboard-summary-response.dto';
 import { GetCabinetDemandMetricsResponseDto } from '../dto/get-cabinet-demand-metrics-response.dto';
 import { GetCabinetDemandHeatmapResponseDto } from '../dto/get-cabinet-demand-heatmap-response.dto';
@@ -74,12 +77,14 @@ export class DemandsController {
     private readonly toggleDemandLikeUseCase: ToggleDemandLikeUseCase,
     private readonly getCabinetDemandMetricsUseCase: GetCabinetDemandMetricsUseCase,
     private readonly getCabinetDashboardSummaryUseCase: GetCabinetDashboardSummaryUseCase,
+    private readonly getCabinetDemandTrendUseCase: GetCabinetDemandTrendUseCase,
     private readonly getCabinetDemandHeatmapUseCase: GetCabinetDemandHeatmapUseCase,
     private readonly listDemandNeighborhoodsUseCase: ListDemandNeighborhoodsUseCase,
     private readonly listDemandsByReporterUseCase: ListDemandsByReporterUseCase,
     private readonly listCabinetDemandsUseCase: ListCabinetDemandsUseCase,
     private readonly unlinkDemandUseCase: UnlinkDemandUseCase,
     private readonly updateDemandProgressUseCase: UpdateDemandProgressUseCase,
+    private readonly getCabinetDemandTrendDetailedUseCase: GetCabinetDemandTrendDetailedUseCase,
   ) {}
 
   @Post()
@@ -199,6 +204,46 @@ export class DemandsController {
     @CurrentUser() user: UserEntity,
   ) {
     return this.listDemandsByReporterUseCase.execute(user.id, query, user.id);
+  }
+
+  @Get('cabinet/:slug/trend')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get daily demand volume trend for a cabinet (last N days)' })
+  @ApiResponse({ status: 200, description: 'Array of { date, count } objects' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Cabinet not found' })
+  async getCabinetDemandTrend(
+    @Param('slug') slug: string,
+    @Query() query: GetCabinetDemandTrendQueryDto,
+    @CurrentUser() user: UserEntity,
+  ) {
+    return this.getCabinetDemandTrendUseCase.execute({
+      cabinetSlug: slug,
+      userId: user.id,
+      days: query.days,
+    });
+  }
+
+  @Get('cabinet/:slug/trend-detailed')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get daily created + resolved demand trend for a cabinet (last N days)' })
+  @ApiResponse({ status: 200, description: 'Array of { date, created, resolved } objects' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Cabinet not found' })
+  async getCabinetDemandTrendDetailed(
+    @Param('slug') slug: string,
+    @Query() query: GetCabinetDemandTrendQueryDto,
+    @CurrentUser() user: UserEntity,
+  ) {
+    return this.getCabinetDemandTrendDetailedUseCase.execute({
+      cabinetSlug: slug,
+      userId: user.id,
+      days: query.days,
+    });
   }
 
   @Get('cabinet/:slug')

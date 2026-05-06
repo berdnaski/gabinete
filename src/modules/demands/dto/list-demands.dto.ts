@@ -9,6 +9,7 @@ import {
   Min,
   Max,
   MaxLength,
+  IsArray,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 
@@ -30,6 +31,15 @@ export class ListDemandsDto {
   @IsEnum(DemandStatus)
   @IsOptional()
   status?: DemandStatus;
+
+  @ApiPropertyOptional({ enum: DemandStatus, isArray: true })
+  @IsArray()
+  @IsEnum(DemandStatus, { each: true })
+  @IsOptional()
+  @Transform(({ value }) =>
+    Array.isArray(value) ? value : typeof value === 'string' ? value.split(',') : undefined,
+  )
+  statuses?: DemandStatus[];
 
   @ApiPropertyOptional({ enum: DemandPriority })
   @IsEnum(DemandPriority)

@@ -46,6 +46,7 @@ export class UpdateUserProfileUseCase {
       state: data.state,
       lat: data.lat,
       long: data.long,
+      termsAcceptedAt: data.termsAcceptedAt ? new Date(data.termsAcceptedAt) : undefined,
     });
   }
 }

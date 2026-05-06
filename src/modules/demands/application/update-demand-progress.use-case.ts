@@ -75,6 +75,8 @@ export class UpdateDemandProgressUseCase {
         demandId: demand.id,
         title: demand.title,
         newStatus: status,
+        previousStatus: demand.status,
+        cabinetId: demand.cabinetId,
       });
 
       if (status === DemandStatus.RESOLVED) {

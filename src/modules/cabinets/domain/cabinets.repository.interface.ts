@@ -37,4 +37,13 @@ export abstract class ICabinetsRepository {
   abstract findByUserId(userId: string): Promise<CabinetEntity[]>;
 
   abstract softDelete(id: string): Promise<void>;
+
+  abstract updateScoreCounters(
+    cabinetId: string,
+    deltas: {
+      score?: number;
+      inProgressDelta?: number;
+      resolvedDelta?: number;
+    },
+  ): Promise<void>;
 }

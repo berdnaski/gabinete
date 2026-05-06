@@ -24,4 +24,8 @@ export class RegisterDto {
   @MinLength(8)
   @MaxLength(72)
   password: string;
+
+  @ApiProperty({ example: true, description: 'Acceptance of terms of use and privacy policy' })
+  @IsNotEmpty({ message: 'Você deve aceitar os termos de uso' })
+  termsAccepted: boolean;
 }

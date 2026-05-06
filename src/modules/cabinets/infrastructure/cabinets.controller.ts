@@ -353,6 +353,10 @@ export class CabinetsController {
     dto.description = entity.description;
     dto.avatarUrl = entity.avatarUrl;
     dto.email = entity.email;
+    dto.score = entity.score ?? 0;
+    dto.demand_count = entity.demand_count ?? 0;
+    dto.in_progress_count = entity.in_progress_count ?? 0;
+    dto.resolved_count = entity.resolved_count ?? 0;
     return dto;
   }
 

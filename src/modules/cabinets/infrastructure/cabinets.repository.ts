@@ -65,7 +65,6 @@ export class CabinetsRepository implements ICabinetsRepository {
         where,
         skip,
         take,
-        orderBy: { name: 'asc' },
         include: {
           _count: {
             select: { demands: { where: { disabledAt: null } } },
@@ -75,7 +74,15 @@ export class CabinetsRepository implements ICabinetsRepository {
       this.prisma.cabinet.count({ where }),
     ]);
 
-    return { items: records.map((r) => this.toEntity(r)), total };
+    const sorted = records.sort((a, b) => {
+      const scoreDiff = (b.score ?? 0) - (a.score ?? 0);
+      if (scoreDiff !== 0) return scoreDiff;
+      const demandDiff = (b._count?.demands ?? 0) - (a._count?.demands ?? 0);
+      if (demandDiff !== 0) return demandDiff;
+      return a.name.localeCompare(b.name, 'pt-BR');
+    });
+
+    return { items: sorted.map((r) => this.toEntity(r)), total };
   }
 
   async update(
@@ -110,6 +117,28 @@ export class CabinetsRepository implements ICabinetsRepository {
     });
   }
 
+  async updateScoreCounters(
+    cabinetId: string,
+    deltas: {
+      score?: number;
+      inProgressDelta?: number;
+      resolvedDelta?: number;
+    },
+  ): Promise<void> {
+    const data: Record<string, unknown> = {};
+    if (deltas.score !== undefined && deltas.score !== 0) {
+      data.score = { increment: deltas.score };
+    }
+    if (deltas.inProgressDelta !== undefined && deltas.inProgressDelta !== 0) {
+      data.in_progress_count = { increment: deltas.inProgressDelta };
+    }
+    if (deltas.resolvedDelta !== undefined && deltas.resolvedDelta !== 0) {
+      data.resolved_count = { increment: deltas.resolvedDelta };
+    }
+    if (Object.keys(data).length === 0) return;
+    await this.prisma.cabinet.update({ where: { id: cabinetId }, data });
+  }
+
   private toEntity(
     record: PrismaCabinet & { _count?: { demands?: number } },
   ): CabinetEntity {
@@ -123,6 +152,8 @@ export class CabinetsRepository implements ICabinetsRepository {
     entity.disabledAt = record.disabledAt;
     entity.score = record.score ?? 0;
     entity.demand_count = record._count?.demands ?? 0;
+    entity.in_progress_count = record.in_progress_count ?? 0;
+    entity.resolved_count = record.resolved_count ?? 0;
     return entity;
   }
 }

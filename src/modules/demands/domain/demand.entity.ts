@@ -89,6 +89,9 @@ export class DemandEntity {
 
   @ApiProperty()
   updatedAt: Date;
+  
+  @ApiProperty({ nullable: true })
+  termsAcceptedAt: Date | null;
 
   @ApiProperty({ nullable: true })
   disabledAt: Date | null;

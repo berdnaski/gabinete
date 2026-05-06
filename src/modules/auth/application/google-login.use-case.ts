@@ -43,6 +43,7 @@ export class GoogleLoginUseCase {
           password: hashedPassword,
           provider: googleUser.provider,
           providerAccountId: googleUser.providerAccountId,
+          termsAcceptedAt: new Date(),
         });
 
         await this.usersRepository.claimGuestDemands(user.id, user.email);

@@ -14,6 +14,7 @@ export interface CreateUserWithAccountData {
   password?: string;
   provider: string;
   providerAccountId: string;
+  termsAcceptedAt?: Date;
 }
 
 export abstract class IUsersRepository {
@@ -23,6 +24,7 @@ export abstract class IUsersRepository {
     name: string;
     email: string;
     password: string;
+    termsAcceptedAt?: Date;
   }): Promise<UserEntity>;
   abstract claimGuestDemands(userId: string, email: string): Promise<void>;
   abstract findByProvider(
@@ -55,6 +57,7 @@ export abstract class IUsersRepository {
       hasSetPassword?: boolean;
       isVerified?: boolean;
       disabledAt?: Date;
+      termsAcceptedAt?: Date;
     },
   ): Promise<UserEntity>;
   abstract updateRole(id: string, role: string): Promise<UserEntity>;

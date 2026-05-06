@@ -37,6 +37,7 @@ export class UsersRepository implements IUsersRepository {
     name: string;
     email: string;
     password: string;
+    termsAcceptedAt?: Date;
   }): Promise<UserEntity> {
     const record = await this.prisma.user.create({
       data,
@@ -81,6 +82,7 @@ export class UsersRepository implements IUsersRepository {
         password: data.password || 'none',
         hasSetPassword: false,
         isVerified: true,
+        termsAcceptedAt: data.termsAcceptedAt,
         accounts: {
           create: {
             provider: data.provider,
@@ -125,6 +127,7 @@ export class UsersRepository implements IUsersRepository {
       hasSetPassword?: boolean;
       isVerified?: boolean;
       disabledAt?: Date;
+      termsAcceptedAt?: Date;
     },
   ): Promise<UserEntity> {
     const record = await this.prisma.user.update({
@@ -145,6 +148,7 @@ export class UsersRepository implements IUsersRepository {
         lat: data.lat,
         long: data.long,
         hasSetPassword: data.hasSetPassword,
+        termsAcceptedAt: data.termsAcceptedAt,
       },
       include: { _count: { select: { cabinetMembers: true } } },
     });
@@ -214,6 +218,7 @@ export class UsersRepository implements IUsersRepository {
     entity.lat = record.lat;
     entity.long = record.long;
     entity.hasSetPassword = record.hasSetPassword;
+    entity.termsAcceptedAt = record.termsAcceptedAt;
     entity.isCabinetMember = record._count.cabinetMembers > 0;
     return entity;
   }

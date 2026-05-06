@@ -109,4 +109,8 @@ export class CreateDemandDto {
   @ApiProperty({ example: 'cm...id', required: false })
   @IsOptional()
   categoryId?: string;
+
+  @ApiProperty({ example: true, description: 'Acceptance of terms of use and privacy policy' })
+  @IsNotEmpty({ message: 'Você deve aceitar os termos de uso' })
+  termsAccepted: boolean;
 }

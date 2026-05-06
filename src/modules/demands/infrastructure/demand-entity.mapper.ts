@@ -51,6 +51,7 @@ export class DemandEntityMapper {
     entity.assigneeMemberId = prismaModel.assigneeMemberId;
     entity.createdAt = prismaModel.createdAt;
     entity.updatedAt = prismaModel.updatedAt;
+    entity.termsAcceptedAt = prismaModel.termsAcceptedAt;
     entity.disabledAt = prismaModel.disabledAt;
 
     if (prismaModel.evidences) {

@@ -43,6 +43,7 @@ export class CreateDemandUseCase {
       guestEmail: dto.guestEmail || null,
       cabinetId: dto.cabinetId || null,
       categoryId: dto.categoryId || null,
+      termsAcceptedAt: dto.termsAccepted ? new Date() : null,
     };
 
     const demand = await this.demandsRepository.createWithEvidences(

@@ -46,6 +46,8 @@ export class UpdateDemandUseCase {
         demandId: demand.id,
         title: demand.title,
         newStatus: dto.status,
+        previousStatus: demand.status,
+        cabinetId: demand.cabinetId,
       });
 
       if (dto.status === DemandStatus.RESOLVED) {
