@@ -23,6 +23,7 @@ import { QueueService } from './queue.service';
           connection: {
             host,
             port,
+            username: config.get<string>('REDIS_USERNAME') || undefined,
             password: config.get<string>('REDIS_PASSWORD') || undefined,
             ...(isTls && { tls: {} }),
           },
