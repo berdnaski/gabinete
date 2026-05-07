@@ -21,7 +21,12 @@ export interface SendEmailJobData {
 }
 
 @Injectable()
-@Processor(QueueName.DEFAULT)
+@Processor(QueueName.DEFAULT, {
+  stalledInterval: 600_000, // check stalled jobs every 10 min (default: 30s)
+  lockDuration: 60_000,     // job lock for 1 min
+  drainDelay: 15_000,       // wait 15s before re-polling empty queue (default: 5s)
+  concurrency: 1,
+})
 export class DefaultProcessor extends WorkerHost implements OnModuleInit {
   private readonly logger = new Logger(DefaultProcessor.name);
 
@@ -35,16 +40,23 @@ export class DefaultProcessor extends WorkerHost implements OnModuleInit {
   }
 
   async onModuleInit() {
-    await this.queue.add(
-      JobName.CLEANUP_EXPIRED_TOKENS,
-      {},
-      {
-        repeat: { pattern: CronExpression.EVERY_DAY_AT_3AM },
-        jobId: 'cleanup-expired-tokens-cron',
-        removeOnComplete: true,
-        removeOnFail: false,
-      },
+    const existing = await this.queue.getRepeatableJobs();
+    const alreadyScheduled = existing.some(
+      (j) => j.name === JobName.CLEANUP_EXPIRED_TOKENS,
     );
+
+    if (!alreadyScheduled) {
+      await this.queue.add(
+        JobName.CLEANUP_EXPIRED_TOKENS,
+        {},
+        {
+          repeat: { pattern: CronExpression.EVERY_DAY_AT_3AM },
+          jobId: 'cleanup-expired-tokens-cron',
+          removeOnComplete: true,
+          removeOnFail: false,
+        },
+      );
+    }
   }
 
   async process(job: Job): Promise<void> {
