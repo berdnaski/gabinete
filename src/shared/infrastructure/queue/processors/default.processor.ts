@@ -22,9 +22,9 @@ export interface SendEmailJobData {
 
 @Injectable()
 @Processor(QueueName.DEFAULT, {
-  stalledInterval: 600_000, // check stalled jobs every 10 min (default: 30s)
-  lockDuration: 60_000,     // job lock for 1 min
-  drainDelay: 15_000,       // wait 15s before re-polling empty queue (default: 5s)
+  stalledInterval: 600_000, 
+  lockDuration: 60_000,    
+  drainDelay: 15_000,       
   concurrency: 1,
 })
 export class DefaultProcessor extends WorkerHost implements OnModuleInit {
