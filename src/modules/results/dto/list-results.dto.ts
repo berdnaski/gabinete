@@ -15,12 +15,12 @@ import {
 
 export class ListResultsDto {
   @ApiPropertyOptional({ example: 'uuid-cabinet-id' })
-  @IsUUID()
+  @IsUUID('all')
   @IsOptional()
   cabinetId?: string;
 
   @ApiPropertyOptional({ example: 'uuid-demand-id' })
-  @IsUUID()
+  @IsUUID('all')
   @IsOptional()
   demandId?: string;
 

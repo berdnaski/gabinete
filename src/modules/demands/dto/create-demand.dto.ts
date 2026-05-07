@@ -103,7 +103,7 @@ export class CreateDemandDto {
   guestEmail?: string;
 
   @ApiProperty({ example: 'cm...id', required: false })
-  @IsUUID()
+  @IsUUID('all')
   @IsOptional()
   cabinetId?: string;
 
