@@ -16,10 +16,12 @@ import { QueueService } from './queue.service';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
         const port = config.getOrThrow<number>('REDIS_PORT');
-        const isTls = port === 25061 || config.get<string>('REDIS_TLS') === 'true';
+        const host = config.getOrThrow<string>('REDIS_HOST');
+        const isLocal = host === 'localhost' || host === '127.0.0.1';
+        const isTls = !isLocal && config.get<string>('REDIS_TLS') !== 'false';
         return {
           connection: {
-            host: config.getOrThrow<string>('REDIS_HOST'),
+            host,
             port,
             password: config.get<string>('REDIS_PASSWORD') || undefined,
             ...(isTls && { tls: {} }),
