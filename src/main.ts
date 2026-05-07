@@ -8,6 +8,16 @@ import { AllExceptionsFilter } from './shared/filters/all-exceptions.filter';
 import { DiscordService } from './shared/infrastructure/services/discord.service';
 import cookieParser from 'cookie-parser';
 
+process.on('uncaughtException', (err) => {
+  console.error('[FATAL] uncaughtException:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[FATAL] unhandledRejection:', reason);
+  process.exit(1);
+});
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 

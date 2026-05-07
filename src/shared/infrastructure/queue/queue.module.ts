@@ -14,13 +14,18 @@ import { QueueService } from './queue.service';
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        connection: {
-          host: config.getOrThrow<string>('REDIS_HOST'),
-          port: config.getOrThrow<number>('REDIS_PORT'),
-          password: config.get<string>('REDIS_PASSWORD') || undefined,
-        },
-      }),
+      useFactory: (config: ConfigService) => {
+        const port = config.getOrThrow<number>('REDIS_PORT');
+        const isTls = port === 25061 || config.get<string>('REDIS_TLS') === 'true';
+        return {
+          connection: {
+            host: config.getOrThrow<string>('REDIS_HOST'),
+            port,
+            password: config.get<string>('REDIS_PASSWORD') || undefined,
+            ...(isTls && { tls: {} }),
+          },
+        };
+      },
     }),
     BullModule.registerQueue({
       name: QueueName.DEFAULT,
