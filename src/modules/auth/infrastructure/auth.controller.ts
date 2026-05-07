@@ -210,7 +210,7 @@ export class AuthController {
     );
     this.setAuthCookies(res, authData.accessToken, authData.refreshToken);
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    res.redirect(`${frontendUrl}/auth/callback`);
+    res.redirect(`${frontendUrl}/auth/callback#rt=${encodeURIComponent(authData.refreshToken)}`);
   }
 
   private setAuthCookies(
