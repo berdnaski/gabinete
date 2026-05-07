@@ -5,11 +5,11 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-const isProduction = process.env.NODE_ENV === 'production';
+const isLocal = process.env.DATABASE_URL?.includes('localhost') || process.env.DATABASE_URL?.includes('127.0.0.1');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ...(isProduction && { ssl: { rejectUnauthorized: false } }),
+  ...(!isLocal && { ssl: { rejectUnauthorized: false } }),
 });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
