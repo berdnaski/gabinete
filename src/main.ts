@@ -25,7 +25,6 @@ async function bootstrap() {
     helmet({
       contentSecurityPolicy: {
         directives: {
-          ...helmet.contentSecurityPolicy.getDefaultDirectives(),
           imgSrc: ["'self'", 'data:', 'https:'],
         },
       },
