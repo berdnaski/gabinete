@@ -180,6 +180,7 @@ export class UsersRepository implements IUsersRepository {
 
     if (filters.search) {
       where.OR = [
+        { id: filters.search },
         { name: { contains: filters.search, mode: 'insensitive' } },
         { email: { contains: filters.search, mode: 'insensitive' } },
       ];
