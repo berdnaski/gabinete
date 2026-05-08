@@ -676,11 +676,13 @@ export class DemandsRepository implements IDemandsRepository {
         by: ['status'],
         where: baseWhere,
         _count: { status: true },
+        orderBy: { status: 'asc' },
       }),
       this.prisma.demand.groupBy({
         by: ['priority'],
         where: baseWhere,
         _count: { priority: true },
+        orderBy: { priority: 'asc' },
       }),
       this.prisma.demand.groupBy({
         by: ['neighborhood'],
