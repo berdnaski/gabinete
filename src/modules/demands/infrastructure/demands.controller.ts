@@ -58,6 +58,8 @@ import { ListCabinetDemandsUseCase } from '../application/list-cabinet-demands.u
 import { UnlinkDemandUseCase } from '../application/unlink-demand.use-case';
 import { UpdateDemandProgressUseCase } from '../application/update-demand-progress.use-case';
 import { UpdateDemandProgressDto } from '../dto/update-demand-progress.dto';
+import { GenerateCabinetReportUseCase } from '../application/generate-cabinet-report.use-case';
+import { GetCabinetReportQueryDto } from '../dto/get-cabinet-report-query.dto';
 
 @ApiTags('demands')
 @Controller('demands')
@@ -85,6 +87,7 @@ export class DemandsController {
     private readonly unlinkDemandUseCase: UnlinkDemandUseCase,
     private readonly updateDemandProgressUseCase: UpdateDemandProgressUseCase,
     private readonly getCabinetDemandTrendDetailedUseCase: GetCabinetDemandTrendDetailedUseCase,
+    private readonly generateCabinetReportUseCase: GenerateCabinetReportUseCase,
   ) {}
 
   @Post()
@@ -246,6 +249,27 @@ export class DemandsController {
       cabinetSlug: slug,
       userId: user.id,
       days: query.days,
+    });
+  }
+
+  @Get('cabinet/:slug/report')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Generate a comprehensive demand report for a cabinet' })
+  @ApiResponse({ status: 200, description: 'Cabinet demand report data' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Cabinet not found' })
+  async getCabinetReport(
+    @Param('slug') slug: string,
+    @Query() query: GetCabinetReportQueryDto,
+    @CurrentUser() user: UserEntity,
+  ) {
+    return this.generateCabinetReportUseCase.execute({
+      cabinetSlug: slug,
+      userId: user.id,
+      startDate: query.startDate,
+      endDate: query.endDate,
     });
   }
 

@@ -138,6 +138,48 @@ export interface RawHeatmapPoint {
   categoryName: string;
 }
 
+export interface ReportStatusStat {
+  status: DemandStatus;
+  count: number;
+  percentage: number;
+}
+
+export interface ReportPriorityStat {
+  priority: DemandPriority;
+  count: number;
+  percentage: number;
+}
+
+export interface ReportCategoryStat {
+  id: string;
+  name: string;
+  count: number;
+  percentage: number;
+}
+
+export interface ReportNeighborhoodStat {
+  neighborhood: string;
+  count: number;
+}
+
+export interface CabinetReportData {
+  period: { start: string; end: string; days: number };
+  summary: {
+    totalInPeriod: number;
+    resolvedInPeriod: number;
+    resolutionRate: number;
+    openCount: number;
+    rejectedCount: number;
+    canceledCount: number;
+  };
+  byStatus: ReportStatusStat[];
+  byPriority: ReportPriorityStat[];
+  byCategory: ReportCategoryStat[];
+  byNeighborhood: ReportNeighborhoodStat[];
+  trend: DemandTrendDetailedPoint[];
+  resultsInPeriod: number;
+}
+
 export abstract class IDemandsRepository {
   abstract createWithEvidences(
     demand: CreateDemandInfo,
@@ -185,4 +227,5 @@ export abstract class IDemandsRepository {
   abstract getNeighborhoods(cabinetId?: string): Promise<string[]>;
   abstract getDemandTrend(cabinetId: string, days: number): Promise<DemandTrendPoint[]>;
   abstract getDemandTrendDetailed(cabinetId: string, days: number): Promise<DemandTrendDetailedPoint[]>;
+  abstract getCabinetReport(cabinetId: string, startDate: Date, endDate: Date): Promise<CabinetReportData>;
 }
