@@ -27,6 +27,7 @@ import { Roles } from '../../../shared/decorators/roles.decorator';
 import { StorageService } from '../../../shared/domain/services/storage.service';
 import { UserRole } from '../../users/domain/user.entity';
 import { CreateCabinetWithOwnerUseCase } from '../application/create-cabinet-with-owner.use-case';
+import { CreateAdminUserUseCase } from '../application/create-admin-user.use-case';
 import { CreateCabinetWithOwnerDto } from '../dto/create-cabinet-with-owner.dto';
 import { UpdateAdminCabinetDto } from '../dto/update-admin-cabinet.dto';
 import { ICabinetsRepository } from '../../cabinets/domain/cabinets.repository.interface';
@@ -34,12 +35,14 @@ import { ICabinetMembersRepository } from '../../cabinets/domain/cabinet-members
 import { CabinetRole } from '../../cabinets/domain/cabinet-role.enum';
 import { IUsersRepository } from '../../users/domain/users.repository.interface';
 import { UpdateCabinetUseCase } from '../../cabinets/application/update-cabinet.use-case';
+import { CreateAdminUserDto } from '../dto/create-admin-user.dto';
 
 @ApiTags('admin')
 @Controller('admin')
 export class AdminController {
   constructor(
     private readonly createCabinetWithOwnerUseCase: CreateCabinetWithOwnerUseCase,
+    private readonly createAdminUserUseCase: CreateAdminUserUseCase,
     private readonly storageService: StorageService,
     private readonly cabinetsRepository: ICabinetsRepository,
     private readonly cabinetMembersRepository: ICabinetMembersRepository,
@@ -291,5 +294,73 @@ export class AdminController {
       throw new NotFoundException('Gabinete não encontrado');
     }
     await this.cabinetsRepository.softDelete(id);
+  }
+
+  @Post('users/avatar/presign')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Generate a presigned URL for direct user avatar upload' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        filename: { type: 'string', example: 'avatar.png' },
+        mimetype: { type: 'string', example: 'image/png' },
+      },
+      required: ['filename', 'mimetype'],
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    schema: {
+      properties: {
+        uploadUrl: { type: 'string', example: 'https://...' },
+        storageKey: { type: 'string', example: 'users/avatars/uuid.png' },
+        avatarUrl: { type: 'string', example: 'https://cdn.example.com/users/avatars/uuid.png' },
+      },
+    },
+  })
+  @HttpCode(HttpStatus.CREATED)
+  async presignUserAvatarUpload(
+    @Body() body: { filename: string; mimetype: string },
+  ): Promise<{ uploadUrl: string; storageKey: string; avatarUrl: string }> {
+    const allowed = new Set(['image/png', 'image/jpeg', 'image/jpg', 'image/webp']);
+    if (!body?.filename?.trim() || !body?.mimetype?.trim()) {
+      throw new BadRequestException('filename e mimetype são obrigatórios');
+    }
+    if (!allowed.has(body.mimetype)) {
+      throw new BadRequestException('Tipo de arquivo inválido');
+    }
+
+    const ext = body.filename.split('.').pop() ?? 'png';
+    const storageKey = `users/avatars/${uuidv4()}.${ext}`;
+
+    const uploadUrl = await this.storageService.getPresignedUploadUrl(
+      storageKey,
+      body.mimetype,
+      600,
+    );
+    const { signedUrl } = await this.storageService.getUrl(storageKey);
+
+    return { uploadUrl, storageKey, avatarUrl: signedUrl };
+  }
+
+  @Post('users')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a user with a chosen role (Admin only)' })
+  @ApiResponse({ status: 201, description: 'User created' })
+  @ApiResponse({ status: 409, description: 'Email already in use' })
+  @HttpCode(HttpStatus.CREATED)
+  async createUser(@Body() dto: CreateAdminUserDto) {
+    return this.createAdminUserUseCase.execute({
+      name: dto.name,
+      email: dto.email,
+      password: dto.password,
+      role: dto.role,
+      avatarUrl: dto.avatarUrl,
+    });
   }
 }

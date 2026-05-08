@@ -3,10 +3,11 @@ import { AdminController } from './admin.controller';
 import { CabinetsModule } from '../../cabinets/infrastructure/cabinets.module';
 import { UsersModule } from '../../users/infrastructure/users.module';
 import { CreateCabinetWithOwnerUseCase } from '../application/create-cabinet-with-owner.use-case';
+import { CreateAdminUserUseCase } from '../application/create-admin-user.use-case';
 
 @Module({
   imports: [CabinetsModule, UsersModule],
   controllers: [AdminController],
-  providers: [CreateCabinetWithOwnerUseCase],
+  providers: [CreateCabinetWithOwnerUseCase, CreateAdminUserUseCase],
 })
 export class AdminModule {}
