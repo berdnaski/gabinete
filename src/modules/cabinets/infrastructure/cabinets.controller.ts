@@ -57,7 +57,7 @@ import { UpdateCabinetMemberRoleUseCase } from '../application/update-cabinet-me
 import { LeaveCabinetUseCase } from '../application/leave-cabinet.use-case';
 import { GetCurrentUserCabinetsUseCase } from '../application/get-current-user-cabinets.use-case';
 import { UpdateCabinetMemberRoleDto } from '../dto/update-cabinet-member-role.dto';
-import { PaginationQueryDto } from '../../../shared/dto/pagination-query.dto';
+import { ListCabinetsDto } from '../dto/list-cabinets.dto';
 
 @ApiTags('cabinets')
 @Controller('cabinets')
@@ -112,7 +112,7 @@ export class CabinetsController {
       },
     },
   })
-  async list(@Query() query: PaginationQueryDto) {
+  async list(@Query() query: ListCabinetsDto) {
     const result = await this.listCabinetsUseCase.execute(query);
     return {
       items: result.items.map((c) => this.toCabinetDto(c)),

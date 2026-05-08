@@ -10,6 +10,7 @@ export interface CreateCabinetInput {
   name: string;
   description?: string;
   avatarUrl?: string;
+  email?: string;
   ownerUserId: string;
 }
 
@@ -34,6 +35,7 @@ export class CreateCabinetUseCase {
     const cabinet = await this.cabinetsRepository.create({
       name: input.name,
       slug,
+      email: input.email,
       description: input.description,
       avatarUrl: input.avatarUrl,
     });

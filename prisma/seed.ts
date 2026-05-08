@@ -1,7 +1,8 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, UserRole } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import * as dotenv from 'dotenv';
+import * as bcryptjs from 'bcryptjs';
 
 dotenv.config();
 
@@ -27,11 +28,50 @@ const CATEGORIES = [
   { name: 'Outros' },
 ];
 
+const USERS = [
+  {
+    name: 'Admin',
+    email: 'admin@lithium.com',
+    role: UserRole.ADMIN,
+    isVerified: true,
+    hasSetPassword: true,
+    termsAcceptedAt: new Date(),
+    password: 'password',
+  },
+];
+
 async function main() {
   console.log('🌱 Iniciando seed...');
 
   let criadas = 0;
   let existentes = 0;
+
+  for (const user of USERS) {
+    const hashedPassword = await bcryptjs.hash(user.password, 10);
+    await prisma.user.upsert({
+      where: { email: user.email },
+      create: {
+        name: user.name,
+        email: user.email,
+        password: hashedPassword,
+        role: user.role,
+        isVerified: user.isVerified,
+        hasSetPassword: user.hasSetPassword,
+        termsAcceptedAt: user.termsAcceptedAt,
+      },
+      update: {
+        name: user.name,
+        password: hashedPassword,
+        role: user.role,
+        isVerified: user.isVerified,
+        hasSetPassword: user.hasSetPassword,
+        disabledAt: null,
+        termsAcceptedAt: user.termsAcceptedAt,
+      },
+    });
+  }
+
+  console.log(`✅ Usuários criados / atualizados: ${USERS.map((u) => u.email).join(', ')}`);
 
   for (const cat of CATEGORIES) {
     const exists = await prisma.category.findFirst({

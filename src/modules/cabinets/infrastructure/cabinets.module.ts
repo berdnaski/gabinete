@@ -57,6 +57,7 @@ import { UsersModule } from '../../users/infrastructure/users.module';
     ICabinetMembersRepository,
     ICabinetsRepository,
     ICabinetInvitationsRepository,
+    CreateCabinetUseCase,
   ],
 })
 export class CabinetsModule {}

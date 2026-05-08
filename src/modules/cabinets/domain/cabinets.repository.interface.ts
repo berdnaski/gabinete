@@ -20,7 +20,7 @@ export abstract class ICabinetsRepository {
   abstract findSlugsByBaseName(baseSlug: string): Promise<string[]>;
 
   abstract list(
-    params?: PaginationParams,
+    params?: PaginationParams & { search?: string; hasDemands?: boolean },
   ): Promise<PaginatedResult<CabinetEntity>>;
 
   abstract update(

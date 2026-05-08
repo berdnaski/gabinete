@@ -16,6 +16,7 @@ export class CreateDemandUseCase {
   ) {}
 
   async execute(dto: CreateDemandDto, userId?: string): Promise<DemandEntity> {
+    console.log('19')
     if (userId && dto.guestEmail) {
       throw new BadRequestException(
         'Authenticated users cannot provide a guest email',
@@ -27,6 +28,8 @@ export class CreateDemandUseCase {
         'A guest email must be provided for non-authenticated demands',
       );
     }
+
+    console.log('here')
 
     const demandInfo: CreateDemandInfo = {
       title: dto.title,
@@ -43,7 +46,6 @@ export class CreateDemandUseCase {
       guestEmail: dto.guestEmail || null,
       cabinetId: dto.cabinetId || null,
       categoryId: dto.categoryId || null,
-      termsAcceptedAt: dto.termsAccepted ? new Date() : null,
     };
 
     const demand = await this.demandsRepository.createWithEvidences(

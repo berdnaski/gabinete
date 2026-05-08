@@ -4,7 +4,7 @@ import {
   CreateUserWithAccountData,
   IUsersRepository,
 } from '../domain/users.repository.interface';
-import { Prisma } from '@prisma/client';
+import { Prisma, UserRole as PrismaUserRole } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { PaginationHelper } from 'src/shared/application/pagination.helper';
 import { PaginatedResult } from 'src/shared/domain/pagination.interface';
@@ -166,12 +166,17 @@ export class UsersRepository implements IUsersRepository {
 
   async findAll(filters: {
     search?: string;
+    role?: UserRole;
     page?: number;
     limit?: number;
   }): Promise<PaginatedResult<UserEntity>> {
     const { skip, take } = PaginationHelper.getSkipTake(filters);
 
     const where: Prisma.UserWhereInput = { disabledAt: null };
+
+    if (filters.role) {
+      where.role = filters.role as unknown as PrismaUserRole;
+    }
 
     if (filters.search) {
       where.OR = [
