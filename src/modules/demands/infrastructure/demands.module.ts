@@ -30,9 +30,10 @@ import { GetCabinetDemandTrendDetailedUseCase } from '../application/get-cabinet
 import { ListCabinetDemandsUseCase } from '../application/list-cabinet-demands.use-case';
 import { UnlinkDemandUseCase } from '../application/unlink-demand.use-case';
 import { UpdateDemandProgressUseCase } from '../application/update-demand-progress.use-case';
+import { ResultsModule } from '../../results/infrastructure/results.module';
 
 @Module({
-  imports: [AuthModule, CabinetsModule, UsersModule],
+  imports: [AuthModule, CabinetsModule, UsersModule, ResultsModule],
   controllers: [DemandsController],
   providers: [
     {

@@ -8,12 +8,14 @@ import { DemandStatus } from '@prisma/client';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ICabinetMembersRepository } from '../../cabinets/domain/cabinet-members.repository.interface';
 import { IDemandsRepository } from '../domain/demands.repository.interface';
+import { IResultsRepository } from '../../results/domain/results.repository.interface';
 
 @Injectable()
 export class UpdateDemandProgressUseCase {
   constructor(
     private readonly demandsRepository: IDemandsRepository,
     private readonly cabinetMembersRepository: ICabinetMembersRepository,
+    private readonly resultsRepository: IResultsRepository,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -40,6 +42,25 @@ export class UpdateDemandProgressUseCase {
       throw new ForbiddenException(
         'Você não tem permissão para atualizar esta demanda.',
       );
+    }
+
+    if (membership.id !== demand.assigneeMemberId) {
+      throw new ForbiddenException(
+        'Apenas o responsável pela demanda pode atualizar seu status.',
+      );
+    }
+
+    if (status === DemandStatus.RESOLVED) {
+      const results = await this.resultsRepository.findAll({
+        demandId,
+        page: 1,
+        limit: 1,
+      });
+      if (results.total === 0) {
+        throw new BadRequestException(
+          'Registre pelo menos um resultado antes de finalizar a demanda.',
+        );
+      }
     }
 
     const updatedDemand = await this.demandsRepository.update(demandId, {
