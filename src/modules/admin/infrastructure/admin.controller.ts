@@ -28,6 +28,7 @@ import { StorageService } from '../../../shared/domain/services/storage.service'
 import { UserRole } from '../../users/domain/user.entity';
 import { CreateCabinetWithOwnerUseCase } from '../application/create-cabinet-with-owner.use-case';
 import { CreateAdminUserUseCase } from '../application/create-admin-user.use-case';
+import { UpdateAdminUserUseCase } from '../application/update-admin-user.use-case';
 import { CreateCabinetWithOwnerDto } from '../dto/create-cabinet-with-owner.dto';
 import { UpdateAdminCabinetDto } from '../dto/update-admin-cabinet.dto';
 import { ICabinetsRepository } from '../../cabinets/domain/cabinets.repository.interface';
@@ -36,6 +37,7 @@ import { CabinetRole } from '../../cabinets/domain/cabinet-role.enum';
 import { IUsersRepository } from '../../users/domain/users.repository.interface';
 import { UpdateCabinetUseCase } from '../../cabinets/application/update-cabinet.use-case';
 import { CreateAdminUserDto } from '../dto/create-admin-user.dto';
+import { UpdateAdminUserDto } from '../dto/update-admin-user.dto';
 
 @ApiTags('admin')
 @Controller('admin')
@@ -43,6 +45,7 @@ export class AdminController {
   constructor(
     private readonly createCabinetWithOwnerUseCase: CreateCabinetWithOwnerUseCase,
     private readonly createAdminUserUseCase: CreateAdminUserUseCase,
+    private readonly updateAdminUserUseCase: UpdateAdminUserUseCase,
     private readonly storageService: StorageService,
     private readonly cabinetsRepository: ICabinetsRepository,
     private readonly cabinetMembersRepository: ICabinetMembersRepository,
@@ -356,6 +359,39 @@ export class AdminController {
   @HttpCode(HttpStatus.CREATED)
   async createUser(@Body() dto: CreateAdminUserDto) {
     return this.createAdminUserUseCase.execute({
+      name: dto.name,
+      email: dto.email,
+      password: dto.password,
+      role: dto.role,
+      avatarUrl: dto.avatarUrl,
+    });
+  }
+
+  @Get('users/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiOperation({ summary: 'Get user details (Admin)' })
+  @HttpCode(HttpStatus.OK)
+  async getUserDetails(@Param('id') id: string) {
+    const user = await this.usersRepository.findById(id);
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+    return user;
+  }
+
+  @Patch('users/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiOperation({ summary: 'Update a user (Admin)' })
+  @HttpCode(HttpStatus.OK)
+  async updateUser(@Param('id') id: string, @Body() dto: UpdateAdminUserDto) {
+    return this.updateAdminUserUseCase.execute({
+      id,
       name: dto.name,
       email: dto.email,
       password: dto.password,
