@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
+  IsEnum,
   IsInt,
   IsOptional,
   IsString,
@@ -8,6 +9,7 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
+import { UserRole } from '../domain/user.entity';
 
 export class ListUsersDto {
   @ApiPropertyOptional({ minimum: 1, default: 1 })
@@ -30,4 +32,9 @@ export class ListUsersDto {
   @IsOptional()
   @MaxLength(100)
   search?: string;
+
+  @ApiPropertyOptional({ enum: UserRole, example: UserRole.MEMBER })
+  @IsEnum(UserRole)
+  @IsOptional()
+  role?: UserRole;
 }

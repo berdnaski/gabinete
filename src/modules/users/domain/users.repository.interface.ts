@@ -1,4 +1,4 @@
-import { UserEntity } from './user.entity';
+import { UserEntity, UserRole } from './user.entity';
 import {
   PaginatedResult,
   PaginationParams,
@@ -6,6 +6,7 @@ import {
 
 export interface ListUsersFilters extends PaginationParams {
   search?: string;
+  role?: UserRole;
 }
 
 export interface CreateUserWithAccountData {

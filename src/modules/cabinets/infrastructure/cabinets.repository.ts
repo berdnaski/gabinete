@@ -53,18 +53,38 @@ export class CabinetsRepository implements ICabinetsRepository {
   }
 
   async list(
-    params?: PaginationParams,
+    params?: PaginationParams & { search?: string; hasDemands?: boolean },
   ): Promise<PaginatedResult<CabinetEntity>> {
     const { skip, take } = PaginationHelper.getSkipTake(
       params ?? { page: 1, limit: 100 },
     );
-    const where = { disabledAt: null };
+    const where: Record<string, unknown> = { disabledAt: null };
+
+    if (params?.search) {
+      const q = params.search.trim();
+      if (q) {
+        where.OR = [
+          { name: { contains: q, mode: 'insensitive' } },
+          { slug: { contains: q, mode: 'insensitive' } },
+          { email: { contains: q, mode: 'insensitive' } },
+          { description: { contains: q, mode: 'insensitive' } },
+        ];
+      }
+    }
+
+    if (params?.hasDemands === true) {
+      where.demands = { some: { disabledAt: null } };
+    }
+    if (params?.hasDemands === false) {
+      where.demands = { none: { disabledAt: null } };
+    }
 
     const [records, total] = await Promise.all([
       this.prisma.cabinet.findMany({
         where,
         skip,
         take,
+        orderBy: [{ score: 'desc' }, { name: 'asc' }],
         include: {
           _count: {
             select: { demands: { where: { disabledAt: null } } },
@@ -73,16 +93,7 @@ export class CabinetsRepository implements ICabinetsRepository {
       }),
       this.prisma.cabinet.count({ where }),
     ]);
-
-    const sorted = records.sort((a, b) => {
-      const scoreDiff = (b.score ?? 0) - (a.score ?? 0);
-      if (scoreDiff !== 0) return scoreDiff;
-      const demandDiff = (b._count?.demands ?? 0) - (a._count?.demands ?? 0);
-      if (demandDiff !== 0) return demandDiff;
-      return a.name.localeCompare(b.name, 'pt-BR');
-    });
-
-    return { items: sorted.map((r) => this.toEntity(r)), total };
+    return { items: records.map((r) => this.toEntity(r)), total };
   }
 
   async update(

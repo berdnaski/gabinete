@@ -12,6 +12,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { NotificationsModule } from './modules/notifications/infrastructure/notifications.module';
 import { ResultsModule } from './modules/results/infrastructure/results.module';
+import { AdminModule } from './modules/admin/infrastructure/admin.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { ResultsModule } from './modules/results/infrastructure/results.module';
     EventEmitterModule.forRoot(),
     NotificationsModule,
     ResultsModule,
+    AdminModule,
   ],
   controllers: [],
   providers: [
