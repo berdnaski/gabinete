@@ -186,6 +186,7 @@ export class NotificationListener {
     email: string;
     cabinetName: string;
     senderName: string;
+    token: string;
   }) {
     const user = await this.usersRepository.findByEmail(payload.email);
     if (user) {
@@ -194,7 +195,7 @@ export class NotificationListener {
         title: 'Novo Convite de Gabinete',
         message: `Você foi convidado por ${payload.senderName} para participar do gabinete ${payload.cabinetName}.`,
         type: NotificationType.INFO,
-        link: `/settings`,
+        link: `/cabinets/invites/${payload.token}`,
       });
     }
   }
@@ -211,7 +212,7 @@ export class NotificationListener {
       title: 'Novo Membro no Gabinete',
       message: `${payload.memberName} aceitou o convite e agora faz parte do gabinete ${payload.cabinetName}.`,
       type: NotificationType.SUCCESS,
-      link: `/settings`,
+      link: `/equipe`,
     });
   }
 }

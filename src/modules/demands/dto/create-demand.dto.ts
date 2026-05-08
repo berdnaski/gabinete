@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { DemandPriority } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsEmail,
   IsEnum,
   IsLatitude,
@@ -102,11 +103,16 @@ export class CreateDemandDto {
   guestEmail?: string;
 
   @ApiProperty({ example: 'cm...id', required: false })
-  @IsUUID()
+  @IsUUID('all')
   @IsOptional()
   cabinetId?: string;
 
   @ApiProperty({ example: 'cm...id', required: false })
   @IsOptional()
   categoryId?: string;
+
+  @ApiProperty({ example: true, description: 'Acceptance of terms of use and privacy policy', required: false })
+  @IsBoolean()
+  @IsOptional()
+  termsAccepted?: boolean;
 }

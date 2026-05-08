@@ -6,7 +6,12 @@ import * as bcryptjs from 'bcryptjs';
 
 dotenv.config();
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const isLocal = process.env.DATABASE_URL?.includes('localhost') || process.env.DATABASE_URL?.includes('127.0.0.1');
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ...(!isLocal && { ssl: { rejectUnauthorized: false } }),
+});
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 

@@ -34,7 +34,7 @@ export class CreateResultDto {
   cabinetSlug: string;
 
   @ApiPropertyOptional({ example: 'uuid-demand-id', nullable: true })
-  @IsUUID()
+  @IsUUID('all')
   @IsOptional()
   demandId?: string | null;
 }

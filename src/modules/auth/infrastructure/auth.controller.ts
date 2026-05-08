@@ -210,7 +210,7 @@ export class AuthController {
     );
     this.setAuthCookies(res, authData.accessToken, authData.refreshToken);
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    res.redirect(`${frontendUrl}/auth/callback`);
+    res.redirect(`${frontendUrl}/auth/callback#rt=${encodeURIComponent(authData.refreshToken)}`);
   }
 
   private setAuthCookies(
@@ -218,18 +218,19 @@ export class AuthController {
     accessToken: string,
     refreshToken: string,
   ) {
-    const isProd = process.env.NODE_ENV === 'production';
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const isCrossDomain = frontendUrl.startsWith('https://');
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
-      secure: isProd,
-      sameSite: 'lax',
+      secure: isCrossDomain,
+      sameSite: isCrossDomain ? 'none' : 'lax',
       maxAge: 3600 * 1000,
       path: '/',
     });
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: isProd,
-      sameSite: 'lax',
+      secure: isCrossDomain,
+      sameSite: isCrossDomain ? 'none' : 'lax',
       maxAge: 30 * 24 * 3600 * 1000,
       path: '/',
     });

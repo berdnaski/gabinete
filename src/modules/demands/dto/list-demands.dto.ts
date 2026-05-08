@@ -15,7 +15,7 @@ import { Type, Transform } from 'class-transformer';
 
 export class ListDemandsDto {
   @ApiPropertyOptional({ description: 'Filter by cabinet ID' })
-  @IsUUID()
+  @IsUUID('all')
   @IsOptional()
   cabinetId?: string;
 
@@ -47,7 +47,7 @@ export class ListDemandsDto {
   priority?: DemandPriority;
 
   @ApiPropertyOptional({ description: 'Filter by category ID' })
-  @IsUUID()
+  @IsUUID('all')
   @IsOptional()
   categoryId?: string;
 
@@ -70,12 +70,12 @@ export class ListDemandsDto {
   search?: string;
 
   @ApiPropertyOptional({ description: 'Filter by reporter (user) ID' })
-  @IsUUID()
+  @IsUUID('all')
   @IsOptional()
   reporterId?: string;
 
   @ApiPropertyOptional({ description: 'Filter by assignee cabinet member ID' })
-  @IsUUID()
+  @IsUUID('all')
   @IsOptional()
   assigneeMemberId?: string;
 

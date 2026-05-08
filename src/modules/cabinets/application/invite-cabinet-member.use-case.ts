@@ -98,6 +98,7 @@ export class InviteCabinetMemberUseCase {
       email: input.email,
       cabinetName: cabinet.name,
       senderName: sender.name,
+      token,
     });
 
     return { message: 'Convite enviado com sucesso' };
