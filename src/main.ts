@@ -34,8 +34,12 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const extraOrigins = (process.env.FRONTEND_EXTRA_ORIGINS || '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
   app.enableCors({
-    origin: [frontendUrl],
+    origin: [frontendUrl, ...extraOrigins],
     credentials: true,
   });
 
