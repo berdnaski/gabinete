@@ -22,9 +22,9 @@ export interface SendEmailJobData {
 
 @Injectable()
 @Processor(QueueName.DEFAULT, {
-  stalledInterval: 600_000, 
-  lockDuration: 60_000,    
-  drainDelay: 15_000,       
+  stalledInterval: 3_600_000, 
+  lockDuration: 120_000,
+  drainDelay: 60_000,       
   concurrency: 1,
 })
 export class DefaultProcessor extends WorkerHost implements OnModuleInit {
