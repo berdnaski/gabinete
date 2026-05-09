@@ -16,6 +16,33 @@ export class CabinetResponseDto {
   @ApiPropertyOptional({ nullable: true })
   avatarUrl: string | null;
 
+  @ApiPropertyOptional({ nullable: true })
+  bannerUrl: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  logoUrl: string | null;
+
+  @ApiPropertyOptional({ nullable: true, example: '#0058F3' })
+  accentColor: string | null;
+
+  @ApiPropertyOptional({ nullable: true, example: 'Mandato do povo, para o povo' })
+  tagline: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  postDemandMessage: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  instagramUrl: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  facebookUrl: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  websiteUrl: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  twitterUrl: string | null;
+
   @ApiPropertyOptional({ nullable: true, example: 'contato@gabinete.gov.br' })
   email: string | null;
 
@@ -30,4 +57,7 @@ export class CabinetResponseDto {
 
   @ApiProperty({ example: 0 })
   resolved_count: number;
+
+  @ApiProperty({ example: 72, description: 'Resolution rate 0-100' })
+  transparencyScore: number;
 }

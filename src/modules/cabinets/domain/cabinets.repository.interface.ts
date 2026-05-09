@@ -31,6 +31,15 @@ export abstract class ICabinetsRepository {
       email?: string;
       description?: string;
       avatarUrl?: string;
+      bannerUrl?: string;
+      logoUrl?: string | null;
+      accentColor?: string | null;
+      tagline?: string | null;
+      postDemandMessage?: string | null;
+      instagramUrl?: string | null;
+      facebookUrl?: string | null;
+      websiteUrl?: string | null;
+      twitterUrl?: string | null;
     },
   ): Promise<CabinetEntity>;
 

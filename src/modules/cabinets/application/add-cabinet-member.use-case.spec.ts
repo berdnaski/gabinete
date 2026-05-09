@@ -9,9 +9,23 @@ const makeCabinet = () => ({
   id: 'cab-1',
   name: 'Test',
   slug: 'test',
+  email: null,
   description: null,
   avatarUrl: null,
+  bannerUrl: null,
+  logoUrl: null,
+  accentColor: null,
+  tagline: null,
+  postDemandMessage: null,
+  instagramUrl: null,
+  facebookUrl: null,
+  websiteUrl: null,
+  twitterUrl: null,
   disabledAt: null,
+  score: 0,
+  demand_count: 0,
+  in_progress_count: 0,
+  resolved_count: 0,
 });
 
 describe('AddCabinetMemberUseCase', () => {

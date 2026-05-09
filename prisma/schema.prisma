@@ -100,7 +100,16 @@ model Cabinet {
   email       String?
   description String?
   avatarUrl   String?   @map("avatar_url")
-  disabledAt  DateTime? @map("disabled_at")
+  bannerUrl          String?   @map("banner_url")
+  logoUrl            String?   @map("logo_url")
+  accentColor        String?   @map("accent_color")
+  tagline            String?   @map("tagline")
+  postDemandMessage  String?   @map("post_demand_message")
+  instagramUrl       String?   @map("instagram_url")
+  facebookUrl        String?   @map("facebook_url")
+  websiteUrl         String?   @map("website_url")
+  twitterUrl         String?   @map("twitter_url")
+  disabledAt         DateTime? @map("disabled_at")
   score             Int @default(0)
   in_progress_count Int @default(0) @map("in_progress_count")
   resolved_count    Int @default(0) @map("resolved_count")

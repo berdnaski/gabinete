@@ -1,8 +1,10 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
+  Header,
   HttpCode,
   HttpStatus,
   Param,
@@ -11,12 +13,9 @@ import {
   Query,
   UseGuards,
   UseInterceptors,
-  UploadedFile,
-  ParseFilePipe,
-  MaxFileSizeValidator,
-  FileTypeValidator,
+  UploadedFiles,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { MagicBytesValidator } from '../../../shared/validators/magic-bytes.validator';
 import {
   ApiBearerAuth,
@@ -160,40 +159,86 @@ export class CabinetsController {
         name: { type: 'string' },
         description: { type: 'string' },
         email: { type: 'string' },
-        avatar: {
-          type: 'string',
-          format: 'binary',
-        },
+        accentColor: { type: 'string', example: '#0058F3' },
+        tagline: { type: 'string', example: 'Mandato do povo, para o povo' },
+        postDemandMessage: { type: 'string' },
+        instagramUrl: { type: 'string' },
+        facebookUrl: { type: 'string' },
+        websiteUrl: { type: 'string' },
+        twitterUrl: { type: 'string' },
+        avatar: { type: 'string', format: 'binary' },
+        banner: { type: 'string', format: 'binary' },
+        logo: { type: 'string', format: 'binary', description: 'Cabinet white-label logo' },
       },
     },
   })
-  @UseInterceptors(FileInterceptor('avatar'))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'avatar', maxCount: 1 },
+      { name: 'banner', maxCount: 1 },
+      { name: 'logo', maxCount: 1 },
+    ]),
+  )
   async update(
     @Param('slug') slug: string,
     @Body() dto: UpdateCabinetDto,
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 5000000 }),
-          new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
-          new MagicBytesValidator({
-            allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg'],
-          }),
-        ],
-        fileIsRequired: false,
-      }),
-    )
-    file?: Express.Multer.File,
+    @UploadedFiles()
+    files?: { avatar?: Express.Multer.File[]; banner?: Express.Multer.File[]; logo?: Express.Multer.File[] },
   ): Promise<CabinetResponseDto> {
+    const avatarFile = files?.avatar?.[0];
+    const bannerFile = files?.banner?.[0];
+    const logoFile = files?.logo?.[0];
+
+    const allowedMimes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    const maxSize = 5_000_000;
+
+    for (const [label, file] of [['avatar', avatarFile], ['banner', bannerFile], ['logo', logoFile]] as [string, Express.Multer.File | undefined][]) {
+      if (!file) continue;
+      if (file.size > maxSize) {
+        throw new BadRequestException(`${label}: arquivo excede 5 MB`);
+      }
+      if (!allowedMimes.includes(file.mimetype)) {
+        throw new BadRequestException(`${label}: formato não permitido (use PNG, JPG ou WebP)`);
+      }
+    }
+
     const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
     const updated = await this.updateCabinetUseCase.execute(
-      {
-        id: cabinet.id,
-        ...dto,
-      },
-      file,
+      { id: cabinet.id, ...dto },
+      avatarFile,
+      bannerFile,
+      logoFile,
     );
     return this.toCabinetDto(updated);
+  }
+
+  @Get(':slug/widget.js')
+  @Header('Content-Type', 'application/javascript; charset=utf-8')
+  @Header('Cache-Control', 'public, max-age=3600')
+  @ApiOperation({ summary: 'Embeddable widget script for a cabinet' })
+  @ApiResponse({ status: 200, description: 'Returns a JavaScript embed snippet' })
+  async getWidget(@Param('slug') slug: string): Promise<string> {
+    const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
+    const accent = cabinet.accentColor ?? '#0058F3';
+    const name = cabinet.name.replace(/'/g, "\\'");
+    const profileUrl = `https://gabineteapp.com.br/${cabinet.slug}`;
+
+    return `(function(){
+  if(document.getElementById('gd-widget-${cabinet.slug}'))return;
+  var accent='${accent}';
+  var name='${name}';
+  var url='${profileUrl}';
+  var btn=document.createElement('button');
+  btn.id='gd-widget-${cabinet.slug}';
+  btn.textContent='Enviar Demanda';
+  btn.title='Enviar demanda para '+name;
+  btn.setAttribute('aria-label','Enviar demanda para '+name);
+  btn.style.cssText='position:fixed;bottom:24px;right:24px;z-index:99999;background:'+accent+';color:#fff;border:none;border-radius:9999px;padding:12px 22px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.18);font-family:system-ui,sans-serif;transition:opacity .2s,transform .2s;';
+  btn.onmouseenter=function(){btn.style.opacity='0.88';btn.style.transform='scale(1.04)';};
+  btn.onmouseleave=function(){btn.style.opacity='1';btn.style.transform='scale(1)';};
+  btn.onclick=function(){window.open(url+'?nova-demanda=1','_blank','noopener,noreferrer');};
+  document.body.appendChild(btn);
+})();`;
   }
 
   @Delete(':slug')
@@ -352,11 +397,23 @@ export class CabinetsController {
     dto.slug = entity.slug;
     dto.description = entity.description;
     dto.avatarUrl = entity.avatarUrl;
+    dto.bannerUrl = entity.bannerUrl ?? null;
+    dto.logoUrl = entity.logoUrl ?? null;
+    dto.accentColor = entity.accentColor ?? null;
+    dto.tagline = entity.tagline ?? null;
+    dto.postDemandMessage = entity.postDemandMessage ?? null;
+    dto.instagramUrl = entity.instagramUrl ?? null;
+    dto.facebookUrl = entity.facebookUrl ?? null;
+    dto.websiteUrl = entity.websiteUrl ?? null;
+    dto.twitterUrl = entity.twitterUrl ?? null;
     dto.email = entity.email;
     dto.score = entity.score ?? 0;
     dto.demand_count = entity.demand_count ?? 0;
     dto.in_progress_count = entity.in_progress_count ?? 0;
     dto.resolved_count = entity.resolved_count ?? 0;
+    const total = entity.demand_count ?? 0;
+    const resolved = entity.resolved_count ?? 0;
+    dto.transparencyScore = total > 0 ? Math.round((resolved / total) * 100) : 0;
     return dto;
   }
 

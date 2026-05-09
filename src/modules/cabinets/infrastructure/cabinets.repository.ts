@@ -104,6 +104,15 @@ export class CabinetsRepository implements ICabinetsRepository {
       email?: string;
       description?: string;
       avatarUrl?: string;
+      bannerUrl?: string;
+      logoUrl?: string | null;
+      accentColor?: string | null;
+      tagline?: string | null;
+      postDemandMessage?: string | null;
+      instagramUrl?: string | null;
+      facebookUrl?: string | null;
+      websiteUrl?: string | null;
+      twitterUrl?: string | null;
     },
   ): Promise<CabinetEntity> {
     const record = await this.prisma.cabinet.update({ where: { id }, data });
@@ -160,6 +169,15 @@ export class CabinetsRepository implements ICabinetsRepository {
     entity.email = record.email;
     entity.description = record.description;
     entity.avatarUrl = record.avatarUrl;
+    entity.bannerUrl = record.bannerUrl ?? null;
+    entity.logoUrl = record.logoUrl ?? null;
+    entity.accentColor = record.accentColor ?? null;
+    entity.tagline = record.tagline ?? null;
+    entity.postDemandMessage = record.postDemandMessage ?? null;
+    entity.instagramUrl = record.instagramUrl ?? null;
+    entity.facebookUrl = record.facebookUrl ?? null;
+    entity.websiteUrl = record.websiteUrl ?? null;
+    entity.twitterUrl = record.twitterUrl ?? null;
     entity.disabledAt = record.disabledAt;
     entity.score = record.score ?? 0;
     entity.demand_count = record._count?.demands ?? 0;

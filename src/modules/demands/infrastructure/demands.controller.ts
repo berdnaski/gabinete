@@ -112,9 +112,6 @@ export class DemandsController {
     @Body() dto: CreateDemandDto,
     @CurrentUser() user: UserEntity | null,
   ): Promise<DemandEntity> {
-    console.log({
-      dto
-    })
     return this.createDemandUseCase.execute(dto, user?.id);
   }
 
