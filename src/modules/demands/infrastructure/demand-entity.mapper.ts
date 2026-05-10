@@ -46,9 +46,14 @@ export class DemandEntityMapper {
     entity.guestEmail = prismaModel.guestEmail
       ? prismaModel.guestEmail.replace(/^(.{2})(.*)(@.*)$/, '$1***$3')
       : null;
+    entity.guestPhone = prismaModel.guestPhone ?? null;
     entity.cabinetId = prismaModel.cabinetId;
     entity.categoryId = prismaModel.categoryId;
     entity.assigneeMemberId = prismaModel.assigneeMemberId;
+    entity.surveyToken = prismaModel.surveyToken ?? null;
+    entity.surveyRating = prismaModel.surveyRating ?? null;
+    entity.surveyComment = prismaModel.surveyComment ?? null;
+    entity.surveySubmittedAt = prismaModel.surveySubmittedAt ?? null;
     entity.createdAt = prismaModel.createdAt;
     entity.updatedAt = prismaModel.updatedAt;
     entity.termsAcceptedAt = prismaModel.termsAcceptedAt;

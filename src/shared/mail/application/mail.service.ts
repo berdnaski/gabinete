@@ -1,3 +1,10 @@
+export interface DemandStatusUpdateParams {
+  demandTitle: string;
+  newStatus: string;
+  cabinetName: string;
+  surveyUrl?: string;
+}
+
 export abstract class MailService {
   abstract sendVerificationEmail(email: string, token: string): Promise<void>;
   abstract sendPasswordResetEmail(email: string, token: string): Promise<void>;
@@ -10,5 +17,9 @@ export abstract class MailService {
     token: string,
     cabinetName: string,
     senderName: string,
+  ): Promise<void>;
+  abstract sendDemandStatusUpdate(
+    email: string,
+    params: DemandStatusUpdateParams,
   ): Promise<void>;
 }

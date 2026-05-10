@@ -19,6 +19,7 @@ export interface CreateDemandInfo {
   state: string;
   reporterId?: string | null;
   guestEmail?: string | null;
+  guestPhone?: string | null;
   cabinetId?: string | null;
   categoryId?: string | null;
   termsAcceptedAt?: Date | null;
@@ -228,4 +229,6 @@ export abstract class IDemandsRepository {
   abstract getDemandTrend(cabinetId: string, days: number): Promise<DemandTrendPoint[]>;
   abstract getDemandTrendDetailed(cabinetId: string, days: number): Promise<DemandTrendDetailedPoint[]>;
   abstract getCabinetReport(cabinetId: string, startDate: Date, endDate: Date): Promise<CabinetReportData>;
+  abstract findBySurveyToken(token: string): Promise<DemandEntity | null>;
+  abstract findContactInfo(demandId: string): Promise<{ guestEmail: string | null; guestPhone: string | null } | null>;
 }

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Resend } from 'resend';
-import { MailService } from '../application/mail.service';
+import { MailService, DemandStatusUpdateParams } from '../application/mail.service';
 
 @Injectable()
 export class ResendMailService implements MailService {
@@ -114,6 +114,61 @@ export class ResendMailService implements MailService {
         error,
       );
       throw error;
+    }
+  }
+
+  async sendDemandStatusUpdate(
+    email: string,
+    params: DemandStatusUpdateParams,
+  ): Promise<void> {
+    const STATUS_LABELS: Record<string, { label: string; color: string; emoji: string }> = {
+      IN_ANALYSIS:  { label: 'Em Análise',    color: '#3b82f6', emoji: '🔍' },
+      IN_PROGRESS:  { label: 'Em Progresso',  color: '#f59e0b', emoji: '⚙️' },
+      RESOLVED:     { label: 'Resolvida',     color: '#16a34a', emoji: '✅' },
+      REJECTED:     { label: 'Rejeitada',     color: '#dc2626', emoji: '❌' },
+      CANCELED:     { label: 'Cancelada',     color: '#6b7280', emoji: '🚫' },
+      SUBMITTED:    { label: 'Enviada',       color: '#0058F3', emoji: '📋' },
+    };
+
+    const statusInfo = STATUS_LABELS[params.newStatus] ?? { label: params.newStatus, color: '#0058F3', emoji: '📋' };
+    const isResolved = params.newStatus === 'RESOLVED';
+
+    const surveySection = isResolved && params.surveyUrl ? `
+      <div style="margin: 24px 0; padding: 20px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">
+        <p style="margin: 0 0 12px; font-size: 14px; color: #166534; font-weight: 600;">⭐ Nos ajude com seu feedback</p>
+        <p style="margin: 0 0 16px; font-size: 14px; color: #15803d;">Sua demanda foi resolvida! Avalie o atendimento que você recebeu — leva menos de 1 minuto.</p>
+        <a href="${params.surveyUrl}" style="display: inline-block; background: #16a34a; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 600;">
+          Avaliar atendimento
+        </a>
+      </div>
+    ` : '';
+
+    try {
+      await this.resend.emails.send({
+        from: this.fromEmail,
+        to: email,
+        subject: `${statusInfo.emoji} Sua demanda foi atualizada — ${params.cabinetName}`,
+        html: `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; background: #fff;">
+            <div style="background: ${statusInfo.color}; padding: 24px 32px;">
+              <p style="margin: 0; color: rgba(255,255,255,0.85); font-size: 13px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;">Gabinete Digital</p>
+              <h1 style="margin: 8px 0 0; color: #fff; font-size: 22px; font-weight: 700;">Atualização de Demanda</h1>
+            </div>
+            <div style="padding: 32px;">
+              <p style="margin: 0 0 8px; font-size: 14px; color: #6b7280;">Demanda</p>
+              <p style="margin: 0 0 24px; font-size: 16px; font-weight: 600; color: #111827;">${params.demandTitle}</p>
+              <div style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: ${statusInfo.color}15; border: 1px solid ${statusInfo.color}40; border-radius: 9999px;">
+                <span style="font-size: 14px; font-weight: 700; color: ${statusInfo.color};">${statusInfo.emoji} ${statusInfo.label}</span>
+              </div>
+              ${surveySection}
+              <p style="margin: 24px 0 0; font-size: 13px; color: #9ca3af;">Este e-mail foi enviado pelo ${params.cabinetName} via Gabinete Digital. Se você não reconhece esta demanda, ignore este e-mail.</p>
+            </div>
+          </div>
+        `,
+      });
+      this.logger.log(`Demand status update email sent to ${email}`);
+    } catch (error) {
+      this.logger.error(`Failed to send demand status update email to ${email}`, error);
     }
   }
 

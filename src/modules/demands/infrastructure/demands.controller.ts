@@ -60,6 +60,8 @@ import { UpdateDemandProgressUseCase } from '../application/update-demand-progre
 import { UpdateDemandProgressDto } from '../dto/update-demand-progress.dto';
 import { GenerateCabinetReportUseCase } from '../application/generate-cabinet-report.use-case';
 import { GetCabinetReportQueryDto } from '../dto/get-cabinet-report-query.dto';
+import { GetDemandSurveyUseCase } from '../application/get-demand-survey.use-case';
+import { SubmitDemandSurveyUseCase } from '../application/submit-demand-survey.use-case';
 
 @ApiTags('demands')
 @Controller('demands')
@@ -88,6 +90,8 @@ export class DemandsController {
     private readonly updateDemandProgressUseCase: UpdateDemandProgressUseCase,
     private readonly getCabinetDemandTrendDetailedUseCase: GetCabinetDemandTrendDetailedUseCase,
     private readonly generateCabinetReportUseCase: GenerateCabinetReportUseCase,
+    private readonly getDemandSurveyUseCase: GetDemandSurveyUseCase,
+    private readonly submitDemandSurveyUseCase: SubmitDemandSurveyUseCase,
   ) {}
 
   @Post()
@@ -513,5 +517,30 @@ export class DemandsController {
   @ApiResponse({ status: 404, description: 'Demand not found' })
   async toggleLike(@Param('id') id: string, @CurrentUser() user: UserEntity) {
     return this.toggleDemandLikeUseCase.execute(id, user.id);
+  }
+
+  @Get('survey/:token')
+  @ApiOperation({ summary: 'Get demand survey info by token (public)' })
+  @ApiResponse({ status: 200, description: 'Survey data' })
+  @ApiResponse({ status: 404, description: 'Survey not found' })
+  async getSurvey(@Param('token') token: string) {
+    return this.getDemandSurveyUseCase.execute(token);
+  }
+
+  @Post('survey/:token')
+  @ApiOperation({ summary: 'Submit satisfaction survey (public)' })
+  @ApiResponse({ status: 201, description: 'Survey submitted' })
+  @ApiResponse({ status: 400, description: 'Already submitted or invalid rating' })
+  @ApiResponse({ status: 404, description: 'Survey not found' })
+  async submitSurvey(
+    @Param('token') token: string,
+    @Body() body: { rating: number; comment?: string },
+  ) {
+    await this.submitDemandSurveyUseCase.execute({
+      token,
+      rating: body.rating,
+      comment: body.comment,
+    });
+    return { message: 'Avaliação registrada com sucesso!' };
   }
 }

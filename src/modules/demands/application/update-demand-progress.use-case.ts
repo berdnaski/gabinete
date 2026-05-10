@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { DemandStatus } from '@prisma/client';
+import { randomUUID } from 'crypto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ICabinetMembersRepository } from '../../cabinets/domain/cabinet-members.repository.interface';
 import { IDemandsRepository } from '../domain/demands.repository.interface';
@@ -63,8 +64,14 @@ export class UpdateDemandProgressUseCase {
       }
     }
 
+    const surveyToken =
+      status === DemandStatus.RESOLVED && !demand.surveyToken
+        ? randomUUID()
+        : undefined;
+
     const updatedDemand = await this.demandsRepository.update(demandId, {
       status,
+      ...(surveyToken ? { surveyToken } : {}),
     });
 
     const STATUS_LABELS: Record<string, string> = {
@@ -98,6 +105,9 @@ export class UpdateDemandProgressUseCase {
         newStatus: status,
         previousStatus: demand.status,
         cabinetId: demand.cabinetId,
+        guestEmail: demand.guestEmail,
+        guestPhone: demand.guestPhone,
+        surveyToken: status === DemandStatus.RESOLVED ? (surveyToken ?? demand.surveyToken) : undefined,
       });
 
       if (status === DemandStatus.RESOLVED) {

@@ -90,6 +90,12 @@ export class CreateDemandDto {
   @MaxLength(2)
   state: string;
 
+  @ApiProperty({ example: '+5511999999999', required: false })
+  @IsString()
+  @IsOptional()
+  @MaxLength(20)
+  guestPhone?: string;
+
   @ApiProperty({ example: 'joao@example.com', required: false })
   @IsEmail()
   @IsOptional()

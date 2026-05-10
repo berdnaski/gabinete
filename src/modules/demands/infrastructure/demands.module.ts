@@ -32,6 +32,9 @@ import { UnlinkDemandUseCase } from '../application/unlink-demand.use-case';
 import { UpdateDemandProgressUseCase } from '../application/update-demand-progress.use-case';
 import { GenerateCabinetReportUseCase } from '../application/generate-cabinet-report.use-case';
 import { ResultsModule } from '../../results/infrastructure/results.module';
+import { DemandEmailListener } from '../application/demand-email.listener';
+import { GetDemandSurveyUseCase } from '../application/get-demand-survey.use-case';
+import { SubmitDemandSurveyUseCase } from '../application/submit-demand-survey.use-case';
 
 @Module({
   imports: [AuthModule, CabinetsModule, UsersModule, ResultsModule],
@@ -65,6 +68,9 @@ import { ResultsModule } from '../../results/infrastructure/results.module';
     GetCabinetDemandTrendUseCase,
     GetCabinetDemandTrendDetailedUseCase,
     GenerateCabinetReportUseCase,
+    DemandEmailListener,
+    GetDemandSurveyUseCase,
+    SubmitDemandSurveyUseCase,
     DemandAccessGuard,
   ],
 })

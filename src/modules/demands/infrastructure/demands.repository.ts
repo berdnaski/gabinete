@@ -95,6 +95,10 @@ export class DemandsRepository implements IDemandsRepository {
         assigneeMemberId: data.assigneeMemberId,
         disabledAt: data.disabledAt,
         termsAcceptedAt: data.termsAcceptedAt,
+        surveyToken: data.surveyToken,
+        surveyRating: data.surveyRating,
+        surveyComment: data.surveyComment,
+        surveySubmittedAt: data.surveySubmittedAt,
       },
       include: {
         evidences: true,
@@ -136,6 +140,7 @@ export class DemandsRepository implements IDemandsRepository {
         state: data.state,
         reporterId: data.reporterId,
         guestEmail: data.guestEmail,
+        guestPhone: data.guestPhone,
         cabinetId: data.cabinetId,
         categoryId: data.categoryId,
         termsAcceptedAt: data.termsAcceptedAt,
@@ -829,6 +834,26 @@ export class DemandsRepository implements IDemandsRepository {
       trend,
       resultsInPeriod: resultsCount,
     };
+  }
+
+  async findContactInfo(demandId: string): Promise<{ guestEmail: string | null; guestPhone: string | null } | null> {
+    return this.prisma.demand.findUnique({
+      where: { id: demandId },
+      select: { guestEmail: true, guestPhone: true },
+    });
+  }
+
+  async findBySurveyToken(token: string): Promise<DemandEntity | null> {
+    const demand = await this.prisma.demand.findUnique({
+      where: { surveyToken: token },
+      include: {
+        evidences: true,
+        results: { where: { disabledAt: null }, select: { id: true, title: true, description: true, type: true, createdAt: true, protocolFileKey: true, protocolFileUrl: true } },
+        cabinet: { select: { name: true, slug: true, avatarUrl: true } },
+        _count: { select: { likes: true, comments: true } },
+      },
+    });
+    return demand ? DemandEntityMapper.toDomain(demand) : null;
   }
 
   async getNeighborhoods(cabinetId?: string): Promise<string[]> {

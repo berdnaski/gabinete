@@ -41,6 +41,7 @@ export class CreateDemandUseCase {
       state: dto.state,
       reporterId: userId || null,
       guestEmail: dto.guestEmail || null,
+      guestPhone: dto.guestPhone || null,
       cabinetId: dto.cabinetId || null,
       categoryId: dto.categoryId || null,
     };

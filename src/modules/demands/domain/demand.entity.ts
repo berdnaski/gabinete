@@ -4,97 +4,112 @@ import { DemandEvidenceEntity } from './demand-evidence.entity';
 
 export class DemandReporterInfo {
   @ApiProperty({ example: 'João Silva' })
-  name: string;
+  name!: string;
 
   @ApiProperty({
     example: 'https://cdn.example.com/avatar.jpg',
     nullable: true,
   })
-  avatarUrl: string | null;
+  avatarUrl!: string | null;
 }
 
 export class DemandCategoryInfo {
   @ApiProperty({ example: 'Infrastructure' })
-  name: string;
+  name!: string;
 }
 
 export class DemandCabinetInfo {
   @ApiProperty({ example: 'Gabinete São Paulo' })
-  name: string;
+  name!: string;
 
   @ApiProperty({ example: 'gabinete-sao-paulo' })
-  slug: string;
+  slug!: string;
 
   @ApiProperty({ nullable: true })
-  avatarUrl: string | null;
+  avatarUrl!: string | null;
 }
 
 export class DemandEntity {
   @ApiProperty({ example: 'uuid-demand-id' })
-  id: string;
+  id!: string;
 
   @ApiProperty({ example: 'Pothole on Main Street' })
-  title: string;
+  title!: string;
 
   @ApiProperty({
     example:
       'The asphalt cracked and formed a crater near the traffic light...',
   })
-  description: string;
+  description!: string;
 
   @ApiProperty({ enum: DemandStatus })
-  status: DemandStatus;
+  status!: DemandStatus;
 
   @ApiProperty({ enum: DemandPriority })
-  priority: DemandPriority;
+  priority!: DemandPriority;
 
   @ApiProperty({ example: 'Main Street, 123' })
-  address: string;
+  address!: string;
 
   @ApiProperty({ example: '12345-678', nullable: true })
-  zipcode: string | null;
+  zipcode!: string | null;
 
   @ApiProperty({ example: -23.55052, nullable: true })
-  lat: number | null;
+  lat!: number | null;
 
   @ApiProperty({ example: -46.633308, nullable: true })
-  long: number | null;
+  long!: number | null;
 
   @ApiProperty({ example: 'Downtown' })
-  neighborhood: string;
+  neighborhood!: string;
 
   @ApiProperty({ example: 'São Paulo' })
-  city: string;
+  city!: string;
 
   @ApiProperty({ example: 'SP' })
-  state: string;
+  state!: string;
 
   @ApiProperty({ example: 'uuid-reporter-id', nullable: true })
-  reporterId: string | null;
+  reporterId!: string | null;
 
   @ApiProperty({ example: 'guest@example.com', nullable: true })
-  guestEmail: string | null;
+  guestEmail!: string | null;
+
+  @ApiProperty({ example: '+5511999999999', nullable: true })
+  guestPhone!: string | null;
 
   @ApiProperty({ example: 'uuid-cabinet-id', nullable: true })
-  cabinetId: string | null;
+  cabinetId!: string | null;
 
   @ApiProperty({ example: 'uuid-category-id', nullable: true })
-  categoryId: string | null;
+  categoryId!: string | null;
 
   @ApiProperty({ example: 'uuid-member-id', nullable: true })
-  assigneeMemberId: string | null;
+  assigneeMemberId!: string | null;
 
   @ApiProperty()
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty()
-  updatedAt: Date;
-  
-  @ApiProperty({ nullable: true })
-  termsAcceptedAt: Date | null;
+  updatedAt!: Date;
 
   @ApiProperty({ nullable: true })
-  disabledAt: Date | null;
+  termsAcceptedAt!: Date | null;
+
+  @ApiProperty({ nullable: true })
+  disabledAt!: Date | null;
+
+  @ApiProperty({ nullable: true })
+  surveyToken!: string | null;
+
+  @ApiProperty({ nullable: true })
+  surveyRating!: number | null;
+
+  @ApiProperty({ nullable: true })
+  surveyComment!: string | null;
+
+  @ApiProperty({ nullable: true })
+  surveySubmittedAt!: Date | null;
 
   @ApiProperty({ type: [DemandEvidenceEntity], required: false })
   evidences?: DemandEvidenceEntity[];
