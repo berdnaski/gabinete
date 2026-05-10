@@ -1,9 +1,7 @@
 import {
-  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ICabinetMembersRepository } from '../../cabinets/domain/cabinet-members.repository.interface';
 import { ICabinetsRepository } from '../../cabinets/domain/cabinets.repository.interface';
 import {
   DemandTrendPoint,
@@ -12,7 +10,7 @@ import {
 
 export interface GetCabinetDemandTrendInput {
   cabinetSlug: string;
-  userId: string;
+  userId?: string;
   days?: number;
 }
 
@@ -21,7 +19,6 @@ export class GetCabinetDemandTrendUseCase {
   constructor(
     private readonly demandsRepository: IDemandsRepository,
     private readonly cabinetsRepository: ICabinetsRepository,
-    private readonly cabinetMembersRepository: ICabinetMembersRepository,
   ) {}
 
   async execute(input: GetCabinetDemandTrendInput): Promise<DemandTrendPoint[]> {
@@ -29,17 +26,6 @@ export class GetCabinetDemandTrendUseCase {
 
     if (!cabinet) {
       throw new NotFoundException('Cabinet not found');
-    }
-
-    const membership = await this.cabinetMembersRepository.findMembership(
-      input.userId,
-      cabinet.id,
-    );
-
-    if (!membership) {
-      throw new ForbiddenException(
-        'You do not have permission to view this cabinet.',
-      );
     }
 
     const days = input.days ?? 14;

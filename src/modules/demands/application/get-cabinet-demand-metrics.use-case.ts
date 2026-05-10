@@ -1,9 +1,7 @@
 import {
-  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ICabinetMembersRepository } from '../../cabinets/domain/cabinet-members.repository.interface';
 import { ICabinetsRepository } from '../../cabinets/domain/cabinets.repository.interface';
 import {
   CabinetDemandMetrics,
@@ -12,7 +10,7 @@ import {
 
 export interface GetCabinetDemandMetricsInput {
   cabinetSlug: string;
-  userId: string;
+  userId?: string;
 }
 
 @Injectable()
@@ -20,7 +18,6 @@ export class GetCabinetDemandMetricsUseCase {
   constructor(
     private readonly demandsRepository: IDemandsRepository,
     private readonly cabinetsRepository: ICabinetsRepository,
-    private readonly cabinetMembersRepository: ICabinetMembersRepository,
   ) {}
 
   async execute(
@@ -30,17 +27,6 @@ export class GetCabinetDemandMetricsUseCase {
 
     if (!cabinet) {
       throw new NotFoundException('Gabinete não encontrado');
-    }
-
-    const membership = await this.cabinetMembersRepository.findMembership(
-      input.userId,
-      cabinet.id,
-    );
-
-    if (!membership) {
-      throw new ForbiddenException(
-        'Você não tem permissão para visualizar métricas deste gabinete.',
-      );
     }
 
     return this.demandsRepository.getCabinetDemandMetrics(cabinet.id);

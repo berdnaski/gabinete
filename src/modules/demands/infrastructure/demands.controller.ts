@@ -148,21 +148,13 @@ export class DemandsController {
   }
 
   @Get('cabinet/:slug/metrics')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get demand metrics for a cabinet by slug' })
   @ApiResponse({ status: 200, type: GetCabinetDemandMetricsResponseDto })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Cabinet not found' })
   async getCabinetMetrics(
     @Param('slug') slug: string,
-    @CurrentUser() user: UserEntity,
   ): Promise<GetCabinetDemandMetricsResponseDto> {
-    return this.getCabinetDemandMetricsUseCase.execute({
-      cabinetSlug: slug,
-      userId: user.id,
-    });
+    return this.getCabinetDemandMetricsUseCase.execute({ cabinetSlug: slug });
   }
 
   @Get('cabinet/:slug/dashboard/summary')
@@ -210,41 +202,29 @@ export class DemandsController {
   }
 
   @Get('cabinet/:slug/trend')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get daily demand volume trend for a cabinet (last N days)' })
   @ApiResponse({ status: 200, description: 'Array of { date, count } objects' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Cabinet not found' })
   async getCabinetDemandTrend(
     @Param('slug') slug: string,
     @Query() query: GetCabinetDemandTrendQueryDto,
-    @CurrentUser() user: UserEntity,
   ) {
     return this.getCabinetDemandTrendUseCase.execute({
       cabinetSlug: slug,
-      userId: user.id,
       days: query.days,
     });
   }
 
   @Get('cabinet/:slug/trend-detailed')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get daily created + resolved demand trend for a cabinet (last N days)' })
   @ApiResponse({ status: 200, description: 'Array of { date, created, resolved } objects' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Cabinet not found' })
   async getCabinetDemandTrendDetailed(
     @Param('slug') slug: string,
     @Query() query: GetCabinetDemandTrendQueryDto,
-    @CurrentUser() user: UserEntity,
   ) {
     return this.getCabinetDemandTrendDetailedUseCase.execute({
       cabinetSlug: slug,
-      userId: user.id,
       days: query.days,
     });
   }
