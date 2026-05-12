@@ -185,7 +185,7 @@ export class DemandsController {
   }
 
   @Get('heatmap')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get global demand heatmap data' })
   @ApiResponse({ status: 200, type: GetCabinetDemandHeatmapResponseDto })
