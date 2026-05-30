@@ -457,7 +457,7 @@ export class DemandsController {
   }
 
   @Get(':id/comments')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'List comments for a demand' })
   @ApiResponse({
@@ -473,7 +473,6 @@ export class DemandsController {
       },
     },
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Demand not found' })
   async listComments(
     @Param('id') id: string,

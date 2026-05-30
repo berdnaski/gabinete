@@ -15,12 +15,18 @@ function escapeHtml(str: string): string {
     .replace(/>/g, '&gt;');
 }
 
+function resolveImage(demand: DemandEntity, frontendUrl: string): string {
+  const evidence = demand.evidences?.find((e) => e.mimeType.startsWith('image/'));
+  if (evidence?.url) return evidence.url;
+  if (demand.cabinet?.avatarUrl) return demand.cabinet.avatarUrl;
+  return `${frontendUrl}/og-default.png`;
+}
+
 function buildOgHtml(demand: DemandEntity, frontendUrl: string): string {
   const title = demand.title;
   const description = (demand.description ?? '').slice(0, 160);
-  const canonicalUrl = `${frontendUrl}/comments/${demand.id}`;
-  const image =
-    demand.evidences?.find((e) => e.mimeType.startsWith('image/'))?.url ?? '';
+  const canonicalUrl = `${frontendUrl}/demand/${demand.id}`;
+  const image = resolveImage(demand, frontendUrl);
 
   const safeTitle = escapeHtml(title);
   const safeDesc = escapeHtml(description);
@@ -41,12 +47,14 @@ function buildOgHtml(demand: DemandEntity, frontendUrl: string): string {
     <meta property="og:url" content="${safeUrl}" />
     <meta property="og:type" content="article" />
     <meta property="og:site_name" content="Gabinete Digital" />
-    ${image ? `<meta property="og:image" content="${safeImage}" />` : ''}
+    <meta property="og:image" content="${safeImage}" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
 
-    <meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${safeTitle}" />
     <meta name="twitter:description" content="${safeDesc}" />
-    ${image ? `<meta name="twitter:image" content="${safeImage}" />` : ''}
+    <meta name="twitter:image" content="${safeImage}" />
 
     <meta http-equiv="refresh" content="0; url=${safeUrl}" />
   </head>
@@ -76,7 +84,7 @@ export class OgController {
       const demand = await this.findDemandUseCase.execute(id);
 
       if (!isBot) {
-        res.redirect(302, `${frontendUrl}/comments/${id}`);
+        res.redirect(302, `${frontendUrl}/demand/${id}`);
         return;
       }
 
