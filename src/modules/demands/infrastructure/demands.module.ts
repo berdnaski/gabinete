@@ -39,6 +39,7 @@ import { SubmitDemandSurveyUseCase } from '../application/submit-demand-survey.u
 @Module({
   imports: [AuthModule, CabinetsModule, UsersModule, ResultsModule],
   controllers: [DemandsController],
+  exports: [FindDemandUseCase, IDemandsRepository],
   providers: [
     {
       provide: IDemandsRepository,

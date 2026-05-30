@@ -1,5 +1,5 @@
 import helmet from 'helmet';
-import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
+import { ClassSerializerInterceptor, RequestMethod, ValidationPipe } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
@@ -31,7 +31,9 @@ async function bootstrap() {
     }),
   );
   app.use(cookieParser());
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api', {
+    exclude: [{ path: 'og/demands/:id', method: RequestMethod.GET }],
+  });
 
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
   const extraOrigins = (process.env.FRONTEND_EXTRA_ORIGINS || '')

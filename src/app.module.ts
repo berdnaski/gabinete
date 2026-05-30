@@ -13,6 +13,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { NotificationsModule } from './modules/notifications/infrastructure/notifications.module';
 import { ResultsModule } from './modules/results/infrastructure/results.module';
 import { AdminModule } from './modules/admin/infrastructure/admin.module';
+import { OgModule } from './modules/og/og.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { AdminModule } from './modules/admin/infrastructure/admin.module';
     NotificationsModule,
     ResultsModule,
     AdminModule,
+    OgModule,
   ],
   controllers: [],
   providers: [
