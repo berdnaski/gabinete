@@ -1,6 +1,6 @@
-import { Controller, Get, Param, Res } from '@nestjs/common';
+import { Controller, Get, Param, Req, Res } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import { FindDemandUseCase } from '../demands/application/find-demand.use-case';
 import { DemandEntity } from '../demands/domain/demand.entity';
 
@@ -65,12 +65,12 @@ export class OgController {
   @Get('demands/:id')
   async preview(
     @Param('id') id: string,
+    @Req() req: Request,
     @Res() res: Response,
   ): Promise<void> {
     const frontendUrl =
       process.env.FRONTEND_URL ?? 'https://gabineteapp.com.br';
-    const userAgent = (res.req.headers['user-agent'] ?? '').toLowerCase();
-    const isBot = BOT_AGENTS.test(userAgent);
+    const isBot = BOT_AGENTS.test(req.headers['user-agent'] ?? '');
 
     try {
       const demand = await this.findDemandUseCase.execute(id);
@@ -84,6 +84,7 @@ export class OgController {
         .status(200)
         .header('Content-Type', 'text/html; charset=utf-8')
         .header('Cache-Control', 'public, max-age=60')
+        .header('Content-Security-Policy', "script-src 'unsafe-inline'")
         .send(buildOgHtml(demand, frontendUrl));
     } catch {
       res.redirect(302, frontendUrl);
