@@ -135,7 +135,7 @@ export class DemandsRepository implements IDemandsRepository {
         zipcode: data.zipcode,
         lat: data.lat,
         long: data.long,
-        neighborhood: data.neighborhood,
+        neighborhood: data.neighborhood ?? "",
         city: data.city,
         state: data.state,
         reporterId: data.reporterId,
