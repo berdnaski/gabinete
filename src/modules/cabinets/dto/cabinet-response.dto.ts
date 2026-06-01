@@ -58,6 +58,9 @@ export class CabinetResponseDto {
   @ApiProperty({ example: 0 })
   resolved_count: number;
 
-  @ApiProperty({ example: 72, description: 'Resolution rate 0-100' })
+  @ApiProperty({ example: 72, description: 'Transparency score 0-100' })
   transparencyScore: number;
+
+  @ApiProperty({ example: 72, description: 'Resolution rate percentage 0-100' })
+  resolution_rate: number;
 }

@@ -83,6 +83,7 @@ export interface DashboardCategoryStat {
   id: string;
   name: string;
   total: number;
+  percentage: number;
 }
 
 export interface DashboardNeighborhoodStat {

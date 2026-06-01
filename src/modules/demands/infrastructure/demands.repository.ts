@@ -533,13 +533,18 @@ export class DemandsRepository implements IDemandsRepository {
 
     const categoriesById = new Map(categoryRecords.map((c) => [c.id, c.name]));
 
-    const categories = topCategories.map((row) => {
-      const countData = row._count as { categoryId: number };
+    const categoriesTotal = topCategories.reduce(
+      (sum, row) => sum + (row._count as { categoryId: number }).categoryId,
+      0,
+    );
 
+    const categories = topCategories.map((row) => {
+      const count = (row._count as { categoryId: number }).categoryId;
       return {
         id: row.categoryId!,
         name: categoriesById.get(row.categoryId!) ?? 'Unknown',
-        total: countData.categoryId,
+        total: count,
+        percentage: categoriesTotal > 0 ? Math.round((count / categoriesTotal) * 100) : 0,
       };
     });
 
@@ -801,17 +806,19 @@ export class DemandsRepository implements IDemandsRepository {
     );
 
     const periodDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    const trend: DemandTrendDetailedPoint[] = [];
+    const dailyTrend: DemandTrendDetailedPoint[] = [];
     for (let i = 0; i < periodDays; i++) {
       const d = new Date(startDate);
       d.setDate(d.getDate() + i);
       const dateStr = d.toISOString().split('T')[0];
-      trend.push({
+      dailyTrend.push({
         date: dateStr,
         created: createdMap.get(dateStr) ?? 0,
         resolved: resolvedMap.get(dateStr) ?? 0,
       });
     }
+
+    const trend = this.aggregateTrend(dailyTrend, periodDays);
 
     return {
       period: {
@@ -854,6 +861,39 @@ export class DemandsRepository implements IDemandsRepository {
       },
     });
     return demand ? DemandEntityMapper.toDomain(demand) : null;
+  }
+
+  private aggregateTrend(
+    daily: DemandTrendDetailedPoint[],
+    periodDays: number,
+  ): DemandTrendDetailedPoint[] {
+    if (periodDays <= 60) return daily;
+
+    if (periodDays <= 180) {
+      const weeks: DemandTrendDetailedPoint[] = [];
+      for (let i = 0; i < daily.length; i += 7) {
+        const slice = daily.slice(i, i + 7);
+        weeks.push({
+          date: slice[0].date,
+          created: slice.reduce((s, d) => s + d.created, 0),
+          resolved: slice.reduce((s, d) => s + d.resolved, 0),
+        });
+      }
+      return weeks;
+    }
+
+    const monthMap = new Map<string, DemandTrendDetailedPoint>();
+    for (const point of daily) {
+      const key = point.date.slice(0, 7);
+      const existing = monthMap.get(key);
+      if (existing) {
+        existing.created += point.created;
+        existing.resolved += point.resolved;
+      } else {
+        monthMap.set(key, { date: point.date, created: point.created, resolved: point.resolved });
+      }
+    }
+    return Array.from(monthMap.values());
   }
 
   async getNeighborhoods(cabinetId?: string): Promise<string[]> {

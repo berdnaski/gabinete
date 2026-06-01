@@ -35,5 +35,5 @@ export class GetCabinetDashboardSummaryResponseDto {
       { id: 'cat-2', name: 'Social', total: 12 },
     ],
   })
-  categories: Array<{ id: string; name: string; total: number }>;
+  categories: Array<{ id: string; name: string; total: number; percentage: number }>;
 }
