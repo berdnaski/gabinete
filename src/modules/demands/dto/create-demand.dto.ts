@@ -68,11 +68,11 @@ export class CreateDemandDto {
   @IsOptional()
   long?: number;
 
-  @ApiProperty({ example: 'Downtown', maxLength: 100 })
+  @ApiProperty({ example: 'Downtown', maxLength: 100, required: false })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MaxLength(100)
-  neighborhood: string;
+  neighborhood?: string;
 
   @ApiProperty({ example: 'São Paulo', maxLength: 100 })
   @IsString()

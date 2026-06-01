@@ -14,7 +14,7 @@ export interface CreateDemandInfo {
   zipcode?: string | null;
   lat?: number | null;
   long?: number | null;
-  neighborhood: string;
+  neighborhood?: string | null;
   city: string;
   state: string;
   reporterId?: string | null;

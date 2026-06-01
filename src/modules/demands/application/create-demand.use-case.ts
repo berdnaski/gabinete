@@ -36,7 +36,7 @@ export class CreateDemandUseCase {
       zipcode: dto.zipcode,
       lat: dto.lat || null,
       long: dto.long || null,
-      neighborhood: dto.neighborhood,
+      neighborhood: dto.neighborhood || null,
       city: dto.city,
       state: dto.state,
       reporterId: userId || null,
