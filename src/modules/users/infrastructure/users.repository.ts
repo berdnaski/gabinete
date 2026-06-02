@@ -33,6 +33,14 @@ export class UsersRepository implements IUsersRepository {
     return record ? this.toEntity(record) : null;
   }
 
+  async findByIdIncludingDisabled(id: string): Promise<UserEntity | null> {
+    const record = await this.prisma.user.findFirst({
+      where: { id },
+      include: { _count: { select: { cabinetMembers: true } } },
+    });
+    return record ? this.toEntity(record) : null;
+  }
+
   async create(data: {
     name: string;
     email: string;
@@ -169,10 +177,13 @@ export class UsersRepository implements IUsersRepository {
     role?: UserRole;
     page?: number;
     limit?: number;
+    showInactive?: boolean;
   }): Promise<PaginatedResult<UserEntity>> {
     const { skip, take } = PaginationHelper.getSkipTake(filters);
 
-    const where: Prisma.UserWhereInput = { disabledAt: null };
+    const where: Prisma.UserWhereInput = filters.showInactive
+      ? { disabledAt: { not: null } }
+      : { disabledAt: null };
 
     if (filters.role) {
       where.role = filters.role as unknown as PrismaUserRole;

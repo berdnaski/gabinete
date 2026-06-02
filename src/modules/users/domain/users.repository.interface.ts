@@ -7,6 +7,7 @@ import {
 export interface ListUsersFilters extends PaginationParams {
   search?: string;
   role?: UserRole;
+  showInactive?: boolean;
 }
 
 export interface CreateUserWithAccountData {
@@ -21,6 +22,7 @@ export interface CreateUserWithAccountData {
 export abstract class IUsersRepository {
   abstract findByEmail(email: string): Promise<UserEntity | null>;
   abstract findById(id: string): Promise<UserEntity | null>;
+  abstract findByIdIncludingDisabled(id: string): Promise<UserEntity | null>;
   abstract create(data: {
     name: string;
     email: string;
@@ -57,7 +59,7 @@ export abstract class IUsersRepository {
       long?: number;
       hasSetPassword?: boolean;
       isVerified?: boolean;
-      disabledAt?: Date;
+      disabledAt?: Date | null;
       termsAcceptedAt?: Date;
     },
   ): Promise<UserEntity>;
