@@ -13,5 +13,6 @@ export class DeleteDemandUseCase {
     }
 
     await this.demandsRepository.update(id, { disabledAt: new Date() });
+    await this.demandsRepository.resolveReports(id);
   }
 }
