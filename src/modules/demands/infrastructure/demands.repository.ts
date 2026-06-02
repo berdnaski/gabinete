@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { DemandPriority, DemandStatus, Prisma } from '@prisma/client';
 import { addMonths, startOfMonth, subDays, subHours } from 'date-fns';
 import { PaginationHelper } from 'src/shared/application/pagination.helper';
@@ -15,6 +15,8 @@ import {
   CabinetStatusCounts,
   CreateDemandInfo,
   CreateEvidenceInfo,
+  CreateDemandReportInfo,
+  DemandReportReasonInfo,
   DemandCommentInfo,
   DemandTrendDetailedPoint,
   DemandTrendPoint,
@@ -22,6 +24,7 @@ import {
   ListDemandsFilters,
   ListReporterDemandsFilters,
   RawHeatmapPoint,
+  ReportedDemandInfo,
   ReportCategoryStat,
   ReportNeighborhoodStat,
   ReportPriorityStat,
@@ -415,6 +418,159 @@ export class DemandsRepository implements IDemandsRepository {
     });
 
     return !!existing;
+  }
+
+  async createReport(data: CreateDemandReportInfo): Promise<void> {
+    try {
+      await this.prisma.demandReport.create({
+        data: {
+          demandId: data.demandId,
+          userId: data.userId,
+          reason: data.reason,
+        },
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException('Você já denunciou esta demanda');
+      }
+      throw error;
+    }
+  }
+
+  async listReportedDemands(
+    params: PaginationParams,
+  ): Promise<PaginatedResult<ReportedDemandInfo>> {
+    const { skip, take } = PaginationHelper.getSkipTake(params);
+
+    const [grouped, totalRows] = await this.prisma.$transaction([
+      this.prisma.demandReport.groupBy({
+        by: ['demandId'],
+        where: { demand: { disabledAt: null }, status: 'PENDING' },
+        _count: { demandId: true },
+        _min: { createdAt: true },
+        orderBy: [
+          { _count: { demandId: 'desc' } },
+          { _min: { createdAt: 'asc' } },
+        ],
+        skip,
+        take,
+      }),
+      this.prisma.$queryRaw<Array<{ total: bigint | number }>>`
+        SELECT COUNT(DISTINCT demand_id) AS total
+        FROM demand_reports dr
+        INNER JOIN demands d ON d.id = dr.demand_id
+        WHERE d.disabled_at IS NULL AND dr.status = 'PENDING'
+      `,
+    ]);
+
+    const total = Number(totalRows?.[0]?.total ?? 0);
+
+    const demandIds = grouped.map((row) => row.demandId);
+    if (!demandIds.length) {
+      return { items: [], total };
+    }
+
+    const demands = await this.prisma.demand.findMany({
+      where: {
+        id: { in: demandIds },
+        disabledAt: null,
+      },
+      include: {
+        evidences: true,
+        reporter: true,
+        category: { select: { name: true } },
+        cabinet: { select: { name: true, slug: true, avatarUrl: true } },
+        results: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            type: true,
+            createdAt: true,
+            protocolFileKey: true,
+            protocolFileUrl: true,
+          },
+          where: { disabledAt: null },
+        },
+        _count: { select: { likes: true, comments: true } },
+      },
+    });
+
+    const demandById = new Map(demands.map((demand) => [demand.id, demand]));
+
+    const items = grouped
+      .map((row) => {
+        const demand = demandById.get(row.demandId);
+        const firstReportedAt = row._min?.createdAt ?? null;
+
+        if (!demand || !firstReportedAt || typeof row._count !== 'object') {
+          return null;
+        }
+
+        return {
+          demand: DemandEntityMapper.toDomain(demand),
+          reportsCount: row._count.demandId ?? 0,
+          firstReportedAt,
+        };
+      })
+      .filter((row): row is ReportedDemandInfo => !!row);
+
+    return { items, total };
+  }
+
+  async hasDismissedReports(demandId: string): Promise<boolean> {
+    const count = await this.prisma.demandReport.count({
+      where: { demandId, status: 'DISMISSED' },
+    });
+    return count > 0;
+  }
+
+  async listReportReasons(
+    demandId: string,
+    params: PaginationParams,
+  ): Promise<PaginatedResult<DemandReportReasonInfo>> {
+    const { skip, take } = PaginationHelper.getSkipTake(params);
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.demandReport.findMany({
+        where: { demandId },
+        orderBy: { createdAt: 'asc' },
+        skip,
+        take,
+        include: { user: { select: { id: true, name: true, avatarUrl: true } } },
+      }),
+      this.prisma.demandReport.count({ where: { demandId } }),
+    ]);
+
+    return {
+      items: items.map((r) => ({
+        id: r.id,
+        reason: r.reason,
+        status: r.status,
+        createdAt: r.createdAt,
+        user: r.user
+          ? { id: r.user.id, name: r.user.name, avatarUrl: r.user.avatarUrl }
+          : null,
+      })),
+      total,
+    };
+  }
+
+  async dismissReports(demandId: string): Promise<void> {
+    await this.prisma.demandReport.updateMany({
+      where: { demandId },
+      data: { status: 'DISMISSED' },
+    });
+  }
+
+  async resolveReports(demandId: string): Promise<void> {
+    await this.prisma.demandReport.updateMany({
+      where: { demandId },
+      data: { status: 'RESOLVED' },
+    });
   }
 
   async getCabinetDemandMetrics(

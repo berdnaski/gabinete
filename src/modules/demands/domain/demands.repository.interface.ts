@@ -62,6 +62,26 @@ export interface DemandCommentInfo {
   createdAt: Date;
 }
 
+export interface CreateDemandReportInfo {
+  demandId: string;
+  userId: string;
+  reason: string;
+}
+
+export interface ReportedDemandInfo {
+  demand: DemandEntity;
+  reportsCount: number;
+  firstReportedAt: Date;
+}
+
+export interface DemandReportReasonInfo {
+  id: string;
+  reason: string;
+  status: string;
+  createdAt: Date;
+  user: { id: string; name: string; avatarUrl: string | null } | null;
+}
+
 export interface CabinetStatusCounts {
   SUBMITTED: number;
   IN_ANALYSIS: number;
@@ -216,6 +236,17 @@ export abstract class IDemandsRepository {
   ): Promise<PaginatedResult<DemandCommentInfo>>;
   abstract toggleLike(demandId: string, userId: string): Promise<boolean>;
   abstract getLikeStatus(demandId: string, userId: string): Promise<boolean>;
+  abstract createReport(data: CreateDemandReportInfo): Promise<void>;
+  abstract hasDismissedReports(demandId: string): Promise<boolean>;
+  abstract listReportedDemands(
+    params: PaginationParams,
+  ): Promise<PaginatedResult<ReportedDemandInfo>>;
+  abstract listReportReasons(
+    demandId: string,
+    params: PaginationParams,
+  ): Promise<PaginatedResult<DemandReportReasonInfo>>;
+  abstract dismissReports(demandId: string): Promise<void>;
+  abstract resolveReports(demandId: string): Promise<void>;
   abstract getCabinetDemandMetrics(
     cabinetId: string,
   ): Promise<CabinetDemandMetrics>;
