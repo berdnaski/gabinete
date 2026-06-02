@@ -10,7 +10,7 @@ const isLocal = process.env.DATABASE_URL?.includes('localhost') || process.env.D
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ...(!isLocal && { ssl: { rejectUnauthorized: false } }),
+  ...(!isLocal && { ssl: { rejachectUnauthorized: false } }),
 });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });

@@ -33,6 +33,12 @@ enum DemandPriority {
   URGENT
 }
 
+enum DemandReportStatus {
+  PENDING
+  RESOLVED
+  DISMISSED
+}
+
 enum ResultType {
   INFRASTRUCTURE
   SOCIAL
@@ -48,14 +54,14 @@ enum NotificationType {
 }
 
 model User {
-  id         String    @id @default(uuid())
-  name       String
-  email      String    @unique
-  password   String
-  phone      String?
-  avatarUrl  String?   @map("avatar_url")
-  role       UserRole  @default(CITIZEN)
-  hasSetPassword Boolean @default(true) @map("has_set_password")
+  id             String   @id @default(uuid())
+  name           String
+  email          String   @unique
+  password       String
+  phone          String?
+  avatarUrl      String?  @map("avatar_url")
+  role           UserRole @default(CITIZEN)
+  hasSetPassword Boolean  @default(true) @map("has_set_password")
 
   address      String?
   zipcode      String?
@@ -65,13 +71,14 @@ model User {
   lat          Float?
   long         Float?
 
-  isVerified Boolean   @default(false) @map("is_verified")
+  isVerified      Boolean   @default(false) @map("is_verified")
   termsAcceptedAt DateTime? @map("terms_accepted_at")
-  disabledAt DateTime? @map("disabled_at")
+  disabledAt      DateTime? @map("disabled_at")
 
   accounts        Account[]
   cabinetMembers  CabinetMember[]
   reportedDemands Demand[]        @relation("DemandReporter")
+  demandReports   DemandReport[]
   demandLikes     DemandLike[]
   demandComments  DemandComment[]
   tokens          Token[]
@@ -94,29 +101,29 @@ model Account {
 }
 
 model Cabinet {
-  id          String    @id @default(uuid())
-  name        String
-  slug        String    @unique
-  email       String?
-  description String?
-  avatarUrl   String?   @map("avatar_url")
-  bannerUrl          String?   @map("banner_url")
-  logoUrl            String?   @map("logo_url")
-  accentColor        String?   @map("accent_color")
-  tagline            String?   @map("tagline")
-  postDemandMessage  String?   @map("post_demand_message")
-  instagramUrl       String?   @map("instagram_url")
-  facebookUrl        String?   @map("facebook_url")
-  websiteUrl         String?   @map("website_url")
-  twitterUrl         String?   @map("twitter_url")
-  disabledAt         DateTime? @map("disabled_at")
-  score             Int @default(0)
-  in_progress_count Int @default(0) @map("in_progress_count")
-  resolved_count    Int @default(0) @map("resolved_count")
+  id                String    @id @default(uuid())
+  name              String
+  slug              String    @unique
+  email             String?
+  description       String?
+  avatarUrl         String?   @map("avatar_url")
+  bannerUrl         String?   @map("banner_url")
+  logoUrl           String?   @map("logo_url")
+  accentColor       String?   @map("accent_color")
+  tagline           String?   @map("tagline")
+  postDemandMessage String?   @map("post_demand_message")
+  instagramUrl      String?   @map("instagram_url")
+  facebookUrl       String?   @map("facebook_url")
+  websiteUrl        String?   @map("website_url")
+  twitterUrl        String?   @map("twitter_url")
+  disabledAt        DateTime? @map("disabled_at")
+  score             Int       @default(0)
+  in_progress_count Int       @default(0) @map("in_progress_count")
+  resolved_count    Int       @default(0) @map("resolved_count")
 
-  members CabinetMember[]
-  demands Demand[]
-  results Result[]
+  members     CabinetMember[]
+  demands     Demand[]
+  results     Result[]
   invitations CabinetInvitation[]
 
   @@index([slug])
@@ -171,41 +178,42 @@ model Category {
 }
 
 model Demand {
-  id               String         @id @default(uuid())
-  title            String
-  description      String
-  status           DemandStatus   @default(SUBMITTED)
-  priority         DemandPriority @default(LOW)
-  address          String
-  zipcode          String?
-  lat              Float?
-  long             Float?
-  neighborhood     String
-  city             String
-  state            String
-  reporterId          String?        @map("reporter_id")
-  guestEmail          String?        @map("guest_email")
-  guestPhone          String?        @map("guest_phone")
-  cabinetId           String?        @map("cabinet_id")
-  categoryId          String?        @map("category_id")
-  assigneeMemberId    String?        @map("assignee_member_id")
-  surveyToken         String?        @unique @map("survey_token")
-  surveyRating        Int?           @map("survey_rating")
-  surveyComment       String?        @map("survey_comment")
-  surveySubmittedAt   DateTime?      @map("survey_submitted_at")
-  createdAt           DateTime       @default(now()) @map("created_at")
-  updatedAt           DateTime       @updatedAt @map("updated_at")
-  termsAcceptedAt     DateTime?      @map("terms_accepted_at")
-  disabledAt          DateTime?      @map("disabled_at")
+  id                String         @id @default(uuid())
+  title             String
+  description       String
+  status            DemandStatus   @default(SUBMITTED)
+  priority          DemandPriority @default(LOW)
+  address           String
+  zipcode           String?
+  lat               Float?
+  long              Float?
+  neighborhood      String
+  city              String
+  state             String
+  reporterId        String?        @map("reporter_id")
+  guestEmail        String?        @map("guest_email")
+  guestPhone        String?        @map("guest_phone")
+  cabinetId         String?        @map("cabinet_id")
+  categoryId        String?        @map("category_id")
+  assigneeMemberId  String?        @map("assignee_member_id")
+  surveyToken       String?        @unique @map("survey_token")
+  surveyRating      Int?           @map("survey_rating")
+  surveyComment     String?        @map("survey_comment")
+  surveySubmittedAt DateTime?      @map("survey_submitted_at")
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
+  termsAcceptedAt   DateTime?      @map("terms_accepted_at")
+  disabledAt        DateTime?      @map("disabled_at")
 
   reporter       User?            @relation("DemandReporter", fields: [reporterId], references: [id], onDelete: SetNull)
   cabinet        Cabinet?         @relation(fields: [cabinetId], references: [id])
   category       Category?        @relation(fields: [categoryId], references: [id])
   assigneeMember CabinetMember?   @relation("DemandAssignee", fields: [assigneeMemberId], references: [id])
-  evidences DemandEvidence[]
-  likes     DemandLike[]
-  comments  DemandComment[]
-  results   Result[]
+  evidences      DemandEvidence[]
+  likes          DemandLike[]
+  comments       DemandComment[]
+  reports        DemandReport[]
+  results        Result[]
 
   @@index([cabinetId])
   @@index([categoryId])
@@ -257,20 +265,38 @@ model DemandComment {
   @@map("demand_comments")
 }
 
+model DemandReport {
+  id        String             @id @default(uuid())
+  demandId  String             @map("demand_id")
+  userId    String             @map("user_id")
+  reason    String
+  status    DemandReportStatus @default(PENDING)
+  createdAt DateTime           @default(now()) @map("created_at")
+  updatedAt DateTime           @updatedAt @map("updated_at")
+
+  demand Demand @relation(fields: [demandId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([demandId, userId])
+  @@index([demandId])
+  @@index([userId])
+  @@map("demand_reports")
+}
+
 model Result {
-  id                   String    @id @default(uuid())
+  id                   String     @id @default(uuid())
   title                String
   description          String
   type                 ResultType
-  cabinetId            String    @map("cabinet_id")
-  demandId             String?   @map("demand_id")
-  protocolFileKey      String?   @map("protocol_file_key")
-  protocolFileUrl      String?   @map("protocol_file_url")
-  protocolFileName     String?   @map("protocol_file_name")
-  protocolFileMimeType String?   @map("protocol_file_mime_type")
-  protocolFileSize     Int?      @map("protocol_file_size")
-  createdAt            DateTime  @default(now()) @map("created_at")
-  disabledAt           DateTime? @map("disabled_at")
+  cabinetId            String     @map("cabinet_id")
+  demandId             String?    @map("demand_id")
+  protocolFileKey      String?    @map("protocol_file_key")
+  protocolFileUrl      String?    @map("protocol_file_url")
+  protocolFileName     String?    @map("protocol_file_name")
+  protocolFileMimeType String?    @map("protocol_file_mime_type")
+  protocolFileSize     Int?       @map("protocol_file_size")
+  createdAt            DateTime   @default(now()) @map("created_at")
+  disabledAt           DateTime?  @map("disabled_at")
 
   cabinet Cabinet       @relation(fields: [cabinetId], references: [id])
   demand  Demand?       @relation(fields: [demandId], references: [id])
