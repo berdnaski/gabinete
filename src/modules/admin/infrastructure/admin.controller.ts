@@ -10,15 +10,18 @@ import {
   NotFoundException,
   Get,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
   ApiParam,
   ApiBearerAuth,
   ApiBody,
+  ApiExtraModels,
   ApiOperation,
   ApiResponse,
   ApiTags,
+  getSchemaPath,
 } from '@nestjs/swagger';
 import { v4 as uuidv4 } from 'uuid';
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
@@ -38,8 +41,18 @@ import { IUsersRepository } from '../../users/domain/users.repository.interface'
 import { UpdateCabinetUseCase } from '../../cabinets/application/update-cabinet.use-case';
 import { CreateAdminUserDto } from '../dto/create-admin-user.dto';
 import { UpdateAdminUserDto } from '../dto/update-admin-user.dto';
+import { ListReportedDemandsUseCase } from '../../demands/application/list-reported-demands.use-case';
+import { ListDemandReportReasonsUseCase } from '../../demands/application/list-demand-report-reasons.use-case';
+import { DismissDemandReportsUseCase } from '../../demands/application/dismiss-demand-reports.use-case';
+import { DeleteDemandUseCase } from '../../demands/application/delete-demand.use-case';
+import { DisableUserUseCase } from '../application/disable-user.use-case';
+import { EnableUserUseCase } from '../application/enable-user.use-case';
+import { ListReportedDemandsDto } from '../dto/list-reported-demands.dto';
+import { ListReportReasonsDto } from '../dto/list-report-reasons.dto';
+import { ReportedDemandResponseDto } from '../dto/reported-demand-response.dto';
 
 @ApiTags('admin')
+@ApiExtraModels(ReportedDemandResponseDto)
 @Controller('admin')
 export class AdminController {
   constructor(
@@ -51,7 +64,110 @@ export class AdminController {
     private readonly cabinetMembersRepository: ICabinetMembersRepository,
     private readonly usersRepository: IUsersRepository,
     private readonly updateCabinetUseCase: UpdateCabinetUseCase,
+    private readonly listReportedDemandsUseCase: ListReportedDemandsUseCase,
+    private readonly listDemandReportReasonsUseCase: ListDemandReportReasonsUseCase,
+    private readonly dismissDemandReportsUseCase: DismissDemandReportsUseCase,
+    private readonly deleteDemandUseCase: DeleteDemandUseCase,
+    private readonly disableUserUseCase: DisableUserUseCase,
+    private readonly enableUserUseCase: EnableUserUseCase,
   ) {}
+
+  @Get('reports')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'List reported demands grouped by demand, ordered by reports count desc and first report date asc',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated list of reported demands',
+    schema: {
+      properties: {
+        items: {
+          type: 'array',
+          items: { $ref: getSchemaPath(ReportedDemandResponseDto) },
+        },
+        meta: {
+          type: 'object',
+          properties: {
+            total: { type: 'number', example: 100 },
+            page: { type: 'number', example: 1 },
+            limit: { type: 'number', example: 10 },
+            totalPages: { type: 'number', example: 10 },
+          },
+        },
+      },
+    },
+  })
+  async listReports(@Query() query: ListReportedDemandsDto) {
+    return this.listReportedDemandsUseCase.execute({
+      page: query.page,
+      limit: query.limit,
+    });
+  }
+
+  @Get('reports/:demandId/reasons')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiParam({ name: 'demandId', type: 'string', format: 'uuid' })
+  @ApiOperation({ summary: 'List individual report reasons for a demand' })
+  @HttpCode(HttpStatus.OK)
+  async listReportReasons(
+    @Param('demandId') demandId: string,
+    @Query() query: ListReportReasonsDto,
+  ) {
+    return this.listDemandReportReasonsUseCase.execute(demandId, {
+      page: query.page,
+      limit: query.limit,
+    });
+  }
+
+  @Patch('reports/:demandId/dismiss')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiParam({ name: 'demandId', type: 'string', format: 'uuid' })
+  @ApiOperation({ summary: 'Dismiss all reports for a demand and prevent new ones' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async dismissReports(@Param('demandId') demandId: string): Promise<void> {
+    await this.dismissDemandReportsUseCase.execute(demandId);
+  }
+
+  @Delete('demands/:demandId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiParam({ name: 'demandId', type: 'string', format: 'uuid' })
+  @ApiOperation({ summary: 'Soft delete a demand (Admin)' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteDemand(@Param('demandId') demandId: string): Promise<void> {
+    await this.deleteDemandUseCase.execute(demandId);
+  }
+
+  @Patch('users/:userId/disable')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiParam({ name: 'userId', type: 'string', format: 'uuid' })
+  @ApiOperation({ summary: 'Disable a user account (Admin)' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async disableUser(@Param('userId') userId: string): Promise<void> {
+    await this.disableUserUseCase.execute(userId);
+  }
+
+  @Patch('users/:userId/enable')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiParam({ name: 'userId', type: 'string', format: 'uuid' })
+  @ApiOperation({ summary: 'Re-enable a disabled user account (Admin)' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async enableUser(@Param('userId') userId: string): Promise<void> {
+    await this.enableUserUseCase.execute(userId);
+  }
 
   @Post('cabinets/avatar/presign')
   @UseGuards(JwtAuthGuard, RolesGuard)
