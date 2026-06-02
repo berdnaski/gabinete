@@ -19,4 +19,5 @@ export class CabinetEntity {
   demand_count: number;
   in_progress_count: number;
   resolved_count: number;
+  resolution_rate: number;
 }

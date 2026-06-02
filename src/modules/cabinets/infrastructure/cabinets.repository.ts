@@ -183,6 +183,9 @@ export class CabinetsRepository implements ICabinetsRepository {
     entity.demand_count = record._count?.demands ?? 0;
     entity.in_progress_count = record.in_progress_count ?? 0;
     entity.resolved_count = record.resolved_count ?? 0;
+    entity.resolution_rate = entity.demand_count > 0
+      ? Math.round((entity.resolved_count / entity.demand_count) * 100)
+      : 0;
     return entity;
   }
 }

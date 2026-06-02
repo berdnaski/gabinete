@@ -39,6 +39,7 @@ import { CreateDemandReportUseCase } from '../application/create-demand-report.u
 import { ListReportedDemandsUseCase } from '../application/list-reported-demands.use-case';
 import { ListDemandReportReasonsUseCase } from '../application/list-demand-report-reasons.use-case';
 import { DismissDemandReportsUseCase } from '../application/dismiss-demand-reports.use-case';
+import { GetReporterSummaryUseCase } from '../application/get-reporter-summary.use-case';
 
 @Module({
   imports: [AuthModule, CabinetsModule, UsersModule, ResultsModule],
@@ -79,8 +80,9 @@ import { DismissDemandReportsUseCase } from '../application/dismiss-demand-repor
     ListReportedDemandsUseCase,
     ListDemandReportReasonsUseCase,
     DismissDemandReportsUseCase,
+    GetReporterSummaryUseCase,
     DemandAccessGuard,
   ],
-  exports: [ListReportedDemandsUseCase, ListDemandReportReasonsUseCase, DismissDemandReportsUseCase, DeleteDemandUseCase],
+  exports: [ListReportedDemandsUseCase, ListDemandReportReasonsUseCase, DismissDemandReportsUseCase, DeleteDemandUseCase, FindDemandUseCase, IDemandsRepository],
 })
 export class DemandsModule {}

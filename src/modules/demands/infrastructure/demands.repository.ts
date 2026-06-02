@@ -1,6 +1,6 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { DemandPriority, DemandStatus, Prisma } from '@prisma/client';
-import { addMonths, startOfMonth, subDays, subHours } from 'date-fns';
+import { addMonths, format, startOfMonth, subDays, subHours, subMonths } from 'date-fns';
 import { PaginationHelper } from 'src/shared/application/pagination.helper';
 import {
   PaginatedResult,
@@ -29,6 +29,7 @@ import {
   ReportNeighborhoodStat,
   ReportPriorityStat,
   ReportStatusStat,
+  ReporterSummaryData,
 } from '../domain/demands.repository.interface';
 import { DemandEntityMapper } from './demand-entity.mapper';
 
@@ -138,7 +139,7 @@ export class DemandsRepository implements IDemandsRepository {
         zipcode: data.zipcode,
         lat: data.lat,
         long: data.long,
-        neighborhood: data.neighborhood,
+        neighborhood: data.neighborhood ?? "",
         city: data.city,
         state: data.state,
         reporterId: data.reporterId,
@@ -242,7 +243,7 @@ export class DemandsRepository implements IDemandsRepository {
         where,
         skip,
         take,
-        orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
+        orderBy: { createdAt: 'desc' },
         include: {
           evidences: true,
           results: {
@@ -689,13 +690,18 @@ export class DemandsRepository implements IDemandsRepository {
 
     const categoriesById = new Map(categoryRecords.map((c) => [c.id, c.name]));
 
-    const categories = topCategories.map((row) => {
-      const countData = row._count as { categoryId: number };
+    const categoriesTotal = topCategories.reduce(
+      (sum, row) => sum + (row._count as { categoryId: number }).categoryId,
+      0,
+    );
 
+    const categories = topCategories.map((row) => {
+      const count = (row._count as { categoryId: number }).categoryId;
       return {
         id: row.categoryId!,
         name: categoriesById.get(row.categoryId!) ?? 'Unknown',
-        total: countData.categoryId,
+        total: count,
+        percentage: categoriesTotal > 0 ? Math.round((count / categoriesTotal) * 100) : 0,
       };
     });
 
@@ -957,17 +963,19 @@ export class DemandsRepository implements IDemandsRepository {
     );
 
     const periodDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    const trend: DemandTrendDetailedPoint[] = [];
+    const dailyTrend: DemandTrendDetailedPoint[] = [];
     for (let i = 0; i < periodDays; i++) {
       const d = new Date(startDate);
       d.setDate(d.getDate() + i);
       const dateStr = d.toISOString().split('T')[0];
-      trend.push({
+      dailyTrend.push({
         date: dateStr,
         created: createdMap.get(dateStr) ?? 0,
         resolved: resolvedMap.get(dateStr) ?? 0,
       });
     }
+
+    const trend = this.aggregateTrend(dailyTrend, periodDays);
 
     return {
       period: {
@@ -1010,6 +1018,105 @@ export class DemandsRepository implements IDemandsRepository {
       },
     });
     return demand ? DemandEntityMapper.toDomain(demand) : null;
+  }
+
+  private aggregateTrend(
+    daily: DemandTrendDetailedPoint[],
+    periodDays: number,
+  ): DemandTrendDetailedPoint[] {
+    if (periodDays <= 60) return daily;
+
+    if (periodDays <= 180) {
+      const weeks: DemandTrendDetailedPoint[] = [];
+      for (let i = 0; i < daily.length; i += 7) {
+        const slice = daily.slice(i, i + 7);
+        weeks.push({
+          date: slice[0].date,
+          created: slice.reduce((s, d) => s + d.created, 0),
+          resolved: slice.reduce((s, d) => s + d.resolved, 0),
+        });
+      }
+      return weeks;
+    }
+
+    const monthMap = new Map<string, DemandTrendDetailedPoint>();
+    for (const point of daily) {
+      const key = point.date.slice(0, 7);
+      const existing = monthMap.get(key);
+      if (existing) {
+        existing.created += point.created;
+        existing.resolved += point.resolved;
+      } else {
+        monthMap.set(key, { date: point.date, created: point.created, resolved: point.resolved });
+      }
+    }
+    return Array.from(monthMap.values());
+  }
+
+  async getReporterSummary(reporterId: string): Promise<ReporterSummaryData> {
+    const demands = await this.prisma.demand.findMany({
+      where: { reporterId, disabledAt: null },
+      select: {
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        category: { select: { name: true } },
+      },
+    });
+
+    const total = demands.length;
+
+    const statusCounts = new Map<DemandStatus, number>();
+    for (const d of demands) {
+      statusCounts.set(d.status, (statusCounts.get(d.status) ?? 0) + 1);
+    }
+
+    const statusBreakdown = Object.values(DemandStatus).map((status) => ({
+      status,
+      count: statusCounts.get(status) ?? 0,
+      percentage: total > 0 ? Math.round(((statusCounts.get(status) ?? 0) / total) * 100) : 0,
+    }));
+
+    const resolvedCount = statusCounts.get(DemandStatus.RESOLVED) ?? 0;
+    const resolutionRate = total > 0 ? Math.round((resolvedCount / total) * 100) : 0;
+
+    const resolvedDemands = demands.filter((d) => d.status === DemandStatus.RESOLVED);
+    const avgDaysToResolve =
+      resolvedDemands.length > 0
+        ? Math.round(
+            resolvedDemands.reduce((sum, d) => {
+              return sum + (d.updatedAt.getTime() - d.createdAt.getTime()) / (1000 * 60 * 60 * 24);
+            }, 0) / resolvedDemands.length,
+          )
+        : null;
+
+    const now = new Date();
+    const monthlyActivity = Array.from({ length: 6 }, (_, i) => {
+      const date = subMonths(now, 5 - i);
+      const month = date.getMonth() + 1;
+      const year = date.getFullYear();
+      const count = demands.filter(
+        (d) => d.createdAt.getMonth() + 1 === month && d.createdAt.getFullYear() === year,
+      ).length;
+      return { label: format(date, 'MMM'), month, year, count };
+    });
+
+    const categoryMap = new Map<string, { count: number; resolvedCount: number }>();
+    for (const d of demands) {
+      const name = d.category?.name ?? 'Sem categoria';
+      const existing = categoryMap.get(name) ?? { count: 0, resolvedCount: 0 };
+      categoryMap.set(name, {
+        count: existing.count + 1,
+        resolvedCount: existing.resolvedCount + (d.status === DemandStatus.RESOLVED ? 1 : 0),
+      });
+    }
+
+    const categoryBreakdown = Array.from(categoryMap.entries())
+      .map(([name, data]) => ({ name, ...data }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    return { totalDemands: total, statusBreakdown, resolutionRate, avgDaysToResolve, monthlyActivity, categoryBreakdown };
   }
 
   async getNeighborhoods(cabinetId?: string): Promise<string[]> {

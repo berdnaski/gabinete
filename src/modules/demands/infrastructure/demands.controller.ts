@@ -64,6 +64,8 @@ import { GenerateCabinetReportUseCase } from '../application/generate-cabinet-re
 import { GetCabinetReportQueryDto } from '../dto/get-cabinet-report-query.dto';
 import { GetDemandSurveyUseCase } from '../application/get-demand-survey.use-case';
 import { SubmitDemandSurveyUseCase } from '../application/submit-demand-survey.use-case';
+import { GetReporterSummaryUseCase } from '../application/get-reporter-summary.use-case';
+import { ReporterSummaryResponseDto } from '../dto/reporter-summary-response.dto';
 
 @ApiTags('demands')
 @Controller('demands')
@@ -95,6 +97,7 @@ export class DemandsController {
     private readonly generateCabinetReportUseCase: GenerateCabinetReportUseCase,
     private readonly getDemandSurveyUseCase: GetDemandSurveyUseCase,
     private readonly submitDemandSurveyUseCase: SubmitDemandSurveyUseCase,
+    private readonly getReporterSummaryUseCase: GetReporterSummaryUseCase,
   ) {}
 
   @Post()
@@ -206,6 +209,17 @@ export class DemandsController {
     @CurrentUser() user: UserEntity,
   ) {
     return this.listDemandsByReporterUseCase.execute(user.id, query, user.id);
+  }
+
+  @Get('me/summary')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get demand statistics summary for the authenticated citizen' })
+  @ApiResponse({ status: 200, type: ReporterSummaryResponseDto })
+  async getMyDemandsSummary(
+    @CurrentUser() user: UserEntity,
+  ): Promise<ReporterSummaryResponseDto> {
+    return this.getReporterSummaryUseCase.execute(user.id);
   }
 
   @Get('cabinet/:slug/trend')
@@ -480,7 +494,7 @@ export class DemandsController {
   }
 
   @Get(':id/comments')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'List comments for a demand' })
   @ApiResponse({
@@ -496,7 +510,6 @@ export class DemandsController {
       },
     },
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Demand not found' })
   async listComments(
     @Param('id') id: string,

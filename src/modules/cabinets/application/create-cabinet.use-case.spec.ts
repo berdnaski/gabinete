@@ -26,6 +26,7 @@ const makeCabinetRecord = (slug: string) => ({
   demand_count: 0,
   in_progress_count: 0,
   resolved_count: 0,
+  resolution_rate: 0,
 });
 
 const makeMemberRecord = () => ({

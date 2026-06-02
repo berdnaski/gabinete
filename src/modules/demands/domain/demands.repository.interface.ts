@@ -14,7 +14,7 @@ export interface CreateDemandInfo {
   zipcode?: string | null;
   lat?: number | null;
   long?: number | null;
-  neighborhood: string;
+  neighborhood?: string | null;
   city: string;
   state: string;
   reporterId?: string | null;
@@ -103,6 +103,7 @@ export interface DashboardCategoryStat {
   id: string;
   name: string;
   total: number;
+  percentage: number;
 }
 
 export interface DashboardNeighborhoodStat {
@@ -201,6 +202,34 @@ export interface CabinetReportData {
   resultsInPeriod: number;
 }
 
+export interface ReporterStatusBreakdown {
+  status: DemandStatus;
+  count: number;
+  percentage: number;
+}
+
+export interface ReporterMonthlyActivity {
+  label: string;
+  month: number;
+  year: number;
+  count: number;
+}
+
+export interface ReporterCategoryBreakdown {
+  name: string;
+  count: number;
+  resolvedCount: number;
+}
+
+export interface ReporterSummaryData {
+  totalDemands: number;
+  statusBreakdown: ReporterStatusBreakdown[];
+  resolutionRate: number;
+  avgDaysToResolve: number | null;
+  monthlyActivity: ReporterMonthlyActivity[];
+  categoryBreakdown: ReporterCategoryBreakdown[];
+}
+
 export abstract class IDemandsRepository {
   abstract createWithEvidences(
     demand: CreateDemandInfo,
@@ -262,4 +291,5 @@ export abstract class IDemandsRepository {
   abstract getCabinetReport(cabinetId: string, startDate: Date, endDate: Date): Promise<CabinetReportData>;
   abstract findBySurveyToken(token: string): Promise<DemandEntity | null>;
   abstract findContactInfo(demandId: string): Promise<{ guestEmail: string | null; guestPhone: string | null } | null>;
+  abstract getReporterSummary(reporterId: string): Promise<ReporterSummaryData>;
 }

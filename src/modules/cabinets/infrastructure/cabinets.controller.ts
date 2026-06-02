@@ -408,9 +408,8 @@ export class CabinetsController {
     dto.demand_count = entity.demand_count ?? 0;
     dto.in_progress_count = entity.in_progress_count ?? 0;
     dto.resolved_count = entity.resolved_count ?? 0;
-    const total = entity.demand_count ?? 0;
-    const resolved = entity.resolved_count ?? 0;
-    dto.transparencyScore = total > 0 ? Math.round((resolved / total) * 100) : 0;
+    dto.transparencyScore = entity.resolution_rate ?? 0;
+    dto.resolution_rate = entity.resolution_rate ?? 0;
     return dto;
   }
 
