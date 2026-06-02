@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DemandPriority, DemandStatus, Prisma } from '@prisma/client';
-import { addMonths, startOfMonth, subDays, subHours } from 'date-fns';
+import { addMonths, format, startOfMonth, subDays, subHours, subMonths } from 'date-fns';
 import { PaginationHelper } from 'src/shared/application/pagination.helper';
 import {
   PaginatedResult,
@@ -26,6 +26,7 @@ import {
   ReportNeighborhoodStat,
   ReportPriorityStat,
   ReportStatusStat,
+  ReporterSummaryData,
 } from '../domain/demands.repository.interface';
 import { DemandEntityMapper } from './demand-entity.mapper';
 
@@ -894,6 +895,72 @@ export class DemandsRepository implements IDemandsRepository {
       }
     }
     return Array.from(monthMap.values());
+  }
+
+  async getReporterSummary(reporterId: string): Promise<ReporterSummaryData> {
+    const demands = await this.prisma.demand.findMany({
+      where: { reporterId, disabledAt: null },
+      select: {
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        category: { select: { name: true } },
+      },
+    });
+
+    const total = demands.length;
+
+    const statusCounts = new Map<DemandStatus, number>();
+    for (const d of demands) {
+      statusCounts.set(d.status, (statusCounts.get(d.status) ?? 0) + 1);
+    }
+
+    const statusBreakdown = Object.values(DemandStatus).map((status) => ({
+      status,
+      count: statusCounts.get(status) ?? 0,
+      percentage: total > 0 ? Math.round(((statusCounts.get(status) ?? 0) / total) * 100) : 0,
+    }));
+
+    const resolvedCount = statusCounts.get(DemandStatus.RESOLVED) ?? 0;
+    const resolutionRate = total > 0 ? Math.round((resolvedCount / total) * 100) : 0;
+
+    const resolvedDemands = demands.filter((d) => d.status === DemandStatus.RESOLVED);
+    const avgDaysToResolve =
+      resolvedDemands.length > 0
+        ? Math.round(
+            resolvedDemands.reduce((sum, d) => {
+              return sum + (d.updatedAt.getTime() - d.createdAt.getTime()) / (1000 * 60 * 60 * 24);
+            }, 0) / resolvedDemands.length,
+          )
+        : null;
+
+    const now = new Date();
+    const monthlyActivity = Array.from({ length: 6 }, (_, i) => {
+      const date = subMonths(now, 5 - i);
+      const month = date.getMonth() + 1;
+      const year = date.getFullYear();
+      const count = demands.filter(
+        (d) => d.createdAt.getMonth() + 1 === month && d.createdAt.getFullYear() === year,
+      ).length;
+      return { label: format(date, 'MMM'), month, year, count };
+    });
+
+    const categoryMap = new Map<string, { count: number; resolvedCount: number }>();
+    for (const d of demands) {
+      const name = d.category?.name ?? 'Sem categoria';
+      const existing = categoryMap.get(name) ?? { count: 0, resolvedCount: 0 };
+      categoryMap.set(name, {
+        count: existing.count + 1,
+        resolvedCount: existing.resolvedCount + (d.status === DemandStatus.RESOLVED ? 1 : 0),
+      });
+    }
+
+    const categoryBreakdown = Array.from(categoryMap.entries())
+      .map(([name, data]) => ({ name, ...data }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    return { totalDemands: total, statusBreakdown, resolutionRate, avgDaysToResolve, monthlyActivity, categoryBreakdown };
   }
 
   async getNeighborhoods(cabinetId?: string): Promise<string[]> {

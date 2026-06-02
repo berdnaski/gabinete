@@ -35,6 +35,7 @@ import { ResultsModule } from '../../results/infrastructure/results.module';
 import { DemandEmailListener } from '../application/demand-email.listener';
 import { GetDemandSurveyUseCase } from '../application/get-demand-survey.use-case';
 import { SubmitDemandSurveyUseCase } from '../application/submit-demand-survey.use-case';
+import { GetReporterSummaryUseCase } from '../application/get-reporter-summary.use-case';
 
 @Module({
   imports: [AuthModule, CabinetsModule, UsersModule, ResultsModule],
@@ -72,6 +73,7 @@ import { SubmitDemandSurveyUseCase } from '../application/submit-demand-survey.u
     DemandEmailListener,
     GetDemandSurveyUseCase,
     SubmitDemandSurveyUseCase,
+    GetReporterSummaryUseCase,
     DemandAccessGuard,
   ],
 })
