@@ -239,7 +239,7 @@ export class DemandsRepository implements IDemandsRepository {
         where,
         skip,
         take,
-        orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
+        orderBy: { createdAt: 'desc' },
         include: {
           evidences: true,
           results: {
