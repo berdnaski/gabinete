@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Post,
   Patch,
   Delete,
   Param,
@@ -35,11 +36,18 @@ import { ListUsersUseCase } from '../application/list-users.use-case';
 import { FindUserByIdUseCase } from '../application/find-user-by-id.use-case';
 import { UpdateUserProfileUseCase } from '../application/update-user-profile.use-case';
 import { DeleteAccountUseCase } from '../application/delete-account.use-case';
+import { ListUserNeighborhoodsUseCase } from '../application/list-user-neighborhoods.use-case';
+import { AddUserNeighborhoodUseCase } from '../application/add-user-neighborhood.use-case';
+import { RemoveUserNeighborhoodUseCase } from '../application/remove-user-neighborhood.use-case';
+import { SetPrimaryNeighborhoodUseCase } from '../application/set-primary-neighborhood.use-case';
 
 import { ListUsersDto } from '../dto/list-users.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { UserResponseDto } from '../dto/user-response.dto';
+import { CreateUserNeighborhoodDto } from '../dto/create-user-neighborhood.dto';
+import { UserNeighborhoodResponseDto } from '../dto/user-neighborhood-response.dto';
 import { CurrentUser } from 'src/shared/decorators/current-user.decorator';
+import { UserEntity } from '../domain/user.entity';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -51,6 +59,10 @@ export class UsersController {
     private readonly findUserByIdUseCase: FindUserByIdUseCase,
     private readonly updateUserProfileUseCase: UpdateUserProfileUseCase,
     private readonly deleteAccountUseCase: DeleteAccountUseCase,
+    private readonly listUserNeighborhoodsUseCase: ListUserNeighborhoodsUseCase,
+    private readonly addUserNeighborhoodUseCase: AddUserNeighborhoodUseCase,
+    private readonly removeUserNeighborhoodUseCase: RemoveUserNeighborhoodUseCase,
+    private readonly setPrimaryNeighborhoodUseCase: SetPrimaryNeighborhoodUseCase,
   ) {}
 
   @Get()
@@ -142,5 +154,49 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User not found' })
   async remove(@Param('id') id: string) {
     return this.deleteAccountUseCase.execute(id);
+  }
+
+  @Get('me/neighborhoods')
+  @ApiOperation({ summary: 'List saved neighborhoods for the authenticated user' })
+  @ApiResponse({ status: 200, type: [UserNeighborhoodResponseDto] })
+  async listNeighborhoods(
+    @CurrentUser() user: UserEntity,
+  ): Promise<UserNeighborhoodResponseDto[]> {
+    return this.listUserNeighborhoodsUseCase.execute(user.id);
+  }
+
+  @Post('me/neighborhoods')
+  @ApiOperation({ summary: 'Add a neighborhood to the authenticated user' })
+  @ApiResponse({ status: 201, type: UserNeighborhoodResponseDto })
+  @ApiResponse({ status: 400, description: 'Maximum neighborhoods reached' })
+  @ApiResponse({ status: 409, description: 'Neighborhood already saved' })
+  async addNeighborhood(
+    @CurrentUser() user: UserEntity,
+    @Body() dto: CreateUserNeighborhoodDto,
+  ): Promise<UserNeighborhoodResponseDto> {
+    return this.addUserNeighborhoodUseCase.execute({ userId: user.id, ...dto });
+  }
+
+  @Delete('me/neighborhoods/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Remove a saved neighborhood' })
+  @ApiResponse({ status: 204, description: 'Removed' })
+  @ApiResponse({ status: 404, description: 'Not found' })
+  async removeNeighborhood(
+    @CurrentUser() user: UserEntity,
+    @Param('id') id: string,
+  ): Promise<void> {
+    return this.removeUserNeighborhoodUseCase.execute(id, user.id);
+  }
+
+  @Patch('me/neighborhoods/:id/primary')
+  @ApiOperation({ summary: 'Set a neighborhood as primary' })
+  @ApiResponse({ status: 200, type: [UserNeighborhoodResponseDto] })
+  @ApiResponse({ status: 404, description: 'Not found' })
+  async setPrimaryNeighborhood(
+    @CurrentUser() user: UserEntity,
+    @Param('id') id: string,
+  ): Promise<UserNeighborhoodResponseDto[]> {
+    return this.setPrimaryNeighborhoodUseCase.execute(id, user.id);
   }
 }

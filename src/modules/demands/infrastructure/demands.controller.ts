@@ -66,6 +66,11 @@ import { GetDemandSurveyUseCase } from '../application/get-demand-survey.use-cas
 import { SubmitDemandSurveyUseCase } from '../application/submit-demand-survey.use-case';
 import { GetReporterSummaryUseCase } from '../application/get-reporter-summary.use-case';
 import { ReporterSummaryResponseDto } from '../dto/reporter-summary-response.dto';
+import { GetCabinetOpenDataUseCase } from '../application/get-cabinet-open-data.use-case';
+import { CabinetOpenDataResponseDto } from '../dto/cabinet-open-data-response.dto';
+import { GetNeighborhoodDashboardUseCase } from '../application/get-neighborhood-dashboard.use-case';
+import { GetNeighborhoodDashboardQueryDto } from '../dto/get-neighborhood-dashboard-query.dto';
+import { NeighborhoodDashboardResponseDto } from '../dto/neighborhood-dashboard-response.dto';
 
 @ApiTags('demands')
 @Controller('demands')
@@ -98,6 +103,8 @@ export class DemandsController {
     private readonly getDemandSurveyUseCase: GetDemandSurveyUseCase,
     private readonly submitDemandSurveyUseCase: SubmitDemandSurveyUseCase,
     private readonly getReporterSummaryUseCase: GetReporterSummaryUseCase,
+    private readonly getCabinetOpenDataUseCase: GetCabinetOpenDataUseCase,
+    private readonly getNeighborhoodDashboardUseCase: GetNeighborhoodDashboardUseCase,
   ) {}
 
   @Post()
@@ -155,6 +162,16 @@ export class DemandsController {
     @CurrentUser() user: UserEntity | null,
   ) {
     return this.listDemandsUseCase.execute(query, user?.id);
+  }
+
+  @Get('cabinet/:slug/opendata')
+  @ApiOperation({ summary: 'Get aggregated public open data for a cabinet (no auth required)' })
+  @ApiResponse({ status: 200, type: CabinetOpenDataResponseDto })
+  @ApiResponse({ status: 404, description: 'Cabinet not found' })
+  async getCabinetOpenData(
+    @Param('slug') slug: string,
+  ): Promise<CabinetOpenDataResponseDto> {
+    return this.getCabinetOpenDataUseCase.execute(slug);
   }
 
   @Get('cabinet/:slug/metrics')
@@ -286,6 +303,16 @@ export class DemandsController {
     @CurrentUser() user: UserEntity | null,
   ) {
     return this.listCabinetDemandsUseCase.execute(slug, query, user?.id);
+  }
+
+  @Get('neighborhood')
+  @ApiOperation({ summary: 'Get aggregated neighborhood dashboard data (public)' })
+  @ApiResponse({ status: 200, type: NeighborhoodDashboardResponseDto })
+  @ApiResponse({ status: 400, description: 'Missing required query params' })
+  async getNeighborhoodDashboard(
+    @Query() query: GetNeighborhoodDashboardQueryDto,
+  ): Promise<NeighborhoodDashboardResponseDto> {
+    return this.getNeighborhoodDashboardUseCase.execute(query) as Promise<NeighborhoodDashboardResponseDto>;
   }
 
   @Get('neighborhoods')
@@ -579,4 +606,5 @@ export class DemandsController {
     });
     return { message: 'Avaliação registrada com sucesso!' };
   }
+
 }

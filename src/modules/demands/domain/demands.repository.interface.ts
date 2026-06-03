@@ -230,6 +230,76 @@ export interface ReporterSummaryData {
   categoryBreakdown: ReporterCategoryBreakdown[];
 }
 
+export interface OpenDataStatusStat {
+  status: DemandStatus;
+  count: number;
+  percentage: number;
+}
+
+export interface OpenDataCategoryStat {
+  name: string;
+  count: number;
+  percentage: number;
+}
+
+export interface OpenDataNeighborhoodStat {
+  neighborhood: string;
+  count: number;
+}
+
+export interface OpenDataMonthlyTrend {
+  yearMonth: string;
+  created: number;
+  resolved: number;
+}
+
+export interface NeighborhoodStats {
+  active: number;
+  resolved: number;
+  total: number;
+  resolutionRate: number;
+}
+
+export interface NeighborhoodCategoryStat {
+  id: string;
+  name: string;
+  count: number;
+  percentage: number;
+}
+
+export interface NeighborhoodCabinetStat {
+  id: string;
+  name: string;
+  slug: string;
+  avatarUrl: string | null;
+  resolvedCount: number;
+  totalCount: number;
+}
+
+export interface NeighborhoodDashboardData {
+  neighborhood: string;
+  city: string;
+  state: string;
+  stats: NeighborhoodStats;
+  topCategories: NeighborhoodCategoryStat[];
+  servingCabinets: NeighborhoodCabinetStat[];
+  recentDemands: DemandEntity[];
+}
+
+export interface CabinetOpenData {
+  generatedAt: string;
+  summary: {
+    totalDemands: number;
+    resolvedDemands: number;
+    resolutionRate: number;
+    avgDaysToResolve: number | null;
+  };
+  byStatus: OpenDataStatusStat[];
+  byCategory: OpenDataCategoryStat[];
+  byNeighborhood: OpenDataNeighborhoodStat[];
+  monthlyTrend: OpenDataMonthlyTrend[];
+}
+
 export abstract class IDemandsRepository {
   abstract createWithEvidences(
     demand: CreateDemandInfo,
@@ -292,4 +362,10 @@ export abstract class IDemandsRepository {
   abstract findBySurveyToken(token: string): Promise<DemandEntity | null>;
   abstract findContactInfo(demandId: string): Promise<{ guestEmail: string | null; guestPhone: string | null } | null>;
   abstract getReporterSummary(reporterId: string): Promise<ReporterSummaryData>;
+  abstract getCabinetOpenData(cabinetId: string): Promise<CabinetOpenData>;
+  abstract getNeighborhoodDashboard(
+    neighborhood: string,
+    city: string,
+    state: string,
+  ): Promise<NeighborhoodDashboardData>;
 }

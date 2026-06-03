@@ -83,9 +83,27 @@ model User {
   demandComments  DemandComment[]
   tokens          Token[]
   notifications   Notification[]
+  neighborhoods   UserNeighborhood[]
 
   @@index([disabledAt])
   @@map("users")
+}
+
+model UserNeighborhood {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  neighborhood String
+  city         String
+  state        String   @db.VarChar(2)
+  label        String?
+  isPrimary    Boolean  @default(false) @map("is_primary")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, neighborhood, city, state])
+  @@index([userId])
+  @@map("user_neighborhoods")
 }
 
 model Account {

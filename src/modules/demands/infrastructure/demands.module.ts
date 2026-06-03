@@ -40,6 +40,9 @@ import { ListReportedDemandsUseCase } from '../application/list-reported-demands
 import { ListDemandReportReasonsUseCase } from '../application/list-demand-report-reasons.use-case';
 import { DismissDemandReportsUseCase } from '../application/dismiss-demand-reports.use-case';
 import { GetReporterSummaryUseCase } from '../application/get-reporter-summary.use-case';
+import { GetCabinetOpenDataUseCase } from '../application/get-cabinet-open-data.use-case';
+import { GetNeighborhoodDashboardUseCase } from '../application/get-neighborhood-dashboard.use-case';
+import { ResultDeletedListener } from '../application/result-deleted.listener';
 
 @Module({
   imports: [AuthModule, CabinetsModule, UsersModule, ResultsModule],
@@ -81,6 +84,9 @@ import { GetReporterSummaryUseCase } from '../application/get-reporter-summary.u
     ListDemandReportReasonsUseCase,
     DismissDemandReportsUseCase,
     GetReporterSummaryUseCase,
+    GetCabinetOpenDataUseCase,
+    GetNeighborhoodDashboardUseCase,
+    ResultDeletedListener,
     DemandAccessGuard,
   ],
   exports: [ListReportedDemandsUseCase, ListDemandReportReasonsUseCase, DismissDemandReportsUseCase, DeleteDemandUseCase, FindDemandUseCase, IDemandsRepository],
