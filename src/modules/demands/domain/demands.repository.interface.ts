@@ -253,6 +253,39 @@ export interface OpenDataMonthlyTrend {
   resolved: number;
 }
 
+export interface NeighborhoodStats {
+  active: number;
+  resolved: number;
+  total: number;
+  resolutionRate: number;
+}
+
+export interface NeighborhoodCategoryStat {
+  id: string;
+  name: string;
+  count: number;
+  percentage: number;
+}
+
+export interface NeighborhoodCabinetStat {
+  id: string;
+  name: string;
+  slug: string;
+  avatarUrl: string | null;
+  resolvedCount: number;
+  totalCount: number;
+}
+
+export interface NeighborhoodDashboardData {
+  neighborhood: string;
+  city: string;
+  state: string;
+  stats: NeighborhoodStats;
+  topCategories: NeighborhoodCategoryStat[];
+  servingCabinets: NeighborhoodCabinetStat[];
+  recentDemands: DemandEntity[];
+}
+
 export interface CabinetOpenData {
   generatedAt: string;
   summary: {
@@ -330,4 +363,9 @@ export abstract class IDemandsRepository {
   abstract findContactInfo(demandId: string): Promise<{ guestEmail: string | null; guestPhone: string | null } | null>;
   abstract getReporterSummary(reporterId: string): Promise<ReporterSummaryData>;
   abstract getCabinetOpenData(cabinetId: string): Promise<CabinetOpenData>;
+  abstract getNeighborhoodDashboard(
+    neighborhood: string,
+    city: string,
+    state: string,
+  ): Promise<NeighborhoodDashboardData>;
 }

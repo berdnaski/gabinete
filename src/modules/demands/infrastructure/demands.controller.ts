@@ -68,6 +68,9 @@ import { GetReporterSummaryUseCase } from '../application/get-reporter-summary.u
 import { ReporterSummaryResponseDto } from '../dto/reporter-summary-response.dto';
 import { GetCabinetOpenDataUseCase } from '../application/get-cabinet-open-data.use-case';
 import { CabinetOpenDataResponseDto } from '../dto/cabinet-open-data-response.dto';
+import { GetNeighborhoodDashboardUseCase } from '../application/get-neighborhood-dashboard.use-case';
+import { GetNeighborhoodDashboardQueryDto } from '../dto/get-neighborhood-dashboard-query.dto';
+import { NeighborhoodDashboardResponseDto } from '../dto/neighborhood-dashboard-response.dto';
 
 @ApiTags('demands')
 @Controller('demands')
@@ -101,6 +104,7 @@ export class DemandsController {
     private readonly submitDemandSurveyUseCase: SubmitDemandSurveyUseCase,
     private readonly getReporterSummaryUseCase: GetReporterSummaryUseCase,
     private readonly getCabinetOpenDataUseCase: GetCabinetOpenDataUseCase,
+    private readonly getNeighborhoodDashboardUseCase: GetNeighborhoodDashboardUseCase,
   ) {}
 
   @Post()
@@ -591,5 +595,15 @@ export class DemandsController {
       comment: body.comment,
     });
     return { message: 'Avaliação registrada com sucesso!' };
+  }
+
+  @Get('neighborhood')
+  @ApiOperation({ summary: 'Get aggregated neighborhood dashboard data (public)' })
+  @ApiResponse({ status: 200, type: NeighborhoodDashboardResponseDto })
+  @ApiResponse({ status: 400, description: 'Missing required query params' })
+  async getNeighborhoodDashboard(
+    @Query() query: GetNeighborhoodDashboardQueryDto,
+  ): Promise<NeighborhoodDashboardResponseDto> {
+    return this.getNeighborhoodDashboardUseCase.execute(query) as Promise<NeighborhoodDashboardResponseDto>;
   }
 }
