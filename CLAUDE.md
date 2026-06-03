@@ -56,12 +56,143 @@ src/modules/<module>/
 
 ## Modules
 
-- `cabinets` — Cabinet CRUD, member management (`OWNER`/`STAFF` roles), slug-based routing
-- `categories` — Demand classifications with slugs
-- `demands` — Core demand entity; supports both authenticated (`reporterId`) and guest flow (`guestEmail`)
-- `results` — Cabinet resolutions linked to demands; updates demand status in a Prisma transaction
-- `users` — Auth, JWT, OAuth-ready (`Account` table for provider linking)
-- `shared` — Guards, decorators (`@CurrentUser`), S3 StorageService, pagination utilities
+- `auth` — JWT auth, Google OAuth, email verification, password reset/change flows
+- `cabinets` — Cabinet CRUD, member management (`OWNER`/`STAFF` roles), slug-based routing, email invitations
+- `categories` — Demand classifications with slugs; admin-only management
+- `demands` — Core demand entity; authenticated + guest flow; evidence, comments, likes, reports, surveys, analytics
+- `results` — Cabinet resolutions linked to demands; protocol docs + image gallery; updates demand status in transaction
+- `users` — User profile, avatar upload to S3, soft-delete account
+- `notifications` — Per-user notification system with read/unread state
+- `admin` — Platform-wide admin: cabinet creation, user enable/disable, demand report moderation
+- `og` — Open Graph meta tag generation for social sharing of demands
+- `shared` — Guards, decorators (`@CurrentUser`), S3 StorageService, MailService, DiscordService, QueueService, pagination
+
+## API Endpoints
+
+### Auth (`/api/auth`)
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/auth/register` | Register new citizen |
+| POST | `/api/auth/login` | Email/password login, returns JWT pair |
+| POST | `/api/auth/refresh` | Refresh access token using refresh token |
+| POST | `/api/auth/verify-email` | Verify email address via token |
+| POST | `/api/auth/forgot-password` | Send password reset email |
+| POST | `/api/auth/reset-password` | Complete password reset with token |
+| POST | `/api/auth/request-password-change` | Request authenticated password change |
+| POST | `/api/auth/confirm-password-change` | Confirm password change with token |
+| GET | `/api/auth/google` | Google OAuth callback |
+
+### Users (`/api/users`)
+| Method | Path | Access | Description |
+|--------|------|--------|-------------|
+| GET | `/api/users` | ADMIN | List all users |
+| GET | `/api/users/:id` | Auth | Get user profile |
+| PATCH | `/api/users/:id` | Owner | Update profile (with avatar upload) |
+| DELETE | `/api/users/:id` | Owner | Soft-delete account |
+
+### Cabinets (`/api/cabinets`)
+| Method | Path | Access | Description |
+|--------|------|--------|-------------|
+| POST | `/api/cabinets` | ADMIN/MEMBER | Create cabinet |
+| GET | `/api/cabinets` | Public | List cabinets with pagination |
+| GET | `/api/cabinets/me` | Auth | Get current user's cabinets |
+| GET | `/api/cabinets/:slug` | Public | Get cabinet details |
+| PATCH | `/api/cabinets/:slug` | OWNER | Update cabinet |
+| DELETE | `/api/cabinets/:slug` | OWNER | Soft-delete cabinet |
+| GET | `/api/cabinets/:slug/members` | Auth | List cabinet members |
+| POST | `/api/cabinets/:slug/members` | OWNER | Invite member by email |
+| DELETE | `/api/cabinets/:slug/members/:userId` | OWNER | Remove member |
+| PATCH | `/api/cabinets/:slug/members/:userId/role` | OWNER | Update member role |
+| POST | `/api/cabinets/invitations/:token` | Auth | Accept cabinet invitation |
+
+### Demands (`/api/demands`)
+| Method | Path | Access | Description |
+|--------|------|--------|-------------|
+| POST | `/api/demands` | Auth/Guest | Create demand |
+| GET | `/api/demands` | Auth | List demands with filters |
+| GET | `/api/demands/:id` | Auth | Get demand details |
+| PATCH | `/api/demands/:id` | Owner/STAFF | Update demand |
+| DELETE | `/api/demands/:id` | Owner/STAFF | Soft-delete demand |
+| POST | `/api/demands/:id/claim` | STAFF | Claim demand for cabinet |
+| POST | `/api/demands/:id/assign` | STAFF | Assign demand to member |
+| POST | `/api/demands/:id/comments` | Auth | Add comment |
+| GET | `/api/demands/:id/comments` | Auth | List comments |
+| POST | `/api/demands/:id/likes` | Auth | Toggle like |
+| POST | `/api/demands/:id/report` | Auth | Report/flag demand |
+| POST | `/api/demands/:id/evidence` | Auth | Get presigned URL for evidence upload |
+| POST | `/api/demands/:id/evidence/confirm` | Auth | Confirm evidence upload |
+| PATCH | `/api/demands/:id/progress` | STAFF | Update demand status |
+| GET | `/api/demands/cabinets/:slug/dashboard` | STAFF | Cabinet dashboard summary |
+| GET | `/api/demands/cabinets/:slug/metrics` | STAFF | Demand metrics |
+| GET | `/api/demands/cabinets/:slug/heatmap` | STAFF | Geographic heatmap data |
+| GET | `/api/demands/cabinets/:slug/trend` | STAFF | Trend analysis |
+| GET | `/api/demands/cabinets/:slug/report` | STAFF | Detailed report |
+| GET | `/api/demands/:id/survey` | Token | Get survey form |
+| POST | `/api/demands/:id/survey` | Token | Submit survey response |
+| GET | `/api/demands/reporter/:userId/summary` | Auth | Reporter demand statistics |
+
+### Results (`/api/results`)
+| Method | Path | Access | Description |
+|--------|------|--------|-------------|
+| POST | `/api/results` | STAFF | Create result linked to demand |
+| GET | `/api/results` | Auth | List results with pagination |
+| GET | `/api/results/:id` | Auth | Get result details |
+| PATCH | `/api/results/:id` | STAFF | Update result |
+| DELETE | `/api/results/:id` | STAFF | Soft-delete result |
+| POST | `/api/results/:id/images` | STAFF | Add images to result |
+| POST | `/api/results/:id/protocol` | STAFF | Upload protocol document |
+
+### Categories (`/api/categories`)
+| Method | Path | Access | Description |
+|--------|------|--------|-------------|
+| POST | `/api/categories` | ADMIN | Create category |
+| GET | `/api/categories` | Public | List categories |
+| GET | `/api/categories/:slug` | Public | Get category by slug |
+| PATCH | `/api/categories/:slug` | ADMIN | Update category |
+| DELETE | `/api/categories/:slug` | ADMIN | Soft-delete category |
+
+### Notifications (`/api/notifications`)
+| Method | Path | Access | Description |
+|--------|------|--------|-------------|
+| GET | `/api/notifications` | Auth | List user notifications |
+| PATCH | `/api/notifications/:id/read` | Auth | Mark notification as read |
+| PATCH | `/api/notifications/read-all` | Auth | Mark all notifications as read |
+
+### Admin (`/api/admin`)
+| Method | Path | Access | Description |
+|--------|------|--------|-------------|
+| POST | `/api/admin/cabinets` | ADMIN | Create cabinet with owner |
+| POST | `/api/admin/users` | ADMIN | Create admin user |
+| PATCH | `/api/admin/users/:id` | ADMIN | Update admin user |
+| PATCH | `/api/admin/cabinets/:id` | ADMIN | Update any cabinet |
+| GET | `/api/admin/reports` | ADMIN | List reported demands |
+| PATCH | `/api/admin/reports/:id/dismiss` | ADMIN | Dismiss demand reports |
+| DELETE | `/api/admin/demands/:id` | ADMIN | Hard-delete demand |
+| PATCH | `/api/admin/users/:id/disable` | ADMIN | Disable user account |
+| PATCH | `/api/admin/users/:id/enable` | ADMIN | Enable user account |
+
+### Open Graph (`/og`)
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/og/demands/:id` | Generate OG meta tags for social sharing |
+
+## Guards & Middleware
+
+- `JwtAuthGuard` — verifies JWT access token (required auth)
+- `OptionalJwtAuthGuard` — populates user if token present, but does not block
+- `GoogleAuthGuard` — Google OAuth flow
+- `RolesGuard` — enforces `UserRole` (ADMIN, MEMBER, CITIZEN) via `@Roles()` decorator
+- `CabinetRolesGuard` — enforces `CabinetRole` (OWNER, STAFF) within a cabinet context via `@CabinetRoles()`
+- `UserAccessGuard` — verifies resource ownership for user-scoped endpoints
+- `DemandAccessGuard` — verifies demand access (owner or cabinet staff)
+- `ResultAccessGuard` — verifies result access
+
+## Shared Services
+
+- `StorageService` — AWS S3 integration; generates presigned upload/download URLs; persists `storageKey` + `url`
+- `MailService` — Resend email service; used for verification, password reset, invitations
+- `DiscordService` — Webhook notifications for errors and incidents
+- `QueueService` — BullMQ + Redis job queue for async operations (e.g., linking guest demands on registration)
 
 ## Key Domain Rules
 
