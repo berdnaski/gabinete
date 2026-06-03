@@ -27,6 +27,11 @@ import {
   ReportPriorityStat,
   ReportStatusStat,
   ReporterSummaryData,
+  CabinetOpenData,
+  OpenDataStatusStat,
+  OpenDataCategoryStat,
+  OpenDataNeighborhoodStat,
+  OpenDataMonthlyTrend,
 } from '../domain/demands.repository.interface';
 import { DemandEntityMapper } from './demand-entity.mapper';
 
@@ -961,6 +966,119 @@ export class DemandsRepository implements IDemandsRepository {
       .slice(0, 5);
 
     return { totalDemands: total, statusBreakdown, resolutionRate, avgDaysToResolve, monthlyActivity, categoryBreakdown };
+  }
+
+  async getCabinetOpenData(cabinetId: string): Promise<CabinetOpenData> {
+    const baseWhere = { cabinetId, disabledAt: null };
+
+    const [statusGroups, categoryGroups, neighborhoodGroups, resolvedDemands] =
+      await this.prisma.$transaction([
+        this.prisma.demand.groupBy({
+          by: ['status'],
+          where: baseWhere,
+          _count: { status: true },
+          orderBy: { status: 'asc' },
+        }),
+        this.prisma.demand.groupBy({
+          by: ['categoryId'],
+          where: { ...baseWhere, categoryId: { not: null } },
+          _count: { categoryId: true },
+          orderBy: { _count: { categoryId: 'desc' } },
+          take: 10,
+        }),
+        this.prisma.demand.groupBy({
+          by: ['neighborhood'],
+          where: { ...baseWhere, neighborhood: { not: '' } },
+          _count: { neighborhood: true },
+          orderBy: { _count: { neighborhood: 'desc' } },
+          take: 10,
+        }),
+        this.prisma.demand.findMany({
+          where: { ...baseWhere, status: DemandStatus.RESOLVED },
+          select: { createdAt: true, updatedAt: true },
+        }),
+      ]);
+
+    const total = statusGroups.reduce(
+      (sum, row) => sum + (row._count as { status: number }).status,
+      0,
+    );
+
+    const statusCountMap = new Map<string, number>();
+    for (const row of statusGroups) {
+      statusCountMap.set(row.status, (row._count as { status: number }).status);
+    }
+
+    const byStatus: OpenDataStatusStat[] = Object.values(DemandStatus).map((status) => ({
+      status,
+      count: statusCountMap.get(status) ?? 0,
+      percentage: total > 0 ? Math.round(((statusCountMap.get(status) ?? 0) / total) * 100) : 0,
+    })).filter((s) => s.count > 0);
+
+    const resolvedCount = statusCountMap.get(DemandStatus.RESOLVED) ?? 0;
+    const resolutionRate = total > 0 ? Math.round((resolvedCount / total) * 100) : 0;
+
+    const avgDaysToResolve =
+      resolvedDemands.length > 0
+        ? Math.round(
+            resolvedDemands.reduce((sum, d) => {
+              return sum + (d.updatedAt.getTime() - d.createdAt.getTime()) / (1000 * 60 * 60 * 24);
+            }, 0) / resolvedDemands.length,
+          )
+        : null;
+
+    const categoryIds = categoryGroups.map((g) => g.categoryId!);
+    const categoryRecords =
+      categoryIds.length > 0
+        ? await this.prisma.category.findMany({
+            where: { id: { in: categoryIds }, disabledAt: null },
+            select: { id: true, name: true },
+          })
+        : [];
+    const categoriesById = new Map(categoryRecords.map((c) => [c.id, c.name]));
+
+    const byCategory: OpenDataCategoryStat[] = categoryGroups.map((g) => {
+      const count = (g._count as { categoryId: number }).categoryId;
+      return {
+        name: categoriesById.get(g.categoryId!) ?? 'Sem categoria',
+        count,
+        percentage: total > 0 ? Math.round((count / total) * 100) : 0,
+      };
+    });
+
+    const byNeighborhood: OpenDataNeighborhoodStat[] = neighborhoodGroups.map((g) => ({
+      neighborhood: g.neighborhood,
+      count: (g._count as { neighborhood: number }).neighborhood,
+    }));
+
+    const now = new Date();
+    const trendRows = await this.prisma.$queryRaw<{ year_month: string; created: bigint; resolved: bigint }[]>`
+      SELECT
+        TO_CHAR(created_at, 'YYYY-MM') AS year_month,
+        COUNT(*) AS created,
+        COUNT(*) FILTER (WHERE status = 'RESOLVED') AS resolved
+      FROM demands
+      WHERE cabinet_id = ${cabinetId}
+        AND disabled_at IS NULL
+        AND created_at >= ${new Date(now.getFullYear(), now.getMonth() - 11, 1)}
+      GROUP BY TO_CHAR(created_at, 'YYYY-MM')
+      ORDER BY year_month ASC
+    `;
+
+    const monthlyTrend: OpenDataMonthlyTrend[] = trendRows.map((r) => ({
+      yearMonth: r.year_month,
+      created: Number(r.created),
+      resolved: Number(r.resolved),
+    }));
+
+    return {
+      generatedAt: new Date().toISOString(),
+      summary: { totalDemands: total, resolvedDemands: resolvedCount, resolutionRate, avgDaysToResolve },
+      byStatus,
+      byCategory,
+      byNeighborhood,
+      monthlyTrend,
+    };
   }
 
   async getNeighborhoods(cabinetId?: string): Promise<string[]> {

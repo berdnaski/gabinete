@@ -210,6 +210,43 @@ export interface ReporterSummaryData {
   categoryBreakdown: ReporterCategoryBreakdown[];
 }
 
+export interface OpenDataStatusStat {
+  status: DemandStatus;
+  count: number;
+  percentage: number;
+}
+
+export interface OpenDataCategoryStat {
+  name: string;
+  count: number;
+  percentage: number;
+}
+
+export interface OpenDataNeighborhoodStat {
+  neighborhood: string;
+  count: number;
+}
+
+export interface OpenDataMonthlyTrend {
+  yearMonth: string;
+  created: number;
+  resolved: number;
+}
+
+export interface CabinetOpenData {
+  generatedAt: string;
+  summary: {
+    totalDemands: number;
+    resolvedDemands: number;
+    resolutionRate: number;
+    avgDaysToResolve: number | null;
+  };
+  byStatus: OpenDataStatusStat[];
+  byCategory: OpenDataCategoryStat[];
+  byNeighborhood: OpenDataNeighborhoodStat[];
+  monthlyTrend: OpenDataMonthlyTrend[];
+}
+
 export abstract class IDemandsRepository {
   abstract createWithEvidences(
     demand: CreateDemandInfo,
@@ -261,4 +298,5 @@ export abstract class IDemandsRepository {
   abstract findBySurveyToken(token: string): Promise<DemandEntity | null>;
   abstract findContactInfo(demandId: string): Promise<{ guestEmail: string | null; guestPhone: string | null } | null>;
   abstract getReporterSummary(reporterId: string): Promise<ReporterSummaryData>;
+  abstract getCabinetOpenData(cabinetId: string): Promise<CabinetOpenData>;
 }

@@ -64,6 +64,8 @@ import { GetDemandSurveyUseCase } from '../application/get-demand-survey.use-cas
 import { SubmitDemandSurveyUseCase } from '../application/submit-demand-survey.use-case';
 import { GetReporterSummaryUseCase } from '../application/get-reporter-summary.use-case';
 import { ReporterSummaryResponseDto } from '../dto/reporter-summary-response.dto';
+import { GetCabinetOpenDataUseCase } from '../application/get-cabinet-open-data.use-case';
+import { CabinetOpenDataResponseDto } from '../dto/cabinet-open-data-response.dto';
 
 @ApiTags('demands')
 @Controller('demands')
@@ -95,6 +97,7 @@ export class DemandsController {
     private readonly getDemandSurveyUseCase: GetDemandSurveyUseCase,
     private readonly submitDemandSurveyUseCase: SubmitDemandSurveyUseCase,
     private readonly getReporterSummaryUseCase: GetReporterSummaryUseCase,
+    private readonly getCabinetOpenDataUseCase: GetCabinetOpenDataUseCase,
   ) {}
 
   @Post()
@@ -152,6 +155,16 @@ export class DemandsController {
     @CurrentUser() user: UserEntity | null,
   ) {
     return this.listDemandsUseCase.execute(query, user?.id);
+  }
+
+  @Get('cabinet/:slug/opendata')
+  @ApiOperation({ summary: 'Get aggregated public open data for a cabinet (no auth required)' })
+  @ApiResponse({ status: 200, type: CabinetOpenDataResponseDto })
+  @ApiResponse({ status: 404, description: 'Cabinet not found' })
+  async getCabinetOpenData(
+    @Param('slug') slug: string,
+  ): Promise<CabinetOpenDataResponseDto> {
+    return this.getCabinetOpenDataUseCase.execute(slug);
   }
 
   @Get('cabinet/:slug/metrics')
