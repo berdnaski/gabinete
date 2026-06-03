@@ -35,13 +35,16 @@ import { ResultsModule } from '../../results/infrastructure/results.module';
 import { DemandEmailListener } from '../application/demand-email.listener';
 import { GetDemandSurveyUseCase } from '../application/get-demand-survey.use-case';
 import { SubmitDemandSurveyUseCase } from '../application/submit-demand-survey.use-case';
+import { CreateDemandReportUseCase } from '../application/create-demand-report.use-case';
+import { ListReportedDemandsUseCase } from '../application/list-reported-demands.use-case';
+import { ListDemandReportReasonsUseCase } from '../application/list-demand-report-reasons.use-case';
+import { DismissDemandReportsUseCase } from '../application/dismiss-demand-reports.use-case';
 import { GetReporterSummaryUseCase } from '../application/get-reporter-summary.use-case';
 import { GetCabinetOpenDataUseCase } from '../application/get-cabinet-open-data.use-case';
 
 @Module({
   imports: [AuthModule, CabinetsModule, UsersModule, ResultsModule],
   controllers: [DemandsController],
-  exports: [FindDemandUseCase, IDemandsRepository],
   providers: [
     {
       provide: IDemandsRepository,
@@ -74,9 +77,14 @@ import { GetCabinetOpenDataUseCase } from '../application/get-cabinet-open-data.
     DemandEmailListener,
     GetDemandSurveyUseCase,
     SubmitDemandSurveyUseCase,
+    CreateDemandReportUseCase,
+    ListReportedDemandsUseCase,
+    ListDemandReportReasonsUseCase,
+    DismissDemandReportsUseCase,
     GetReporterSummaryUseCase,
     GetCabinetOpenDataUseCase,
     DemandAccessGuard,
   ],
+  exports: [ListReportedDemandsUseCase, ListDemandReportReasonsUseCase, DismissDemandReportsUseCase, DeleteDemandUseCase, FindDemandUseCase, IDemandsRepository],
 })
 export class DemandsModule {}

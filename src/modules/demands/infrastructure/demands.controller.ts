@@ -33,10 +33,12 @@ import { GetCabinetDemandTrendUseCase } from '../application/get-cabinet-demand-
 import { GetCabinetDemandTrendDetailedUseCase } from '../application/get-cabinet-demand-trend-detailed.use-case';
 import { GetCabinetDemandMetricsUseCase } from '../application/get-cabinet-demand-metrics.use-case';
 import { GetCabinetDemandHeatmapUseCase } from '../application/get-cabinet-demand-heatmap.use-case';
+import { CreateDemandReportUseCase } from '../application/create-demand-report.use-case';
 import { DemandEntity } from '../domain/demand.entity';
 import { AssignDemandDto } from '../dto/assign-demand.dto';
 import { CreateDemandCommentDto } from '../dto/create-demand-comment.dto';
 import { CreateDemandDto } from '../dto/create-demand.dto';
+import { CreateDemandReportDto } from '../dto/create-demand-report.dto';
 import { DemandCommentResponseDto } from '../dto/demand-comment-response.dto';
 import { GetCabinetDashboardSummaryQueryDto } from '../dto/get-cabinet-dashboard-summary-query.dto';
 import { GetCabinetDemandTrendQueryDto } from '../dto/get-cabinet-demand-trend-query.dto';
@@ -81,6 +83,7 @@ export class DemandsController {
     private readonly claimDemandUseCase: ClaimDemandUseCase,
     private readonly assignDemandUseCase: AssignDemandUseCase,
     private readonly createDemandCommentUseCase: CreateDemandCommentUseCase,
+    private readonly createDemandReportUseCase: CreateDemandReportUseCase,
     private readonly listDemandCommentsUseCase: ListDemandCommentsUseCase,
     private readonly toggleDemandLikeUseCase: ToggleDemandLikeUseCase,
     private readonly getCabinetDemandMetricsUseCase: GetCabinetDemandMetricsUseCase,
@@ -481,6 +484,26 @@ export class DemandsController {
     @Body() dto: CreateDemandCommentDto,
   ) {
     return this.createDemandCommentUseCase.execute(id, user.id, dto.content);
+  }
+
+  @Post(':id/report')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Report a demand (one report per user per demand)' })
+  @ApiResponse({ status: 201, description: 'Report created successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Demand not found' })
+  @ApiResponse({
+    status: 409,
+    description: 'User has already reported this demand',
+  })
+  async reportDemand(
+    @Param('id') id: string,
+    @CurrentUser() user: UserEntity,
+    @Body() dto: CreateDemandReportDto,
+  ) {
+    await this.createDemandReportUseCase.execute(id, user.id, dto.reason);
+    return { message: 'Denúncia registrada com sucesso' };
   }
 
   @Get(':id/comments')
