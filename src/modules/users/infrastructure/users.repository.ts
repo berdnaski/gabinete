@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { UserEntity, UserRole } from '../domain/user.entity';
 import {
   CreateUserWithAccountData,
@@ -47,11 +47,18 @@ export class UsersRepository implements IUsersRepository {
     password: string;
     termsAcceptedAt?: Date;
   }): Promise<UserEntity> {
-    const record = await this.prisma.user.create({
-      data,
-      include: { _count: { select: { cabinetMembers: true } } },
-    });
-    return this.toEntity(record);
+    try {
+      const record = await this.prisma.user.create({
+        data,
+        include: { _count: { select: { cabinetMembers: true } } },
+      });
+      return this.toEntity(record);
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+        throw new ConflictException('O e-mail informado já está em uso');
+      }
+      throw e;
+    }
   }
 
   async claimGuestDemands(userId: string, email: string): Promise<void> {

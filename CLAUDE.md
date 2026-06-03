@@ -58,14 +58,18 @@ src/modules/<module>/
 
 - `cabinets` — Cabinet CRUD, member management (`OWNER`/`STAFF` roles), slug-based routing
 - `categories` — Demand classifications with slugs
-- `demands` — Core demand entity; supports both authenticated (`reporterId`) and guest flow (`guestEmail`)
-- `results` — Cabinet resolutions linked to demands; updates demand status in a Prisma transaction
-- `users` — Auth, JWT, OAuth-ready (`Account` table for provider linking)
+- `demands` — Core demand entity; supports both authenticated (`reporterId`) and guest flow (`guestEmail`); includes `GetNeighborhoodDashboardUseCase` (public endpoint `GET /demands/neighborhood`)
+- `results` — Cabinet resolutions linked to demands; `DeleteResultUseCase` emits `result.deleted` event so the demand module can revert RESOLVED → IN_PROGRESS when the last result is removed
+- `users` — Auth, JWT, OAuth-ready (`Account` table for provider linking); includes `UserNeighborhood` entity (up to 3 neighborhoods per user, one marked `isPrimary`); endpoints: `GET/POST /users/me/neighborhoods`, `DELETE /users/me/neighborhoods/:id`, `PATCH /users/me/neighborhoods/:id/primary`
 - `shared` — Guards, decorators (`@CurrentUser`), S3 StorageService, pagination utilities
 
 ## Key Domain Rules
 
 **Guest Flow:** Demands can be created unauthenticated using `guestEmail`. On user registration, trigger a routine to find all demands with `guestEmail === newUser.email` and assign them to the new user (`reporterId = newUser.id`, `guestEmail = null`).
+
+**Result deletion cascade:** When a result is soft-deleted, `DeleteResultUseCase` emits `result.deleted` via `EventEmitter2`. `ResultDeletedListener` (in demands module) listens and reverts the linked demand from `RESOLVED` → `IN_PROGRESS` if no active results remain.
+
+**Neighborhood dashboard:** `GET /demands/neighborhood?neighborhood=X&city=Y&state=Z` is a public endpoint returning stats, top categories, serving cabinets, and recent demands for a given neighborhood. Uses `contains` (case-insensitive) for neighborhood matching and `equals` for city/state.
 
 **File Storage:** Always persist both `storageKey` (S3 object key for programmatic deletion) and `url` alongside `mimeType`/`size`.
 
