@@ -1265,7 +1265,7 @@ export class DemandsRepository implements IDemandsRepository {
     state: string,
   ): Promise<NeighborhoodDashboardData> {
     const baseWhere = {
-      neighborhood: { equals: neighborhood, mode: 'insensitive' as const },
+      neighborhood: { contains: neighborhood, mode: 'insensitive' as const },
       city: { equals: city, mode: 'insensitive' as const },
       state: { equals: state, mode: 'insensitive' as const },
       disabledAt: null,
