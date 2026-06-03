@@ -305,6 +305,16 @@ export class DemandsController {
     return this.listCabinetDemandsUseCase.execute(slug, query, user?.id);
   }
 
+  @Get('neighborhood')
+  @ApiOperation({ summary: 'Get aggregated neighborhood dashboard data (public)' })
+  @ApiResponse({ status: 200, type: NeighborhoodDashboardResponseDto })
+  @ApiResponse({ status: 400, description: 'Missing required query params' })
+  async getNeighborhoodDashboard(
+    @Query() query: GetNeighborhoodDashboardQueryDto,
+  ): Promise<NeighborhoodDashboardResponseDto> {
+    return this.getNeighborhoodDashboardUseCase.execute(query) as Promise<NeighborhoodDashboardResponseDto>;
+  }
+
   @Get('neighborhoods')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
@@ -597,13 +607,4 @@ export class DemandsController {
     return { message: 'Avaliação registrada com sucesso!' };
   }
 
-  @Get('neighborhood')
-  @ApiOperation({ summary: 'Get aggregated neighborhood dashboard data (public)' })
-  @ApiResponse({ status: 200, type: NeighborhoodDashboardResponseDto })
-  @ApiResponse({ status: 400, description: 'Missing required query params' })
-  async getNeighborhoodDashboard(
-    @Query() query: GetNeighborhoodDashboardQueryDto,
-  ): Promise<NeighborhoodDashboardResponseDto> {
-    return this.getNeighborhoodDashboardUseCase.execute(query) as Promise<NeighborhoodDashboardResponseDto>;
-  }
 }
