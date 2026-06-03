@@ -42,6 +42,7 @@ import { DismissDemandReportsUseCase } from '../application/dismiss-demand-repor
 import { GetReporterSummaryUseCase } from '../application/get-reporter-summary.use-case';
 import { GetCabinetOpenDataUseCase } from '../application/get-cabinet-open-data.use-case';
 import { GetNeighborhoodDashboardUseCase } from '../application/get-neighborhood-dashboard.use-case';
+import { ResultDeletedListener } from '../application/result-deleted.listener';
 
 @Module({
   imports: [AuthModule, CabinetsModule, UsersModule, ResultsModule],
@@ -85,6 +86,7 @@ import { GetNeighborhoodDashboardUseCase } from '../application/get-neighborhood
     GetReporterSummaryUseCase,
     GetCabinetOpenDataUseCase,
     GetNeighborhoodDashboardUseCase,
+    ResultDeletedListener,
     DemandAccessGuard,
   ],
   exports: [ListReportedDemandsUseCase, ListDemandReportReasonsUseCase, DismissDemandReportsUseCase, DeleteDemandUseCase, FindDemandUseCase, IDemandsRepository],
