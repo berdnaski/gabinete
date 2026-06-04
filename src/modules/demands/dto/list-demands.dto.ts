@@ -63,6 +63,16 @@ export class ListDemandsDto {
   @IsOptional()
   neighborhoods?: string | string[];
 
+  @ApiPropertyOptional({ description: 'Filter by city name (case-insensitive contains)' })
+  @IsString()
+  @IsOptional()
+  city?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by state abbreviation, e.g. SP' })
+  @IsString()
+  @IsOptional()
+  state?: string;
+
   @ApiPropertyOptional({ example: 'Pothole on main street', maxLength: 100 })
   @IsString()
   @IsOptional()

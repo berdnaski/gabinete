@@ -196,6 +196,8 @@ export class DemandsRepository implements IDemandsRepository {
       categoryId,
       categories,
       neighborhoods,
+      city,
+      state,
       status,
       statuses,
       priority,
@@ -232,6 +234,8 @@ export class DemandsRepository implements IDemandsRepository {
       neighborhood: parsedNeighborhoods?.length
         ? { in: parsedNeighborhoods }
         : undefined,
+      city: city ? { contains: city, mode: 'insensitive' } : undefined,
+      state: state || undefined,
       status: statuses?.length
         ? { in: statuses }
         : status || undefined,
@@ -721,13 +725,15 @@ export class DemandsRepository implements IDemandsRepository {
     };
   }
 
-  async getRawHeatmapPoints(startDate?: Date): Promise<RawHeatmapPoint[]> {
+  async getRawHeatmapPoints(startDate?: Date, city?: string, state?: string): Promise<RawHeatmapPoint[]> {
     const records = await this.prisma.demand.findMany({
       where: {
         disabledAt: null,
         lat: { not: null },
         long: { not: null },
         createdAt: startDate ? { gte: startDate } : undefined,
+        city: city ? { contains: city, mode: 'insensitive' } : undefined,
+        state: state || undefined,
       },
       select: {
         id: true,

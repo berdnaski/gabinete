@@ -71,6 +71,7 @@ import { CabinetOpenDataResponseDto } from '../dto/cabinet-open-data-response.dt
 import { GetNeighborhoodDashboardUseCase } from '../application/get-neighborhood-dashboard.use-case';
 import { GetNeighborhoodDashboardQueryDto } from '../dto/get-neighborhood-dashboard-query.dto';
 import { NeighborhoodDashboardResponseDto } from '../dto/neighborhood-dashboard-response.dto';
+import { GetDemandHeatmapQueryDto } from '../dto/get-demand-heatmap-query.dto';
 
 @ApiTags('demands')
 @Controller('demands')
@@ -210,10 +211,12 @@ export class DemandsController {
   @Get('heatmap')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get global demand heatmap data' })
+  @ApiOperation({ summary: 'Get global demand heatmap data, optionally scoped to a city' })
   @ApiResponse({ status: 200, type: GetCabinetDemandHeatmapResponseDto })
-  async getHeatmap(): Promise<GetCabinetDemandHeatmapResponseDto> {
-    return this.getCabinetDemandHeatmapUseCase.execute();
+  async getHeatmap(
+    @Query() query: GetDemandHeatmapQueryDto,
+  ): Promise<GetCabinetDemandHeatmapResponseDto> {
+    return this.getCabinetDemandHeatmapUseCase.execute({ city: query.city, state: query.state });
   }
 
   @Get('me')

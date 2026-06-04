@@ -19,6 +19,8 @@ export class ListDemandsUseCase {
         categoryId: filters.categoryId,
         categories: filters.categories,
         neighborhoods: filters.neighborhoods,
+        city: filters.city,
+        state: filters.state,
         status: filters.status,
         statuses: filters.statuses,
         priority: filters.priority,

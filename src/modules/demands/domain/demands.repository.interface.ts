@@ -41,6 +41,8 @@ export interface ListDemandsFilters extends PaginationParams {
   categoryId?: string;
   categories?: string | string[];
   neighborhoods?: string | string[];
+  city?: string;
+  state?: string;
   search?: string;
   assigneeMemberId?: string;
 }
@@ -354,7 +356,7 @@ export abstract class IDemandsRepository {
     startDate: Date,
     endDate: Date,
   ): Promise<CabinetDashboardSummary>;
-  abstract getRawHeatmapPoints(startDate?: Date): Promise<RawHeatmapPoint[]>;
+  abstract getRawHeatmapPoints(startDate?: Date, city?: string, state?: string): Promise<RawHeatmapPoint[]>;
   abstract getNeighborhoods(cabinetId?: string): Promise<string[]>;
   abstract getDemandTrend(cabinetId: string, days: number): Promise<DemandTrendPoint[]>;
   abstract getDemandTrendDetailed(cabinetId: string, days: number): Promise<DemandTrendDetailedPoint[]>;
