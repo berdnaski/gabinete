@@ -14,6 +14,7 @@ import { NotificationsModule } from './modules/notifications/infrastructure/noti
 import { ResultsModule } from './modules/results/infrastructure/results.module';
 import { AdminModule } from './modules/admin/infrastructure/admin.module';
 import { OgModule } from './modules/og/og.module';
+import { PlansModule } from './modules/plans/infrastructure/plans.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { OgModule } from './modules/og/og.module';
     ResultsModule,
     AdminModule,
     OgModule,
+    PlansModule,
   ],
   controllers: [],
   providers: [

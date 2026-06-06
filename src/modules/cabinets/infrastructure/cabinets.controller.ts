@@ -57,6 +57,7 @@ import { LeaveCabinetUseCase } from '../application/leave-cabinet.use-case';
 import { GetCurrentUserCabinetsUseCase } from '../application/get-current-user-cabinets.use-case';
 import { UpdateCabinetMemberRoleDto } from '../dto/update-cabinet-member-role.dto';
 import { ListCabinetsDto } from '../dto/list-cabinets.dto';
+import { GetCabinetPlanUseCase } from '../../plans/application/get-cabinet-plan.use-case';
 
 @ApiTags('cabinets')
 @Controller('cabinets')
@@ -77,6 +78,7 @@ export class CabinetsController {
     private readonly listCabinetMembersUseCase: ListCabinetMembersUseCase,
     private readonly removeCabinetMemberUseCase: RemoveCabinetMemberUseCase,
     private readonly getCurrentUserCabinetsUseCase: GetCurrentUserCabinetsUseCase,
+    private readonly getCabinetPlanUseCase: GetCabinetPlanUseCase,
   ) {}
 
   @Post()
@@ -133,6 +135,16 @@ export class CabinetsController {
   ): Promise<CabinetResponseDto[]> {
     const cabinets = await this.getCurrentUserCabinetsUseCase.execute(user.id);
     return cabinets.map((c) => this.toCabinetDto(c));
+  }
+
+  @Get(':slug/plans')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get active plan and feature entitlements for a cabinet' })
+  @ApiResponse({ status: 200, description: 'Plan entitlements returned' })
+  async getPlans(@Param('slug') slug: string) {
+    const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
+    return this.getCabinetPlanUseCase.execute(cabinet.id);
   }
 
   @Get(':slug')

@@ -24,9 +24,10 @@ import { GetCurrentUserCabinetsUseCase } from '../application/get-current-user-c
 import { CabinetScoringListener } from '../application/cabinet-scoring.listener';
 import { CabinetInvitationsRepository } from './invitations.repository';
 import { UsersModule } from '../../users/infrastructure/users.module';
+import { PlansModule } from '../../plans/infrastructure/plans.module';
 
 @Module({
-  imports: [UsersModule],
+  imports: [UsersModule, PlansModule],
   providers: [
     { provide: ICabinetsRepository, useClass: CabinetsRepository },
     { provide: ICabinetMembersRepository, useClass: CabinetMembersRepository },

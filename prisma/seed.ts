@@ -1,4 +1,4 @@
-import { PrismaClient, UserRole } from '@prisma/client';
+import { PrismaClient, UserRole, PlanTier } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import * as dotenv from 'dotenv';
@@ -94,6 +94,86 @@ async function main() {
   }
 
   console.log(`✅ Categorias criadas: ${criadas} | Já existiam: ${existentes}`);
+
+  // ─── Features ────────────────────────────────────────────────────────────────
+  const FEATURES = [
+    { slug: 'heatmap',    name: 'Heatmap',         description: 'Mapa de calor geográfico de demandas' },
+    { slug: 'csv_export', name: 'Exportação CSV',  description: 'Exportação de demandas em formato CSV' },
+    { slug: 'widget',     name: 'Widget',           description: 'Botão embarcável para sites externos' },
+  ]
+
+  for (const feat of FEATURES) {
+    await prisma.feature.upsert({
+      where: { slug: feat.slug },
+      create: feat,
+      update: { name: feat.name, description: feat.description },
+    })
+  }
+  console.log(`✅ Features: ${FEATURES.map((f) => f.slug).join(', ')}`)
+
+  // ─── Plans ───────────────────────────────────────────────────────────────────
+  const PLANS: Array<{
+    tier: PlanTier
+    name: string
+    priceInCents: number
+    maxMembers: number | null
+    maxDemands: number | null
+    maxStorageGb: number | null
+    features: string[]
+  }> = [
+    {
+      tier: PlanTier.ESSENCIAL,
+      name: 'Mandato Essencial',
+      priceInCents: 19700,
+      maxMembers: 3,
+      maxDemands: 200,
+      maxStorageGb: 5,
+      features: [],
+    },
+    {
+      tier: PlanTier.PROFISSIONAL,
+      name: 'Mandato Profissional',
+      priceInCents: 49700,
+      maxMembers: 8,
+      maxDemands: 1000,
+      maxStorageGb: 25,
+      features: ['heatmap', 'csv_export'],
+    },
+    {
+      tier: PlanTier.CAPITAL,
+      name: 'Mandato Capital',
+      priceInCents: 119700,
+      maxMembers: null,
+      maxDemands: null,
+      maxStorageGb: 100,
+      features: ['heatmap', 'csv_export', 'widget'],
+    },
+  ]
+
+  for (const plan of PLANS) {
+    const { features: planFeatures, ...planData } = plan
+    const record = await prisma.plan.upsert({
+      where: { tier: planData.tier },
+      create: planData,
+      update: {
+        name: planData.name,
+        priceInCents: planData.priceInCents,
+        maxMembers: planData.maxMembers,
+        maxDemands: planData.maxDemands,
+        maxStorageGb: planData.maxStorageGb,
+      },
+    })
+
+    for (const featureSlug of planFeatures) {
+      await prisma.planFeature.upsert({
+        where: { planId_featureSlug: { planId: record.id, featureSlug } },
+        create: { planId: record.id, featureSlug, effectiveFrom: null },
+        update: {},
+      })
+    }
+  }
+  console.log(`✅ Planos: ${PLANS.map((p) => p.name).join(', ')}`)
+
   console.log('🎉 Seed concluído!');
 }
 

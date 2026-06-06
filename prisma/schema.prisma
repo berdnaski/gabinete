@@ -139,10 +139,12 @@ model Cabinet {
   in_progress_count Int       @default(0) @map("in_progress_count")
   resolved_count    Int       @default(0) @map("resolved_count")
 
-  members     CabinetMember[]
-  demands     Demand[]
-  results     Result[]
-  invitations CabinetInvitation[]
+  members          CabinetMember[]
+  demands          Demand[]
+  results          Result[]
+  invitations      CabinetInvitation[]
+  subscription     CabinetSubscription?
+  featureOverrides CabinetFeatureOverride[]
 
   @@index([slug])
   @@index([disabledAt])
@@ -372,4 +374,113 @@ model Notification {
 
   @@index([userId])
   @@map("notifications")
+}
+
+// ─── Plans & Entitlements ─────────────────────────────────────────────────────
+
+enum PlanTier {
+  ESSENCIAL
+  PROFISSIONAL
+  CAPITAL
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIALING
+  CANCELED
+  EXPIRED
+}
+
+enum OverrideType {
+  GRANT
+  BLOCK
+}
+
+enum OverrideSource {
+  ADD_ON
+  CUSTOM_CONTRACT
+  TRIAL
+  GIFT
+  ADMIN
+}
+
+model Feature {
+  slug        String  @id
+  name        String
+  description String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  plans     PlanFeature[]
+  overrides CabinetFeatureOverride[]
+
+  @@map("features")
+}
+
+model Plan {
+  id           String    @id @default(uuid())
+  tier         PlanTier  @unique
+  name         String
+  priceInCents Int       @map("price_in_cents")
+  maxMembers   Int?      @map("max_members")
+  maxDemands   Int?      @map("max_demands")
+  maxStorageGb Int?      @map("max_storage_gb")
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  features      PlanFeature[]
+  subscriptions CabinetSubscription[]
+
+  @@index([deletedAt])
+  @@map("plans")
+}
+
+model PlanFeature {
+  planId        String    @map("plan_id")
+  featureSlug   String    @map("feature_slug")
+  effectiveFrom DateTime? @map("effective_from")
+
+  plan    Plan    @relation(fields: [planId], references: [id], onDelete: Cascade)
+  feature Feature @relation(fields: [featureSlug], references: [slug], onDelete: Cascade)
+
+  @@id([planId, featureSlug])
+  @@map("plan_features")
+}
+
+model CabinetSubscription {
+  id                 String             @id @default(uuid())
+  cabinetId          String             @unique @map("cabinet_id")
+  planId             String             @map("plan_id")
+  status             SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart DateTime           @default(now()) @map("current_period_start")
+  currentPeriodEnd   DateTime?          @map("current_period_end")
+  canceledAt         DateTime?          @map("canceled_at")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  deletedAt          DateTime?          @map("deleted_at")
+
+  cabinet Cabinet @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
+  plan    Plan    @relation(fields: [planId], references: [id])
+
+  @@index([deletedAt])
+  @@map("cabinet_subscriptions")
+}
+
+model CabinetFeatureOverride {
+  id          String         @id @default(uuid())
+  cabinetId   String         @map("cabinet_id")
+  featureSlug String         @map("feature_slug")
+  type        OverrideType   @default(GRANT)
+  source      OverrideSource
+  expiresAt   DateTime?      @map("expires_at")
+  notes       String?
+  createdAt   DateTime       @default(now()) @map("created_at")
+  deletedAt   DateTime?      @map("deleted_at")
+
+  cabinet Cabinet @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
+  feature Feature @relation(fields: [featureSlug], references: [slug], onDelete: Cascade)
+
+  @@unique([cabinetId, featureSlug])
+  @@index([deletedAt])
+  @@map("cabinet_feature_overrides")
 }
