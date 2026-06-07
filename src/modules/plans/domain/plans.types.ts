@@ -11,6 +11,12 @@ export interface PlanLimits {
   maxStorageGb: number | null
 }
 
+export interface CabinetUsage {
+  memberCount: number
+  demandCount: number
+  storageUsedBytes: number
+}
+
 export interface CabinetEntitlements {
   features: FeatureSlug[]
   limits: PlanLimits

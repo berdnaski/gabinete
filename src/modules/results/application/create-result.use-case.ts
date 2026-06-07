@@ -43,6 +43,7 @@ export class CreateResultUseCase {
       userId,
       cabinet.id,
     );
+    
     if (!membership) {
       throw new ForbiddenException('Você não é membro deste gabinete');
     }
@@ -63,7 +64,7 @@ export class CreateResultUseCase {
         });
 
         const { signedUrl } = await this.storageService.getUrl(uploaded.path);
-        return { storageKey: uploaded.path, url: signedUrl };
+        return { storageKey: uploaded.path, url: signedUrl, size: sanitized.length };
       }),
     );
 

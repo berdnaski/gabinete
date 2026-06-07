@@ -26,7 +26,7 @@ export class PlansRepository implements IPlansRepository {
         status: { in: ['ACTIVE', 'TRIALING'] },
         canceledAt: null,
         currentPeriodStart: { lte: now },
-        currentPeriodEnd: { gte: now },
+        OR: [{ currentPeriodEnd: null }, { currentPeriodEnd: { gte: now } }],
       },
       include: {
         plan: {
@@ -53,6 +53,30 @@ export class PlansRepository implements IPlansRepository {
         features: sub.plan.features,
       },
     }
+  }
+
+  async getCabinetUsage(cabinetId: string): Promise<{ memberCount: number; demandCount: number; storageUsedBytes: number }> {
+    const [memberCount, demandCount, evidenceAgg, imageAgg, protocolAgg] = await Promise.all([
+      this.prisma.cabinetMember.count({ where: { cabinetId } }),
+      this.prisma.demand.count({ where: { cabinetId, disabledAt: null } }),
+      this.prisma.demandEvidence.aggregate({
+        _sum: { size: true },
+        where: { demand: { cabinetId, disabledAt: null } },
+      }),
+      this.prisma.resultImage.aggregate({
+        _sum: { size: true },
+        where: { result: { cabinetId, disabledAt: null } },
+      }),
+      this.prisma.result.aggregate({
+        _sum: { protocolFileSize: true },
+        where: { cabinetId, disabledAt: null },
+      }),
+    ])
+    const storageUsedBytes =
+      (evidenceAgg._sum.size ?? 0) +
+      (imageAgg._sum.size ?? 0) +
+      (protocolAgg._sum.protocolFileSize ?? 0)
+    return { memberCount, demandCount, storageUsedBytes }
   }
 
   async getActiveOverrides(cabinetId: string): Promise<ActiveOverride[]> {
@@ -183,21 +207,55 @@ export class PlansRepository implements IPlansRepository {
     }
   }
 
-  async upsertCabinetSubscription(cabinetId: string, planId: string): Promise<void> {
-    await this.prisma.cabinetSubscription.upsert({
+  async getCabinetSubscriptionHistory(cabinetId: string): Promise<FullSubscription[]> {
+    const subs = await this.prisma.cabinetSubscription.findMany({
       where: { cabinetId },
-      create: {
+      include: {
+        plan: {
+          include: { features: { include: { feature: true } } },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+    return subs.map((sub) => ({
+      id: sub.id,
+      cabinetId: sub.cabinetId,
+      planId: sub.planId,
+      status: sub.status,
+      currentPeriodStart: sub.currentPeriodStart,
+      currentPeriodEnd: sub.currentPeriodEnd,
+      canceledAt: sub.canceledAt,
+      createdAt: sub.createdAt,
+      plan: {
+        id: sub.plan.id,
+        tier: sub.plan.tier,
+        name: sub.plan.name,
+        priceInCents: sub.plan.priceInCents,
+        maxMembers: sub.plan.maxMembers,
+        maxDemands: sub.plan.maxDemands,
+        maxStorageGb: sub.plan.maxStorageGb,
+        isActive: sub.plan.isActive,
+        features: sub.plan.features.map((f) => ({
+          featureSlug: f.featureSlug,
+          effectiveFrom: f.effectiveFrom,
+          feature: { slug: f.feature.slug, name: f.feature.name, description: f.feature.description },
+        })),
+      },
+    }))
+  }
+
+  async upsertCabinetSubscription(cabinetId: string, planId: string): Promise<void> {
+    const now = new Date()
+    await this.prisma.cabinetSubscription.updateMany({
+      where: { cabinetId, deletedAt: null },
+      data: { deletedAt: now, canceledAt: now, status: 'CANCELED' },
+    })
+    await this.prisma.cabinetSubscription.create({
+      data: {
         cabinetId,
         planId,
         status: 'ACTIVE',
-        currentPeriodStart: new Date(),
-        canceledAt: null,
-        deletedAt: null,
-      },
-      update: {
-        planId,
-        status: 'ACTIVE',
-        currentPeriodStart: new Date(),
+        currentPeriodStart: now,
         canceledAt: null,
         deletedAt: null,
       },

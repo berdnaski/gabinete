@@ -1392,4 +1392,8 @@ export class DemandsRepository implements IDemandsRepository {
       recentDemands: recentDemands.map((d) => DemandEntityMapper.toDomain(d as Parameters<typeof DemandEntityMapper.toDomain>[0])),
     };
   }
+
+  async countByCabinet(cabinetId: string): Promise<number> {
+    return this.prisma.demand.count({ where: { cabinetId, disabledAt: null } });
+  }
 }

@@ -72,6 +72,9 @@ import { GetNeighborhoodDashboardUseCase } from '../application/get-neighborhood
 import { GetNeighborhoodDashboardQueryDto } from '../dto/get-neighborhood-dashboard-query.dto';
 import { NeighborhoodDashboardResponseDto } from '../dto/neighborhood-dashboard-response.dto';
 import { GetDemandHeatmapQueryDto } from '../dto/get-demand-heatmap-query.dto';
+import { FeatureGuard } from '../../../shared/guards/feature.guard';
+import { RequireFeature } from '../../../shared/decorators/require-feature.decorator';
+import { FEATURES } from '../../../shared/constants/features';
 
 @ApiTags('demands')
 @Controller('demands')
@@ -271,7 +274,8 @@ export class DemandsController {
   }
 
   @Get('cabinet/:slug/report')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, FeatureGuard)
+  @RequireFeature(FEATURES.CSV_EXPORT)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Generate a comprehensive demand report for a cabinet' })
   @ApiResponse({ status: 200, description: 'Cabinet demand report data' })

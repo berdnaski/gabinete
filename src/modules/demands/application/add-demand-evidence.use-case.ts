@@ -4,6 +4,7 @@ import { StorageService } from '../../../shared/domain/services/storage.service'
 import { IDemandsRepository } from '../domain/demands.repository.interface';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import sharp from 'sharp';
+import { CheckStorageLimitUseCase } from '../../plans/application/check-storage-limit.use-case';
 
 @Injectable()
 export class AddDemandEvidenceUseCase {
@@ -12,6 +13,7 @@ export class AddDemandEvidenceUseCase {
     private readonly storageService: StorageService,
     private readonly usersRepository: IUsersRepository,
     private readonly eventEmitter: EventEmitter2,
+    private readonly checkStorageLimitUseCase: CheckStorageLimitUseCase,
   ) {}
 
   async execute(
@@ -31,6 +33,10 @@ export class AddDemandEvidenceUseCase {
           .resize(1920, 1080, { fit: 'inside', withoutEnlargement: true })
           .jpeg({ quality: 80, progressive: true })
           .toBuffer();
+
+        if (demand.cabinetId) {
+          await this.checkStorageLimitUseCase.execute(demand.cabinetId, sanitizedBuffer.length);
+        }
 
         const uploaded = await this.storageService.upload({
           buffer: sanitizedBuffer,

@@ -11,9 +11,10 @@ import { UploadResultProtocolUseCase } from '../application/upload-result-protoc
 import { ResultsController } from './results.controller';
 import { ResultsRepository } from './results.repository';
 import { ResultAccessGuard } from '../../../shared/guards/result-access.guard';
+import { PlansModule } from '../../plans/infrastructure/plans.module';
 
 @Module({
-  imports: [CabinetsModule],
+  imports: [CabinetsModule, PlansModule],
   controllers: [ResultsController],
   providers: [
     { provide: IResultsRepository, useClass: ResultsRepository },

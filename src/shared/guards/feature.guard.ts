@@ -39,6 +39,7 @@ export class FeatureGuard implements CanActivate {
     const sub = await this.prisma.cabinetSubscription.findFirst({
       where: {
         cabinetId: cabinet.id,
+        deletedAt: null,
         status: { in: ['ACTIVE', 'TRIALING'] },
       },
       include: {
@@ -57,6 +58,7 @@ export class FeatureGuard implements CanActivate {
     const overrides = await this.prisma.cabinetFeatureOverride.findMany({
       where: {
         cabinetId: cabinet.id,
+        deletedAt: null,
         OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
       },
       select: { featureSlug: true, type: true },

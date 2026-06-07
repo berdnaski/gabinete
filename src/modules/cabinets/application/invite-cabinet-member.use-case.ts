@@ -13,6 +13,7 @@ import { UserRole } from '../../users/domain/user.entity';
 import { CabinetRole } from '../domain/cabinet-role.enum';
 import { QueueService } from '../../../shared/infrastructure/queue/queue.service';
 import { EmailType } from '../../../shared/infrastructure/queue/queue.constants';
+import { CheckMemberLimitUseCase } from '../../plans/application/check-member-limit.use-case';
 
 export interface InviteCabinetMemberInput {
   cabinetId: string;
@@ -30,6 +31,7 @@ export class InviteCabinetMemberUseCase {
     private readonly usersRepository: IUsersRepository,
     private readonly queueService: QueueService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly checkMemberLimitUseCase: CheckMemberLimitUseCase,
   ) {}
 
   async execute(input: InviteCabinetMemberInput): Promise<{ message: string }> {
@@ -52,6 +54,9 @@ export class InviteCabinetMemberUseCase {
         'Apenas proprietários de gabinetes podem convidar membros',
       );
     }
+
+    const currentMembers = await this.membersRepository.findByCabinetId(input.cabinetId);
+    await this.checkMemberLimitUseCase.execute(input.cabinetId, currentMembers.length);
 
     const user = await this.usersRepository.findByEmail(input.email);
     if (user) {

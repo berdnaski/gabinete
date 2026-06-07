@@ -128,6 +128,13 @@ export class PlansAdminController {
     return this.repo.getCabinetFullSubscription(cabinetId)
   }
 
+  @Get('cabinets/:cabinetId/subscriptions')
+  @ApiParam({ name: 'cabinetId', type: 'string' })
+  @ApiOperation({ summary: 'Get full subscription history for a cabinet (including canceled)' })
+  async getCabinetSubscriptionHistory(@Param('cabinetId') cabinetId: string) {
+    return this.repo.getCabinetSubscriptionHistory(cabinetId)
+  }
+
   @Patch('cabinets/:cabinetId/subscription')
   @ApiParam({ name: 'cabinetId', type: 'string' })
   @ApiOperation({ summary: 'Assign or change the plan for a cabinet' })

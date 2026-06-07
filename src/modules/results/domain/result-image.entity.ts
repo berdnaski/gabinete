@@ -10,6 +10,9 @@ export class ResultImageEntity {
   @ApiProperty({ example: 'results/uuid/uuid.jpg' })
   storageKey: string;
 
+  @ApiProperty({ example: 1048576, required: false })
+  size?: number | null;
+
   @ApiProperty({ example: 'uuid-result-id' })
   resultId: string;
 }

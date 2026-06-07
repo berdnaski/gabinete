@@ -2,12 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { StorageService } from '../../../shared/domain/services/storage.service';
 import { IResultsRepository } from '../domain/results.repository.interface';
 import { ResultEntity } from '../domain/result.entity';
+import { CheckStorageLimitUseCase } from '../../plans/application/check-storage-limit.use-case';
 
 @Injectable()
 export class UploadResultProtocolUseCase {
   constructor(
     private readonly resultsRepository: IResultsRepository,
     private readonly storageService: StorageService,
+    private readonly checkStorageLimitUseCase: CheckStorageLimitUseCase,
   ) {}
 
   async execute(
@@ -18,6 +20,8 @@ export class UploadResultProtocolUseCase {
     if (!result) {
       throw new NotFoundException('Resultado não encontrado');
     }
+
+    await this.checkStorageLimitUseCase.execute(result.cabinetId, file.size);
 
     if (result.protocolFileKey) {
       await this.storageService

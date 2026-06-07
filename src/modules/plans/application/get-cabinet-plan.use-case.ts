@@ -8,8 +8,10 @@ export class GetCabinetPlanUseCase {
   constructor(private readonly repo: IPlansRepository) {}
 
   async execute(cabinetId: string): Promise<CabinetEntitlements> {
-    const subscription = await this.repo.getActiveSubscription(cabinetId)
-    const overrides = await this.repo.getActiveOverrides(cabinetId)
+    const [subscription, overrides] = await Promise.all([
+      this.repo.getActiveSubscription(cabinetId),
+      this.repo.getActiveOverrides(cabinetId),
+    ])
 
     const planFeatures: FeatureSlug[] = subscription?.plan.features
       .filter(

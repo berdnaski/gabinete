@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { StorageService } from '../../../shared/domain/services/storage.service';
 import { IResultsRepository } from '../domain/results.repository.interface';
+import { CheckStorageLimitUseCase } from '../../plans/application/check-storage-limit.use-case';
 import sharp from 'sharp';
 
 @Injectable()
@@ -8,6 +9,7 @@ export class AddResultImagesUseCase {
   constructor(
     private readonly resultsRepository: IResultsRepository,
     private readonly storageService: StorageService,
+    private readonly checkStorageLimitUseCase: CheckStorageLimitUseCase,
   ) {}
 
   async execute(resultId: string, files: Express.Multer.File[]): Promise<void> {
@@ -24,6 +26,8 @@ export class AddResultImagesUseCase {
           .jpeg({ quality: 80, progressive: true })
           .toBuffer();
 
+        await this.checkStorageLimitUseCase.execute(result.cabinetId, sanitized.length);
+
         const uploaded = await this.storageService.upload({
           buffer: sanitized,
           filename: `${file.originalname.split('.')[0]}.jpg`,
@@ -32,7 +36,7 @@ export class AddResultImagesUseCase {
         });
 
         const { signedUrl } = await this.storageService.getUrl(uploaded.path);
-        return { storageKey: uploaded.path, url: signedUrl };
+        return { storageKey: uploaded.path, url: signedUrl, size: sanitized.length };
       }),
     );
 

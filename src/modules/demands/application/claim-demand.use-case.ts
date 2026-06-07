@@ -8,6 +8,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { IDemandsRepository } from '../domain/demands.repository.interface';
 import { ICabinetMembersRepository } from '../../cabinets/domain/cabinet-members.repository.interface';
 import { ICabinetsRepository } from '../../cabinets/domain/cabinets.repository.interface';
+import { CheckDemandLimitUseCase } from '../../plans/application/check-demand-limit.use-case';
 
 @Injectable()
 export class ClaimDemandUseCase {
@@ -16,6 +17,7 @@ export class ClaimDemandUseCase {
     private readonly cabinetMembersRepository: ICabinetMembersRepository,
     private readonly cabinetsRepository: ICabinetsRepository,
     private readonly eventEmitter: EventEmitter2,
+    private readonly checkDemandLimitUseCase: CheckDemandLimitUseCase,
   ) {}
 
   async execute(demandId: string, userId: string) {
@@ -46,6 +48,9 @@ export class ClaimDemandUseCase {
     if (!cabinet) {
       throw new NotFoundException('Gabinete não encontrado');
     }
+
+    const currentCount = await this.demandsRepository.countByCabinet(membership.cabinetId);
+    await this.checkDemandLimitUseCase.execute(membership.cabinetId, currentCount);
 
     const updatedDemand = await this.demandsRepository.update(demandId, {
       cabinetId: membership.cabinetId,

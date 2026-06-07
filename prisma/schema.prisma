@@ -143,7 +143,7 @@ model Cabinet {
   demands          Demand[]
   results          Result[]
   invitations      CabinetInvitation[]
-  subscription     CabinetSubscription?
+  subscriptions    CabinetSubscription[]
   featureOverrides CabinetFeatureOverride[]
 
   @@index([slug])
@@ -331,6 +331,7 @@ model ResultImage {
   id         String @id @default(uuid())
   url        String
   storageKey String @map("storage_key")
+  size       Int?
   resultId   String @map("result_id")
 
   result Result @relation(fields: [resultId], references: [id])
@@ -450,7 +451,7 @@ model PlanFeature {
 
 model CabinetSubscription {
   id                 String             @id @default(uuid())
-  cabinetId          String             @unique @map("cabinet_id")
+  cabinetId          String             @map("cabinet_id")
   planId             String             @map("plan_id")
   status             SubscriptionStatus @default(ACTIVE)
   currentPeriodStart DateTime           @default(now()) @map("current_period_start")
@@ -462,7 +463,7 @@ model CabinetSubscription {
   cabinet Cabinet @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
   plan    Plan    @relation(fields: [planId], references: [id])
 
-  @@index([deletedAt])
+  @@index([cabinetId, deletedAt])
   @@map("cabinet_subscriptions")
 }
 

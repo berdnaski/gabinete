@@ -86,6 +86,7 @@ export interface UpdatePlanInput {
 export abstract class IPlansRepository {
   abstract getActiveSubscription(cabinetId: string): Promise<ActiveSubscription | null>
   abstract getActiveOverrides(cabinetId: string): Promise<ActiveOverride[]>
+  abstract getCabinetUsage(cabinetId: string): Promise<{ memberCount: number; demandCount: number; storageUsedBytes: number }>
 
   // Admin methods
   abstract listPlans(): Promise<PlanWithFeatures[]>
@@ -96,6 +97,7 @@ export abstract class IPlansRepository {
   abstract setPlanActive(planId: string, isActive: boolean): Promise<void>
   abstract listCabinetSubscriptionsSummary(): Promise<Array<{ cabinetId: string; planName: string; planTier: string; status: string }>>
   abstract getCabinetFullSubscription(cabinetId: string): Promise<FullSubscription | null>
+  abstract getCabinetSubscriptionHistory(cabinetId: string): Promise<FullSubscription[]>
   abstract upsertCabinetSubscription(cabinetId: string, planId: string): Promise<void>
   abstract getCabinetFullOverrides(cabinetId: string): Promise<FullOverride[]>
   abstract addCabinetOverride(data: AddOverrideInput): Promise<void>

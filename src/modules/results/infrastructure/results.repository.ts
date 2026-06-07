@@ -40,6 +40,7 @@ export class ResultsRepository implements IResultsRepository {
           create: (data.images ?? []).map((img) => ({
             storageKey: img.storageKey,
             url: img.url,
+            size: img.size ?? null,
           })),
         },
       },
@@ -131,6 +132,7 @@ export class ResultsRepository implements IResultsRepository {
         resultId,
         storageKey: img.storageKey,
         url: img.url,
+        size: img.size ?? null,
       })),
     });
   }

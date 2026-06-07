@@ -8,12 +8,14 @@ import {
   CreateEvidenceInfo,
 } from '../domain/demands.repository.interface';
 import { StorageService } from '../../../shared/domain/services/storage.service';
+import { CheckStorageLimitUseCase } from '../../plans/application/check-storage-limit.use-case';
 
 @Injectable()
 export class ConfirmDemandEvidenceUseCase {
   constructor(
     private readonly demandsRepository: IDemandsRepository,
     private readonly storageService: StorageService,
+    private readonly checkStorageLimitUseCase: CheckStorageLimitUseCase,
   ) {}
 
   async execute(
@@ -29,6 +31,10 @@ export class ConfirmDemandEvidenceUseCase {
     const expectedPrefix = `demands/${demandId}/`;
     if (!storageKey.startsWith(expectedPrefix)) {
       throw new BadRequestException('Storage key format inválido');
+    }
+
+    if (demand.cabinetId) {
+      await this.checkStorageLimitUseCase.execute(demand.cabinetId, size);
     }
 
     const urlInfo = await this.storageService.getUrl(storageKey);

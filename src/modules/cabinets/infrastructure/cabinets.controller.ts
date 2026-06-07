@@ -58,6 +58,7 @@ import { GetCurrentUserCabinetsUseCase } from '../application/get-current-user-c
 import { UpdateCabinetMemberRoleDto } from '../dto/update-cabinet-member-role.dto';
 import { ListCabinetsDto } from '../dto/list-cabinets.dto';
 import { GetCabinetPlanUseCase } from '../../plans/application/get-cabinet-plan.use-case';
+import { IPlansRepository } from '../../plans/domain/plans.repository.interface';
 
 @ApiTags('cabinets')
 @Controller('cabinets')
@@ -79,6 +80,7 @@ export class CabinetsController {
     private readonly removeCabinetMemberUseCase: RemoveCabinetMemberUseCase,
     private readonly getCurrentUserCabinetsUseCase: GetCurrentUserCabinetsUseCase,
     private readonly getCabinetPlanUseCase: GetCabinetPlanUseCase,
+    private readonly plansRepository: IPlansRepository,
   ) {}
 
   @Post()
@@ -145,6 +147,16 @@ export class CabinetsController {
   async getPlans(@Param('slug') slug: string) {
     const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
     return this.getCabinetPlanUseCase.execute(cabinet.id);
+  }
+
+  @Get(':slug/usage')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get current resource usage counts for a cabinet (members, demands)' })
+  @ApiResponse({ status: 200, description: 'Usage counts returned' })
+  async getUsage(@Param('slug') slug: string) {
+    const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
+    return this.plansRepository.getCabinetUsage(cabinet.id);
   }
 
   @Get(':slug')

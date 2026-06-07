@@ -370,4 +370,5 @@ export abstract class IDemandsRepository {
     city: string,
     state: string,
   ): Promise<NeighborhoodDashboardData>;
+  abstract countByCabinet(cabinetId: string): Promise<number>;
 }

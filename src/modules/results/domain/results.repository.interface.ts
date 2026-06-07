@@ -22,6 +22,7 @@ export interface CreateResultInfo {
 export interface CreateResultImageInfo {
   storageKey: string;
   url: string;
+  size?: number | null;
 }
 
 export interface UpdateResultInfo {
