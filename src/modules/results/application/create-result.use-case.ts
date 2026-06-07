@@ -9,6 +9,7 @@ import { ICabinetMembersRepository } from '../../cabinets/domain/cabinet-members
 import { ICabinetsRepository } from '../../cabinets/domain/cabinets.repository.interface';
 import { IResultsRepository } from '../domain/results.repository.interface';
 import { ResultEntity } from '../domain/result.entity';
+import { CheckStorageLimitUseCase } from '../../plans/application/check-storage-limit.use-case';
 import sharp from 'sharp';
 
 export interface CreateResultInput {
@@ -26,6 +27,7 @@ export class CreateResultUseCase {
     private readonly cabinetsRepository: ICabinetsRepository,
     private readonly cabinetMembersRepository: ICabinetMembersRepository,
     private readonly storageService: StorageService,
+    private readonly checkStorageLimitUseCase: CheckStorageLimitUseCase,
   ) {}
 
   async execute(
@@ -56,6 +58,8 @@ export class CreateResultUseCase {
           .jpeg({ quality: 80, progressive: true })
           .toBuffer();
 
+        await this.checkStorageLimitUseCase.execute(cabinet.id, sanitized.length);
+
         const uploaded = await this.storageService.upload({
           buffer: sanitized,
           filename: `${file.originalname.split('.')[0]}.jpg`,
@@ -77,6 +81,8 @@ export class CreateResultUseCase {
     } | null = null;
 
     if (protocolFile) {
+      await this.checkStorageLimitUseCase.execute(cabinet.id, protocolFile.size);
+
       const uploaded = await this.storageService.upload({
         buffer: protocolFile.buffer,
         filename: protocolFile.originalname,

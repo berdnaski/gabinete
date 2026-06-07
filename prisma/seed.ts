@@ -118,7 +118,7 @@ async function main() {
     priceInCents: number
     maxMembers: number | null
     maxDemands: number | null
-    maxStorageGb: number | null
+    maxStorageBytes: number | null
     features: string[]
   }> = [
     {
@@ -127,7 +127,7 @@ async function main() {
       priceInCents: 19700,
       maxMembers: 3,
       maxDemands: 200,
-      maxStorageGb: 5,
+      maxStorageBytes: 5 * 1024 ** 3,
       features: [],
     },
     {
@@ -136,7 +136,7 @@ async function main() {
       priceInCents: 49700,
       maxMembers: 8,
       maxDemands: 1000,
-      maxStorageGb: 25,
+      maxStorageBytes: 25 * 1024 ** 3,
       features: ['heatmap', 'csv_export'],
     },
     {
@@ -145,7 +145,7 @@ async function main() {
       priceInCents: 119700,
       maxMembers: null,
       maxDemands: null,
-      maxStorageGb: 100,
+      maxStorageBytes: 100 * 1024 ** 3,
       features: ['heatmap', 'csv_export', 'widget'],
     },
   ]
@@ -160,7 +160,7 @@ async function main() {
         priceInCents: planData.priceInCents,
         maxMembers: planData.maxMembers,
         maxDemands: planData.maxDemands,
-        maxStorageGb: planData.maxStorageGb,
+        maxStorageBytes: planData.maxStorageBytes,
       },
     })
 

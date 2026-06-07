@@ -425,7 +425,7 @@ model Plan {
   priceInCents Int       @map("price_in_cents")
   maxMembers   Int?      @map("max_members")
   maxDemands   Int?      @map("max_demands")
-  maxStorageGb Int?      @map("max_storage_gb")
+  maxStorageBytes Float?    @map("max_storage_bytes")
   isActive     Boolean   @default(true) @map("is_active")
   createdAt    DateTime  @default(now()) @map("created_at")
   deletedAt    DateTime? @map("deleted_at")

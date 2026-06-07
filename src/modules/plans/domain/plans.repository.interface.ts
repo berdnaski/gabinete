@@ -5,7 +5,7 @@ export interface ActiveSubscription {
   plan: {
     maxMembers: number | null
     maxDemands: number | null
-    maxStorageGb: number | null
+    maxStorageBytes: number | null
     features: Array<{
       featureSlug: string
       effectiveFrom: Date | null
@@ -33,7 +33,7 @@ export interface PlanWithFeatures {
   priceInCents: number
   maxMembers: number | null
   maxDemands: number | null
-  maxStorageGb: number | null
+  maxStorageBytes: number | null
   isActive: boolean
   features: Array<{
     featureSlug: string
@@ -80,7 +80,7 @@ export interface UpdatePlanInput {
   priceInCents?: number
   maxMembers?: number | null
   maxDemands?: number | null
-  maxStorageGb?: number | null
+  maxStorageBytes?: number | null
 }
 
 export abstract class IPlansRepository {

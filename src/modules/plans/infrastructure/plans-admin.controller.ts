@@ -79,13 +79,13 @@ export class PlansAdminController {
         priceInCents: { type: 'number' },
         maxMembers: { type: 'number', nullable: true },
         maxDemands: { type: 'number', nullable: true },
-        maxStorageGb: { type: 'number', nullable: true },
+        maxStorageBytes: { type: 'number', nullable: true },
       },
     },
   })
   async updatePlan(
     @Param('planId') planId: string,
-    @Body() body: { name?: string; priceInCents?: number; maxMembers?: number | null; maxDemands?: number | null; maxStorageGb?: number | null },
+    @Body() body: { name?: string; priceInCents?: number; maxMembers?: number | null; maxDemands?: number | null; maxStorageBytes?: number | null },
   ) {
     await this.repo.updatePlan(planId, body)
   }

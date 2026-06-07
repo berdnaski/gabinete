@@ -34,7 +34,12 @@ export class ConfirmDemandEvidenceUseCase {
     }
 
     if (demand.cabinetId) {
-      await this.checkStorageLimitUseCase.execute(demand.cabinetId, size);
+      try {
+        await this.checkStorageLimitUseCase.execute(demand.cabinetId, size);
+      } catch (err) {
+        await this.storageService.delete(storageKey);
+        throw err;
+      }
     }
 
     const urlInfo = await this.storageService.getUrl(storageKey);

@@ -8,7 +8,7 @@ export enum OverrideType {
 export interface PlanLimits {
   maxMembers: number | null
   maxDemands: number | null
-  maxStorageGb: number | null
+  maxStorageBytes: number | null
 }
 
 export interface CabinetUsage {

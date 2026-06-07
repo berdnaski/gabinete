@@ -38,7 +38,7 @@ export class GetCabinetPlanUseCase {
       limits: {
         maxMembers: subscription?.plan.maxMembers ?? null,
         maxDemands: subscription?.plan.maxDemands ?? null,
-        maxStorageGb: subscription?.plan.maxStorageGb ?? null,
+        maxStorageBytes: subscription?.plan.maxStorageBytes ?? null,
       },
     }
   }

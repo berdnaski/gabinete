@@ -49,7 +49,7 @@ export class PlansRepository implements IPlansRepository {
       plan: {
         maxMembers: sub.plan.maxMembers,
         maxDemands: sub.plan.maxDemands,
-        maxStorageGb: sub.plan.maxStorageGb,
+        maxStorageBytes: sub.plan.maxStorageBytes,
         features: sub.plan.features,
       },
     }
@@ -115,7 +115,7 @@ export class PlansRepository implements IPlansRepository {
       priceInCents: p.priceInCents,
       maxMembers: p.maxMembers,
       maxDemands: p.maxDemands,
-      maxStorageGb: p.maxStorageGb,
+      maxStorageBytes: p.maxStorageBytes,
       isActive: p.isActive,
       features: p.features.map((f) => ({
         featureSlug: f.featureSlug,
@@ -196,7 +196,7 @@ export class PlansRepository implements IPlansRepository {
         priceInCents: sub.plan.priceInCents,
         maxMembers: sub.plan.maxMembers,
         maxDemands: sub.plan.maxDemands,
-        maxStorageGb: sub.plan.maxStorageGb,
+        maxStorageBytes: sub.plan.maxStorageBytes,
         isActive: sub.plan.isActive,
         features: sub.plan.features.map((f) => ({
           featureSlug: f.featureSlug,
@@ -233,7 +233,7 @@ export class PlansRepository implements IPlansRepository {
         priceInCents: sub.plan.priceInCents,
         maxMembers: sub.plan.maxMembers,
         maxDemands: sub.plan.maxDemands,
-        maxStorageGb: sub.plan.maxStorageGb,
+        maxStorageBytes: sub.plan.maxStorageBytes,
         isActive: sub.plan.isActive,
         features: sub.plan.features.map((f) => ({
           featureSlug: f.featureSlug,
