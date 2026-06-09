@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, Logger } from '@nestjs/common';
 import * as bcryptjs from 'bcryptjs';
 import { UserEntity } from '../domain/user.entity';
 import { IUsersRepository } from '../domain/users.repository.interface';
@@ -12,6 +12,8 @@ export interface CreateUserInput {
 
 @Injectable()
 export class CreateUserUseCase {
+  private readonly logger = new Logger(CreateUserUseCase.name);
+
   constructor(private readonly usersRepository: IUsersRepository) {}
 
   async execute(data: CreateUserInput): Promise<UserEntity> {
@@ -26,7 +28,16 @@ export class CreateUserUseCase {
       password: hashedPassword,
       termsAcceptedAt: data.termsAccepted ? new Date() : undefined,
     });
-    await this.usersRepository.claimGuestDemands(user.id, user.email);
+
+    try {
+      await this.usersRepository.claimGuestDemands(user.id, user.email);
+    } catch (error) {
+      this.logger.error(
+        `Failed to claim guest demands during user creation for ${user.email}`,
+        error,
+      );
+    }
+
     return user;
   }
 }

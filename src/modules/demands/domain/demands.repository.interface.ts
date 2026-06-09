@@ -312,6 +312,10 @@ export abstract class IDemandsRepository {
     id: string,
     data: Partial<DemandEntity>,
   ): Promise<DemandEntity>;
+  abstract claimDemandAtomic(
+    demandId: string,
+    cabinetId: string,
+  ): Promise<DemandEntity | null>;
   abstract addEvidence(
     demandId: string,
     evidence: CreateEvidenceInfo,

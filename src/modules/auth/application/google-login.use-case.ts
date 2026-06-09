@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { IUsersRepository } from '../../users/domain/users.repository.interface';
 import { GoogleUser } from '../infrastructure/google.strategy';
 import { JwtTokenService } from './jwt-token.service';
@@ -9,6 +9,8 @@ import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class GoogleLoginUseCase {
+  private readonly logger = new Logger(GoogleLoginUseCase.name);
+
   constructor(
     private readonly usersRepository: IUsersRepository,
     private readonly jwtTokenService: JwtTokenService,
@@ -46,7 +48,14 @@ export class GoogleLoginUseCase {
           termsAcceptedAt: new Date(),
         });
 
-        await this.usersRepository.claimGuestDemands(user.id, user.email);
+        try {
+          await this.usersRepository.claimGuestDemands(user.id, user.email);
+        } catch (error) {
+          this.logger.error(
+            `Failed to claim guest demands during Google login for ${user.email}`,
+            error,
+          );
+        }
       }
     }
 

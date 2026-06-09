@@ -52,9 +52,16 @@ export class ClaimDemandUseCase {
     const currentCount = await this.demandsRepository.countByCabinet(membership.cabinetId);
     await this.checkDemandLimitUseCase.execute(membership.cabinetId, currentCount);
 
-    const updatedDemand = await this.demandsRepository.update(demandId, {
-      cabinetId: membership.cabinetId,
-    });
+    const updatedDemand = await this.demandsRepository.claimDemandAtomic(
+      demandId,
+      membership.cabinetId,
+    );
+
+    if (!updatedDemand) {
+      throw new BadRequestException(
+        'Esta demanda já foi reivindicada por outro gabinete',
+      );
+    }
 
     this.eventEmitter.emit('demand.claimed', {
       demandId,

@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, Logger } from '@nestjs/common';
 import { UserEntity, UserRole } from '../domain/user.entity';
 import {
   CreateUserWithAccountData,
@@ -15,6 +15,8 @@ type PrismaUserWithMemberCount = Prisma.UserGetPayload<{
 
 @Injectable()
 export class UsersRepository implements IUsersRepository {
+  private readonly logger = new Logger(UsersRepository.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async findByEmail(email: string): Promise<UserEntity | null> {
@@ -62,10 +64,27 @@ export class UsersRepository implements IUsersRepository {
   }
 
   async claimGuestDemands(userId: string, email: string): Promise<void> {
-    await this.prisma.demand.updateMany({
-      where: { guestEmail: email, reporterId: null },
-      data: { reporterId: userId, guestEmail: null },
-    });
+    try {
+      const result = await this.prisma.demand.updateMany({
+        where: {
+          guestEmail: { equals: email, mode: 'insensitive' },
+          reporterId: null,
+        },
+        data: { reporterId: userId, guestEmail: null },
+      });
+
+      if (result.count > 0) {
+        this.logger.log(
+          `Claimed ${result.count} guest demands for user ${userId} with email ${email}`,
+        );
+      }
+    } catch (error) {
+      this.logger.error(
+        `Failed to claim guest demands for user ${userId} with email ${email}`,
+        error,
+      );
+      throw error;
+    }
   }
 
   async findByProvider(
