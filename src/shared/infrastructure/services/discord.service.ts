@@ -1,3 +1,4 @@
+import { STATUS_CODES } from 'http';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
@@ -53,6 +54,9 @@ export class DiscordService {
     BOT_AVATAR: 'https://cdn-icons-png.flaticon.com/512/2103/2103633.png',
   };
 
+  private readonly errorDedup = new Map<string, number>();
+  private static readonly DEDUP_TTL_MS = 30_000;
+
   constructor(private readonly configService: ConfigService) {
     this.webhookUrl = this.configService.get<string>('DISCORD_WEBHOOK_URL');
 
@@ -65,8 +69,9 @@ export class DiscordService {
 
   async sendError(error: Error, context: HttpErrorContext): Promise<void> {
     if (!this.webhookUrl) return;
+    if (this.isDuplicate(`${context.statusCode}:${context.method}:${context.url}:${error.name}`)) return;
 
-    const statusText = this.httpStatusText(context.statusCode);
+    const statusText = STATUS_CODES[context.statusCode] ?? 'Unknown';
     const color =
       context.statusCode >= 500
         ? DiscordService.COLORS.ERROR_SERVER
@@ -141,6 +146,7 @@ export class DiscordService {
 
   async sendJobError(error: Error, context: JobErrorContext): Promise<void> {
     if (!this.webhookUrl) return;
+    if (this.isDuplicate(`job:${context.jobName}:${error.name}`)) return;
 
     const fields: DiscordEmbedField[] = [
       { name: '📋 Job Name', value: `\`${context.jobName}\``, inline: true },
@@ -207,28 +213,15 @@ export class DiscordService {
     return Boolean(value);
   }
 
-  private httpStatusText(code: number): string {
-    const texts: Record<number, string> = {
-      400: 'Bad Request',
-      401: 'Unauthorized',
-      402: 'Payment Required',
-      403: 'Forbidden',
-      404: 'Not Found',
-      405: 'Method Not Allowed',
-      406: 'Not Acceptable',
-      408: 'Request Timeout',
-      409: 'Conflict',
-      410: 'Gone',
-      415: 'Unsupported Media Type',
-      422: 'Unprocessable Entity',
-      429: 'Too Many Requests',
-      500: 'Internal Server Error',
-      501: 'Not Implemented',
-      502: 'Bad Gateway',
-      503: 'Service Unavailable',
-      504: 'Gateway Timeout',
-    };
-    return texts[code] ?? 'Unknown';
+  private isDuplicate(fingerprint: string): boolean {
+    const now = Date.now();
+    const last = this.errorDedup.get(fingerprint);
+    if (last !== undefined && now - last < DiscordService.DEDUP_TTL_MS) return true;
+    this.errorDedup.set(fingerprint, now);
+    for (const [k, t] of this.errorDedup) {
+      if (now - t >= DiscordService.DEDUP_TTL_MS) this.errorDedup.delete(k);
+    }
+    return false;
   }
 
   private chunkString(str: string, size: number): string[] {

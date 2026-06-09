@@ -1,5 +1,5 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap, OnModuleInit } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Job, Queue } from 'bullmq';
 import {
@@ -27,7 +27,7 @@ export interface SendEmailJobData {
   drainDelay: 60_000,       
   concurrency: 1,
 })
-export class DefaultProcessor extends WorkerHost implements OnModuleInit {
+export class DefaultProcessor extends WorkerHost implements OnModuleInit, OnApplicationBootstrap {
   private readonly logger = new Logger(DefaultProcessor.name);
 
   constructor(
@@ -37,6 +37,12 @@ export class DefaultProcessor extends WorkerHost implements OnModuleInit {
     private readonly discordService: DiscordService,
   ) {
     super();
+  }
+
+  onApplicationBootstrap(): void {
+    this.worker.on('error', (err: Error) => {
+      this.logger.error('BullMQ worker error', err.stack ?? String(err));
+    });
   }
 
   async onModuleInit() {
