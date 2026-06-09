@@ -109,10 +109,11 @@ export class DefaultProcessor extends WorkerHost implements OnModuleInit {
       const error = err instanceof Error ? err : new Error(String(err));
       this.logger.error(`Job failed: ${job.name} [id=${job.id}]`, error.stack);
 
-      await this.discordService.sendError(error, {
-        method: 'BULLMQ_JOB',
-        url: job.name,
-        userId: 'system',
+      await this.discordService.sendJobError(error, {
+        jobName: job.name,
+        jobId: job.id,
+        attempt: job.attemptsMade,
+        jobData: job.data as unknown,
       });
 
       throw error;
