@@ -18,26 +18,34 @@ export class UpdateUserProfileUseCase {
       throw new NotFoundException('User not found');
     }
 
-    if (file) {
+    let resolvedAvatarUrl: string | null | undefined = undefined;
+
+    if (data.removeAvatar) {
+      await this.storageService.delete(`avatars/${id}/avatar.jpg`).catch(() => null);
+      resolvedAvatarUrl = null;
+    } else if (file) {
       const sanitizedBuffer = await sharp(file.buffer)
         .rotate()
         .resize(400, 400, { fit: 'cover' })
         .jpeg({ quality: 90 })
         .toBuffer();
 
+      const avatarKey = `avatars/${id}/avatar.jpg`;
+      await this.storageService.delete(avatarKey).catch(() => null);
+
       const uploaded = await this.storageService.upload({
         buffer: sanitizedBuffer,
-        filename: `${id}-avatar.jpg`,
+        filename: 'avatar.jpg',
         mimetype: 'image/jpeg',
-        folder: `avatars/${id}`,
+        key: avatarKey,
       });
       const generated = await this.storageService.getUrl(uploaded.path);
-      data.avatarUrl = generated.signedUrl;
+      resolvedAvatarUrl = generated.signedUrl;
     }
 
     return this.usersRepository.update(id, {
       name: data.name,
-      avatarUrl: data.avatarUrl,
+      avatarUrl: resolvedAvatarUrl,
       phone: data.phone,
       address: data.address,
       zipcode: data.zipcode,

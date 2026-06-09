@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  IsBoolean,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -7,6 +8,7 @@ import {
   IsUrl,
   MaxLength,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class UpdateUserDto {
   @ApiPropertyOptional({ example: 'João da Silva' })
@@ -72,6 +74,12 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   termsAcceptedAt?: string;
+
+  @ApiPropertyOptional({ example: true })
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  @IsOptional()
+  removeAvatar?: boolean;
 }
 
 

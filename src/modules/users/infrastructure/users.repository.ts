@@ -130,7 +130,7 @@ export class UsersRepository implements IUsersRepository {
       name?: string;
       email?: string;
       password?: string;
-      avatarUrl?: string;
+      avatarUrl?: string | null;
       phone?: string;
       address?: string;
       zipcode?: string;
