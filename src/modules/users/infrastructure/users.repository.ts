@@ -207,9 +207,12 @@ export class UsersRepository implements IUsersRepository {
   }): Promise<PaginatedResult<UserEntity>> {
     const { skip, take } = PaginationHelper.getSkipTake(filters);
 
-    const where: Prisma.UserWhereInput = filters.showInactive
-      ? { disabledAt: { not: null } }
-      : { disabledAt: null };
+    const where: Prisma.UserWhereInput =
+      filters.showInactive === true
+        ? { disabledAt: { not: null } }
+        : filters.showInactive === false
+          ? { disabledAt: null }
+          : {};
 
     if (filters.role) {
       where.role = filters.role as unknown as PrismaUserRole;
