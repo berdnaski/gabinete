@@ -18,8 +18,6 @@ export interface ActiveOverride {
   type: OverrideType
 }
 
-// Admin-facing types
-
 export interface FeatureItem {
   slug: string
   name: string
@@ -88,7 +86,6 @@ export abstract class IPlansRepository {
   abstract getActiveOverrides(cabinetId: string): Promise<ActiveOverride[]>
   abstract getCabinetUsage(cabinetId: string): Promise<{ memberCount: number; demandCount: number; storageUsedBytes: number }>
 
-  // Admin methods
   abstract listPlans(): Promise<PlanWithFeatures[]>
   abstract updatePlan(planId: string, data: UpdatePlanInput): Promise<void>
   abstract listFeatures(): Promise<FeatureItem[]>
