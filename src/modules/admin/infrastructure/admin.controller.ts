@@ -47,6 +47,8 @@ import { DismissDemandReportsUseCase } from '../../demands/application/dismiss-d
 import { DeleteDemandUseCase } from '../../demands/application/delete-demand.use-case';
 import { DisableUserUseCase } from '../application/disable-user.use-case';
 import { EnableUserUseCase } from '../application/enable-user.use-case';
+import { EnableCabinetUseCase } from '../application/enable-cabinet.use-case';
+import { ListCabinetsDto } from '../../cabinets/dto/list-cabinets.dto';
 import { ListReportedDemandsDto } from '../dto/list-reported-demands.dto';
 import { ListReportReasonsDto } from '../dto/list-report-reasons.dto';
 import { ReportedDemandResponseDto } from '../dto/reported-demand-response.dto';
@@ -70,6 +72,7 @@ export class AdminController {
     private readonly deleteDemandUseCase: DeleteDemandUseCase,
     private readonly disableUserUseCase: DisableUserUseCase,
     private readonly enableUserUseCase: EnableUserUseCase,
+    private readonly enableCabinetUseCase: EnableCabinetUseCase,
   ) {}
 
   @Get('reports')
@@ -167,6 +170,40 @@ export class AdminController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async enableUser(@Param('userId') userId: string): Promise<void> {
     await this.enableUserUseCase.execute(userId);
+  }
+
+  @Get('cabinets')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List all cabinets including inactive (Admin)' })
+  @HttpCode(HttpStatus.OK)
+  async listCabinets(@Query() query: ListCabinetsDto) {
+    const result = await this.cabinetsRepository.list({
+      page: query.page,
+      limit: query.limit,
+      search: query.search,
+      hasDemands: query.hasDemands,
+      showInactive: query.showInactive,
+    });
+    return {
+      items: result.items.map((c) => ({
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        email: c.email ?? null,
+        description: c.description ?? null,
+        avatarUrl: c.avatarUrl ?? null,
+        score: c.score ?? 0,
+        demand_count: c.demand_count ?? 0,
+        in_progress_count: c.in_progress_count ?? 0,
+        resolved_count: c.resolved_count ?? 0,
+        resolution_rate: c.resolution_rate ?? 0,
+        transparencyScore: c.resolution_rate ?? 0,
+        disabledAt: c.disabledAt ?? null,
+      })),
+      total: result.total,
+    };
   }
 
   @Post('cabinets/avatar/presign')
@@ -405,7 +442,7 @@ export class AdminController {
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
-  @ApiOperation({ summary: 'Soft delete a cabinet (Admin)' })
+  @ApiOperation({ summary: 'Disable a cabinet (Admin)' })
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteCabinet(@Param('id') id: string): Promise<void> {
     const existing = await this.cabinetsRepository.findById(id);
@@ -413,6 +450,17 @@ export class AdminController {
       throw new NotFoundException('Gabinete não encontrado');
     }
     await this.cabinetsRepository.softDelete(id);
+  }
+
+  @Patch('cabinets/:id/enable')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiOperation({ summary: 'Re-enable a disabled cabinet (Admin)' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async enableCabinet(@Param('id') id: string): Promise<void> {
+    await this.enableCabinetUseCase.execute(id);
   }
 
   @Post('users/avatar/presign')

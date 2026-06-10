@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { Cabinet as PrismaCabinet, DemandStatus } from '@prisma/client';
 import { CabinetEntity } from '../domain/cabinet.entity';
@@ -53,12 +53,17 @@ export class CabinetsRepository implements ICabinetsRepository {
   }
 
   async list(
-    params?: PaginationParams & { search?: string; hasDemands?: boolean },
+    params?: PaginationParams & { search?: string; hasDemands?: boolean; showInactive?: boolean },
   ): Promise<PaginatedResult<CabinetEntity>> {
     const { skip, take } = PaginationHelper.getSkipTake(
       params ?? { page: 1, limit: 100 },
     );
-    const where: Record<string, unknown> = { disabledAt: null };
+    const where: Record<string, unknown> =
+      params?.showInactive === true
+        ? { disabledAt: { not: null } }
+        : params?.showInactive === false
+          ? { disabledAt: null }
+          : {};
 
     if (params?.search) {
       const q = params.search.trim();
@@ -135,6 +140,21 @@ export class CabinetsRepository implements ICabinetsRepository {
       where: { id },
       data: { disabledAt: new Date() },
     });
+  }
+
+  async enable(id: string): Promise<void> {
+    try {
+      await this.prisma.cabinet.update({
+        where: { id },
+        data: { disabledAt: null },
+      });
+    } catch (e: unknown) {
+      const err = e as { code?: string };
+      if (err?.code === 'P2025') {
+        throw new NotFoundException('Gabinete não encontrado');
+      }
+      throw e;
+    }
   }
 
   async updateScoreCounters(

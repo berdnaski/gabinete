@@ -16,4 +16,14 @@ export class ListCabinetsDto extends PaginationQueryDto {
   @Transform(({ value }) => value === 'true' || value === true)
   @IsOptional()
   hasDemands?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'true = inactive only, false = active only, omit = all',
+  })
+  @Transform(({ value }) => {
+    if (value === undefined || value === null || value === '') return undefined;
+    return value === 'true' || value === true;
+  })
+  @IsOptional()
+  showInactive?: boolean;
 }

@@ -11,8 +11,11 @@ export class ListCabinetsUseCase {
   constructor(private readonly cabinetsRepository: ICabinetsRepository) {}
 
   async execute(
-    params?: (PaginationParams & { search?: string; hasDemands?: boolean }) | undefined,
+    params?: (PaginationParams & { search?: string; hasDemands?: boolean; showInactive?: boolean }) | undefined,
   ): Promise<PaginatedResult<CabinetEntity>> {
-    return this.cabinetsRepository.list(params);
+    return this.cabinetsRepository.list({
+      ...params,
+      showInactive: params?.showInactive ?? false,
+    });
   }
 }

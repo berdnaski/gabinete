@@ -434,6 +434,7 @@ export class CabinetsController {
     dto.resolved_count = entity.resolved_count ?? 0;
     dto.transparencyScore = entity.resolution_rate ?? 0;
     dto.resolution_rate = entity.resolution_rate ?? 0;
+    dto.disabledAt = entity.disabledAt ?? null;
     return dto;
   }
 
