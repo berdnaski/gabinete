@@ -32,10 +32,11 @@ export class CloudflareStorageService implements StorageService {
   }
 
   async upload(props: UploadProps): Promise<UploadResult> {
-    const { buffer, filename, mimetype, folder } = props;
+    const { buffer, filename, mimetype, folder, key } = props;
 
-    const randomName = uuidv4().concat('-').concat(filename);
-    const path = folder ? `${folder}/${randomName}` : randomName;
+    const path = key ?? (folder
+      ? `${folder}/${uuidv4()}-${filename}`
+      : `${uuidv4()}-${filename}`);
 
     const command = new PutObjectCommand({
       Bucket: this.bucket,

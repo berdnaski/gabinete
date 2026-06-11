@@ -20,7 +20,7 @@ export abstract class ICabinetsRepository {
   abstract findSlugsByBaseName(baseSlug: string): Promise<string[]>;
 
   abstract list(
-    params?: PaginationParams & { search?: string; hasDemands?: boolean },
+    params?: PaginationParams & { search?: string; hasDemands?: boolean; showInactive?: boolean },
   ): Promise<PaginatedResult<CabinetEntity>>;
 
   abstract update(
@@ -46,6 +46,8 @@ export abstract class ICabinetsRepository {
   abstract findByUserId(userId: string): Promise<CabinetEntity[]>;
 
   abstract softDelete(id: string): Promise<void>;
+
+  abstract enable(id: string): Promise<void>;
 
   abstract updateScoreCounters(
     cabinetId: string,

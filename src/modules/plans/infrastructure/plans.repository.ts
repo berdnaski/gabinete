@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
+import { Prisma } from '@prisma/client'
 import { PrismaService } from '../../database/prisma.service'
 import {
   ActiveOverride,
@@ -143,9 +144,16 @@ export class PlansRepository implements IPlansRepository {
   }
 
   async removeFeatureFromPlan(planId: string, featureSlug: string): Promise<void> {
-    await this.prisma.planFeature.delete({
-      where: { planId_featureSlug: { planId, featureSlug } },
-    })
+    try {
+      await this.prisma.planFeature.delete({
+        where: { planId_featureSlug: { planId, featureSlug } },
+      })
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2025') {
+        throw new NotFoundException('Feature não encontrada neste plano')
+      }
+      throw e
+    }
   }
 
   async setPlanActive(planId: string, isActive: boolean): Promise<void> {
@@ -154,7 +162,7 @@ export class PlansRepository implements IPlansRepository {
 
   async listCabinetSubscriptionsSummary(): Promise<Array<{ cabinetId: string; planName: string; planTier: string; status: string; priceInCents: number }>> {
     const subs = await this.prisma.cabinetSubscription.findMany({
-      where: { deletedAt: null },
+      where: { deletedAt: null, plan: { deletedAt: null } },
       select: {
         cabinetId: true,
         status: true,
@@ -173,7 +181,7 @@ export class PlansRepository implements IPlansRepository {
 
   async getCabinetFullSubscription(cabinetId: string): Promise<FullSubscription | null> {
     const sub = await this.prisma.cabinetSubscription.findFirst({
-      where: { cabinetId, deletedAt: null },
+      where: { cabinetId, deletedAt: null, plan: { deletedAt: null } },
       include: {
         plan: {
           include: {
@@ -216,7 +224,7 @@ export class PlansRepository implements IPlansRepository {
 
   async getCabinetSubscriptionHistory(cabinetId: string): Promise<FullSubscription[]> {
     const subs = await this.prisma.cabinetSubscription.findMany({
-      where: { cabinetId },
+      where: { cabinetId, plan: { deletedAt: null } },
       include: {
         plan: {
           include: { features: { include: { feature: true } } },

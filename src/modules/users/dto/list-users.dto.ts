@@ -40,7 +40,10 @@ export class ListUsersDto {
   role?: UserRole;
 
   @ApiPropertyOptional({ description: 'Show only inactive (disabled) users', default: false })
-  @Transform(({ value }) => value === 'true' || value === true)
+  @Transform(({ value }) => {
+    if (value === undefined || value === null || value === '') return undefined;
+    return value === 'true' || value === true;
+  })
   @IsBoolean()
   @IsOptional()
   showInactive?: boolean;

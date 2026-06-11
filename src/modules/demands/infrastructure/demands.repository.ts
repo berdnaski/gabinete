@@ -133,6 +133,37 @@ export class DemandsRepository implements IDemandsRepository {
     return DemandEntityMapper.toDomain(updated);
   }
 
+  async claimDemandAtomic(demandId: string, cabinetId: string): Promise<DemandEntity | null> {
+    try {
+      const updated = await this.prisma.demand.update({
+        where: { id: demandId },
+        data: { cabinetId },
+        include: {
+          evidences: true,
+          results: {
+            where: { disabledAt: null },
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              type: true,
+              createdAt: true,
+              protocolFileKey: true,
+              protocolFileUrl: true,
+            },
+          },
+          _count: { select: { likes: true, comments: true } },
+        },
+      });
+      return DemandEntityMapper.toDomain(updated);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        return null;
+      }
+      throw error;
+    }
+  }
+
   async createWithEvidences(
     data: CreateDemandInfo,
     evidences: CreateEvidenceInfo[],

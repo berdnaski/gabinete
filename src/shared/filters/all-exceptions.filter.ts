@@ -18,7 +18,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
   async catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest<Request & { user?: { id: string } }>();
+    const request = ctx.getRequest<
+      Request & { user?: { id: string; role?: string } }
+    >();
 
     const status =
       exception instanceof HttpException
@@ -46,30 +48,40 @@ export class AllExceptionsFilter implements ExceptionFilter {
       const msg = (exceptionResponse as Record<string, unknown>).message;
       if (typeof msg === 'string') {
         message = msg;
+      } else if (Array.isArray(msg)) {
+        message = (msg as string[]).join(', ');
       }
     }
 
-    if (status === (HttpStatus.INTERNAL_SERVER_ERROR as number)) {
-      this.logger.error(
-        `${request.method} ${request.url}`,
-        exception instanceof Error
-          ? exception.stack
-          : JSON.stringify(exception),
-      );
+    this.logger.error(
+      `${status} ${request.method} ${request.url}`,
+      exception instanceof Error
+        ? exception.stack
+        : JSON.stringify(exception),
+    );
+
+    // Send all errors except 401 (unauthenticated requests are normal traffic, not bugs)
+    if (status >= 400 && status !== 401) {
+      const ip = (
+        request.ip ||
+        (Array.isArray(request.headers['x-forwarded-for'])
+          ? request.headers['x-forwarded-for'][0]
+          : request.headers['x-forwarded-for'])
+      )?.toString();
 
       try {
         await this.discordService.sendError(
-          exception instanceof Error ? exception : new Error(String(exception)),
+          this.normalizeError(exception, message),
           {
             method: request.method,
             url: request.url,
+            statusCode: status,
             userId: request.user?.id,
-            ip: (
-              request.ip ||
-              (Array.isArray(request.headers['x-forwarded-for'])
-                ? request.headers['x-forwarded-for'][0]
-                : request.headers['x-forwarded-for'])
-            )?.toString(),
+            userRole: request.user?.role,
+            ip,
+            userAgent: request.headers['user-agent']?.toString(),
+            body: request.body as unknown,
+            query: request.query,
           },
         );
       } catch (err) {
@@ -84,7 +96,21 @@ export class AllExceptionsFilter implements ExceptionFilter {
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.url,
-      message: typeof message === 'string' ? message : 'Internal server error',
+      message,
     });
+  }
+
+  private normalizeError(exception: unknown, humanMessage: string): Error {
+    if (!(exception instanceof Error)) {
+      const err = new Error(humanMessage);
+      err.name = 'UnknownError';
+      return err;
+    }
+  
+    if (exception.message === humanMessage) return exception;
+    const normalized = new Error(humanMessage);
+    normalized.name = exception.constructor.name;
+    normalized.stack = exception.stack;
+    return normalized;
   }
 }

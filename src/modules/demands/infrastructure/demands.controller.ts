@@ -614,4 +614,21 @@ export class DemandsController {
     return { message: 'Avaliação registrada com sucesso!' };
   }
 
+  @Get('export')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Export demands as JSON (paginated, max 100 per page)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated demands for export',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async exportDemands(@Query() dto: ListDemandsDto, @CurrentUser() user: UserEntity) {
+    const limit = Math.min(dto.limit || 100, 100);
+    return this.listDemandsUseCase.execute(
+      { ...dto, limit },
+      user?.id,
+    );
+  }
+
 }

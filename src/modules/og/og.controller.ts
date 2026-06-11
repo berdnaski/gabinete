@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Req, Res } from '@nestjs/common';
+﻿import { Controller, Get, Param, Req, Res } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { FindDemandUseCase } from '../demands/application/find-demand.use-case';
@@ -39,14 +39,14 @@ function buildOgHtml(demand: DemandEntity, frontendUrl: string): string {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>${safeTitle} | Gabinete Digital</title>
+    <title>${safeTitle} | Gabinete App</title>
     <meta name="description" content="${safeDesc}" />
 
     <meta property="og:title" content="${safeTitle}" />
     <meta property="og:description" content="${safeDesc}" />
     <meta property="og:url" content="${safeUrl}" />
     <meta property="og:type" content="article" />
-    <meta property="og:site_name" content="Gabinete Digital" />
+    <meta property="og:site_name" content="Gabinete App" />
     <meta property="og:image" content="${safeImage}" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -99,3 +99,4 @@ export class OgController {
     }
   }
 }
+

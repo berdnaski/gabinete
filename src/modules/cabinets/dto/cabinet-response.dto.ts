@@ -63,4 +63,7 @@ export class CabinetResponseDto {
 
   @ApiProperty({ example: 72, description: 'Resolution rate percentage 0-100' })
   resolution_rate: number;
+
+  @ApiPropertyOptional({ nullable: true })
+  disabledAt: Date | null = null;
 }

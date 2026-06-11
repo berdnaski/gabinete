@@ -8,10 +8,11 @@ import { CreateAdminUserUseCase } from '../application/create-admin-user.use-cas
 import { UpdateAdminUserUseCase } from '../application/update-admin-user.use-case';
 import { DisableUserUseCase } from '../application/disable-user.use-case';
 import { EnableUserUseCase } from '../application/enable-user.use-case';
+import { EnableCabinetUseCase } from '../application/enable-cabinet.use-case';
 
 @Module({
   imports: [CabinetsModule, UsersModule, DemandsModule],
   controllers: [AdminController],
-  providers: [CreateCabinetWithOwnerUseCase, CreateAdminUserUseCase, UpdateAdminUserUseCase, DisableUserUseCase, EnableUserUseCase],
+  providers: [CreateCabinetWithOwnerUseCase, CreateAdminUserUseCase, UpdateAdminUserUseCase, DisableUserUseCase, EnableUserUseCase, EnableCabinetUseCase],
 })
 export class AdminModule {}

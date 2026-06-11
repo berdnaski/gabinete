@@ -151,7 +151,7 @@ export class ResendMailService implements MailService {
         html: `
           <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; background: #fff;">
             <div style="background: ${statusInfo.color}; padding: 24px 32px;">
-              <p style="margin: 0; color: rgba(255,255,255,0.85); font-size: 13px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;">Gabinete Digital</p>
+              <p style="margin: 0; color: rgba(255,255,255,0.85); font-size: 13px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;">Gabinete App</p>
               <h1 style="margin: 8px 0 0; color: #fff; font-size: 22px; font-weight: 700;">Atualização de Demanda</h1>
             </div>
             <div style="padding: 32px;">
@@ -161,7 +161,7 @@ export class ResendMailService implements MailService {
                 <span style="font-size: 14px; font-weight: 700; color: ${statusInfo.color};">${statusInfo.emoji} ${statusInfo.label}</span>
               </div>
               ${surveySection}
-              <p style="margin: 24px 0 0; font-size: 13px; color: #9ca3af;">Este e-mail foi enviado pelo ${params.cabinetName} via Gabinete Digital. Se você não reconhece esta demanda, ignore este e-mail.</p>
+              <p style="margin: 24px 0 0; font-size: 13px; color: #9ca3af;">Este e-mail foi enviado pelo ${params.cabinetName} via Gabinete App. Se você não reconhece esta demanda, ignore este e-mail.</p>
             </div>
           </div>
         `,
@@ -213,3 +213,4 @@ export class ResendMailService implements MailService {
     }
   }
 }
+

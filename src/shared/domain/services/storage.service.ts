@@ -3,6 +3,7 @@ export interface UploadProps {
   filename: string;
   mimetype: string;
   folder?: string;
+  key?: string;
 }
 
 export interface UploadResult {
