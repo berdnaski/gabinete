@@ -59,6 +59,7 @@ import { UpdateCabinetMemberRoleDto } from '../dto/update-cabinet-member-role.dt
 import { ListCabinetsDto } from '../dto/list-cabinets.dto';
 import { GetCabinetPlanUseCase } from '../../plans/application/get-cabinet-plan.use-case';
 import { IPlansRepository } from '../../plans/domain/plans.repository.interface';
+import { ConfigService } from '@nestjs/config';
 
 @ApiTags('cabinets')
 @Controller('cabinets')
@@ -81,6 +82,7 @@ export class CabinetsController {
     private readonly getCurrentUserCabinetsUseCase: GetCurrentUserCabinetsUseCase,
     private readonly getCabinetPlanUseCase: GetCabinetPlanUseCase,
     private readonly plansRepository: IPlansRepository,
+    private readonly configService: ConfigService,
   ) {}
 
   @Post()
@@ -245,7 +247,11 @@ export class CabinetsController {
     const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
     const accent = cabinet.accentColor ?? '#0058F3';
     const name = cabinet.name.replace(/'/g, "\\'");
-    const profileUrl = `https://gabineteapp.com.br/${cabinet.slug}`;
+    const frontendUrl = this.configService.get<string>(
+      'FRONTEND_URL',
+      'https://gabineteapp.com.br',
+    );
+    const profileUrl = `${frontendUrl.replace(/\/$/, '')}/${cabinet.slug}`;
 
     return `(function(){
   if(document.getElementById('gd-widget-${cabinet.slug}'))return;
