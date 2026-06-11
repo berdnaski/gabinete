@@ -10,6 +10,7 @@ import {
   IPlansRepository,
   PlanWithFeatures,
   UpdatePlanInput,
+  UpdateSubscriptionInput,
 } from '../domain/plans.repository.interface'
 import { OverrideType } from '../domain/plans.types'
 
@@ -47,9 +48,9 @@ export class PlansRepository implements IPlansRepository {
     return {
       createdAt: sub.createdAt,
       plan: {
-        maxMembers: sub.plan.maxMembers,
-        maxDemands: sub.plan.maxDemands,
-        maxStorageBytes: sub.plan.maxStorageBytes,
+        maxMembers: sub.maxMembers ?? sub.plan.maxMembers,
+        maxDemands: sub.maxDemands ?? sub.plan.maxDemands,
+        maxStorageBytes: sub.maxStorageBytes ?? sub.plan.maxStorageBytes,
         features: sub.plan.features,
       },
     }
@@ -151,13 +152,14 @@ export class PlansRepository implements IPlansRepository {
     await this.prisma.plan.update({ where: { id: planId }, data: { isActive } })
   }
 
-  async listCabinetSubscriptionsSummary(): Promise<Array<{ cabinetId: string; planName: string; planTier: string; status: string }>> {
+  async listCabinetSubscriptionsSummary(): Promise<Array<{ cabinetId: string; planName: string; planTier: string; status: string; priceInCents: number }>> {
     const subs = await this.prisma.cabinetSubscription.findMany({
       where: { deletedAt: null },
       select: {
         cabinetId: true,
         status: true,
-        plan: { select: { name: true, tier: true } },
+        priceInCents: true,
+        plan: { select: { name: true, tier: true, priceInCents: true } },
       },
     })
     return subs.map((s) => ({
@@ -165,6 +167,7 @@ export class PlansRepository implements IPlansRepository {
       planName: s.plan.name,
       planTier: s.plan.tier,
       status: s.status,
+      priceInCents: s.priceInCents ?? s.plan.priceInCents,
     }))
   }
 
@@ -189,6 +192,10 @@ export class PlansRepository implements IPlansRepository {
       currentPeriodEnd: sub.currentPeriodEnd,
       canceledAt: sub.canceledAt,
       createdAt: sub.createdAt,
+      priceInCents: sub.priceInCents ?? null,
+      maxMembers: sub.maxMembers ?? null,
+      maxDemands: sub.maxDemands ?? null,
+      maxStorageBytes: sub.maxStorageBytes ?? null,
       plan: {
         id: sub.plan.id,
         tier: sub.plan.tier,
@@ -226,6 +233,10 @@ export class PlansRepository implements IPlansRepository {
       currentPeriodEnd: sub.currentPeriodEnd,
       canceledAt: sub.canceledAt,
       createdAt: sub.createdAt,
+      priceInCents: sub.priceInCents ?? null,
+      maxMembers: sub.maxMembers ?? null,
+      maxDemands: sub.maxDemands ?? null,
+      maxStorageBytes: sub.maxStorageBytes ?? null,
       plan: {
         id: sub.plan.id,
         tier: sub.plan.tier,
@@ -246,6 +257,7 @@ export class PlansRepository implements IPlansRepository {
 
   async upsertCabinetSubscription(cabinetId: string, planId: string): Promise<void> {
     const now = new Date()
+    const plan = await this.prisma.plan.findUniqueOrThrow({ where: { id: planId } })
     await this.prisma.cabinetSubscription.updateMany({
       where: { cabinetId, deletedAt: null },
       data: { deletedAt: now, canceledAt: now, status: 'CANCELED' },
@@ -258,7 +270,18 @@ export class PlansRepository implements IPlansRepository {
         currentPeriodStart: now,
         canceledAt: null,
         deletedAt: null,
+        priceInCents: plan.priceInCents,
+        maxMembers: plan.maxMembers,
+        maxDemands: plan.maxDemands,
+        maxStorageBytes: plan.maxStorageBytes,
       },
+    })
+  }
+
+  async updateCabinetSubscription(cabinetId: string, data: UpdateSubscriptionInput): Promise<void> {
+    await this.prisma.cabinetSubscription.updateMany({
+      where: { cabinetId, deletedAt: null, status: { in: ['ACTIVE', 'TRIALING'] } },
+      data,
     })
   }
 

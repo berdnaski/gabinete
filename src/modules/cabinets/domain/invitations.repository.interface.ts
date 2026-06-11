@@ -17,6 +17,7 @@ export abstract class ICabinetInvitationsRepository {
   abstract findByCabinetId(
     cabinetId: string,
   ): Promise<CabinetInvitationEntity[]>;
+  abstract countPendingByCabinetId(cabinetId: string): Promise<number>;
   abstract delete(id: string): Promise<void>;
   abstract deleteManyByEmail(email: string): Promise<void>;
 }

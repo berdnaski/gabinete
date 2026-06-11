@@ -153,6 +153,28 @@ export class PlansAdminController {
     return this.repo.getCabinetFullSubscription(cabinetId)
   }
 
+  @Patch('cabinets/:cabinetId/subscription/limits')
+  @ApiParam({ name: 'cabinetId', type: 'string' })
+  @ApiOperation({ summary: 'Update custom limits/price for a cabinet active subscription' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        priceInCents: { type: 'number', nullable: true },
+        maxMembers: { type: 'number', nullable: true },
+        maxDemands: { type: 'number', nullable: true },
+        maxStorageBytes: { type: 'number', nullable: true },
+      },
+    },
+  })
+  async updateCabinetSubscription(
+    @Param('cabinetId') cabinetId: string,
+    @Body() body: { priceInCents?: number | null; maxMembers?: number | null; maxDemands?: number | null; maxStorageBytes?: number | null },
+  ) {
+    await this.repo.updateCabinetSubscription(cabinetId, body)
+    return this.repo.getCabinetFullSubscription(cabinetId)
+  }
+
   @Get('cabinets/:cabinetId/overrides')
   @ApiParam({ name: 'cabinetId', type: 'string' })
   @ApiOperation({ summary: 'List all feature overrides for a cabinet' })

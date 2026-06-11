@@ -1,5 +1,6 @@
 import { OverrideType } from './plans.types'
 
+
 export interface ActiveSubscription {
   createdAt: Date
   plan: {
@@ -52,6 +53,17 @@ export interface FullSubscription {
   canceledAt: Date | null
   createdAt: Date
   plan: PlanWithFeatures
+  priceInCents: number | null
+  maxMembers: number | null
+  maxDemands: number | null
+  maxStorageBytes: number | null
+}
+
+export interface UpdateSubscriptionInput {
+  priceInCents?: number | null
+  maxMembers?: number | null
+  maxDemands?: number | null
+  maxStorageBytes?: number | null
 }
 
 export interface FullOverride {
@@ -99,6 +111,7 @@ export abstract class IPlansRepository {
   abstract getCabinetFullSubscription(cabinetId: string): Promise<FullSubscription | null>
   abstract getCabinetSubscriptionHistory(cabinetId: string): Promise<FullSubscription[]>
   abstract upsertCabinetSubscription(cabinetId: string, planId: string): Promise<void>
+  abstract updateCabinetSubscription(cabinetId: string, data: UpdateSubscriptionInput): Promise<void>
   abstract getCabinetFullOverrides(cabinetId: string): Promise<FullOverride[]>
   abstract addCabinetOverride(data: AddOverrideInput): Promise<void>
   abstract removeCabinetOverride(cabinetId: string, featureSlug: string): Promise<void>

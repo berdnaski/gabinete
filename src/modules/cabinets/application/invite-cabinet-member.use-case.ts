@@ -1,3 +1,4 @@
+
 import {
   Injectable,
   NotFoundException,
@@ -55,8 +56,11 @@ export class InviteCabinetMemberUseCase {
       );
     }
 
-    const currentMembers = await this.membersRepository.findByCabinetId(input.cabinetId);
-    await this.checkMemberLimitUseCase.execute(input.cabinetId, currentMembers.length);
+    const [currentMembers, pendingInvites] = await Promise.all([
+      this.membersRepository.findByCabinetId(input.cabinetId),
+      this.invitationsRepository.countPendingByCabinetId(input.cabinetId),
+    ]);
+    await this.checkMemberLimitUseCase.execute(input.cabinetId, currentMembers.length + pendingInvites);
 
     const user = await this.usersRepository.findByEmail(input.email);
     if (user) {

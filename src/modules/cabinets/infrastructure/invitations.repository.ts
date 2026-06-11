@@ -89,6 +89,12 @@ export class CabinetInvitationsRepository implements ICabinetInvitationsReposito
     return records.map((r) => this.toEntityWithoutCabinet(r));
   }
 
+  async countPendingByCabinetId(cabinetId: string): Promise<number> {
+    return this.prisma.cabinetInvitation.count({
+      where: { cabinetId, expiresAt: { gt: new Date() } },
+    });
+  }
+
   async delete(id: string): Promise<void> {
     await this.prisma.cabinetInvitation.delete({ where: { id } });
   }

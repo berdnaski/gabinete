@@ -11,6 +11,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { CheckMemberLimitUseCase } from '../../plans/application/check-member-limit.use-case';
 
 @Injectable()
 export class AcceptCabinetInvitationUseCase {
@@ -20,6 +21,7 @@ export class AcceptCabinetInvitationUseCase {
     private readonly usersRepository: IUsersRepository,
     private readonly cabinetsRepository: ICabinetsRepository,
     private readonly eventEmitter: EventEmitter2,
+    private readonly checkMemberLimitUseCase: CheckMemberLimitUseCase,
   ) {}
 
   async execute(token: string, userId: string): Promise<{ message: string }> {
@@ -51,6 +53,9 @@ export class AcceptCabinetInvitationUseCase {
       await this.invitationsRepository.delete(invite.id);
       return { message: 'O usuário já é membro deste gabinete' };
     }
+
+    const currentMembers = await this.membersRepository.findByCabinetId(invite.cabinetId);
+    await this.checkMemberLimitUseCase.execute(invite.cabinetId, currentMembers.length);
 
     await this.membersRepository.add({
       userId: user.id,

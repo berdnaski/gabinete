@@ -459,6 +459,10 @@ model CabinetSubscription {
   canceledAt         DateTime?          @map("canceled_at")
   createdAt          DateTime           @default(now()) @map("created_at")
   deletedAt          DateTime?          @map("deleted_at")
+  priceInCents       Int?               @map("price_in_cents")
+  maxMembers         Int?               @map("max_members")
+  maxDemands         Int?               @map("max_demands")
+  maxStorageBytes    Float?             @map("max_storage_bytes")
 
   cabinet Cabinet @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
   plan    Plan    @relation(fields: [planId], references: [id])
