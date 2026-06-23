@@ -40,6 +40,15 @@ export abstract class ICabinetsRepository {
       facebookUrl?: string | null;
       websiteUrl?: string | null;
       twitterUrl?: string | null;
+      heroTitle?: string | null;
+      heroSubtitle?: string | null;
+      heroVideoUrl?: string | null;
+      biographyContent?: string | null;
+      biographyPhotoUrl?: string | null;
+      biographyPhotoKey?: string | null;
+      whatsappUrl?: string | null;
+      youtubeUrl?: string | null;
+      tiktokUrl?: string | null;
     },
   ): Promise<CabinetEntity>;
 

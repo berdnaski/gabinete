@@ -60,6 +60,12 @@ import { ListCabinetsDto } from '../dto/list-cabinets.dto';
 import { GetCabinetPlanUseCase } from '../../plans/application/get-cabinet-plan.use-case';
 import { IPlansRepository } from '../../plans/domain/plans.repository.interface';
 import { ConfigService } from '@nestjs/config';
+import { CabinetSectionsRepository } from './cabinet-sections.repository';
+import { UpsertCabinetSectionsUseCase } from '../application/upsert-cabinet-sections.use-case';
+import { UpsertCabinetSectionsDto } from '../dto/upsert-cabinet-sections.dto';
+import { GetCabinetTestimonialsUseCase } from '../application/get-cabinet-testimonials.use-case';
+import { ToggleTestimonialVisibilityUseCase } from '../application/toggle-testimonial-visibility.use-case';
+import { Put } from '@nestjs/common';
 
 @ApiTags('cabinets')
 @Controller('cabinets')
@@ -83,6 +89,10 @@ export class CabinetsController {
     private readonly getCabinetPlanUseCase: GetCabinetPlanUseCase,
     private readonly plansRepository: IPlansRepository,
     private readonly configService: ConfigService,
+    private readonly cabinetSectionsRepository: CabinetSectionsRepository,
+    private readonly upsertCabinetSectionsUseCase: UpsertCabinetSectionsUseCase,
+    private readonly getCabinetTestimonialsUseCase: GetCabinetTestimonialsUseCase,
+    private readonly toggleTestimonialVisibilityUseCase: ToggleTestimonialVisibilityUseCase,
   ) {}
 
   @Post()
@@ -195,6 +205,7 @@ export class CabinetsController {
         avatar: { type: 'string', format: 'binary' },
         banner: { type: 'string', format: 'binary' },
         logo: { type: 'string', format: 'binary', description: 'Cabinet white-label logo' },
+        biographyPhoto: { type: 'string', format: 'binary', description: 'Biography photo' },
       },
     },
   })
@@ -203,22 +214,24 @@ export class CabinetsController {
       { name: 'avatar', maxCount: 1 },
       { name: 'banner', maxCount: 1 },
       { name: 'logo', maxCount: 1 },
+      { name: 'biographyPhoto', maxCount: 1 },
     ]),
   )
   async update(
     @Param('slug') slug: string,
     @Body() dto: UpdateCabinetDto,
     @UploadedFiles()
-    files?: { avatar?: Express.Multer.File[]; banner?: Express.Multer.File[]; logo?: Express.Multer.File[] },
+    files?: { avatar?: Express.Multer.File[]; banner?: Express.Multer.File[]; logo?: Express.Multer.File[]; biographyPhoto?: Express.Multer.File[] },
   ): Promise<CabinetResponseDto> {
     const avatarFile = files?.avatar?.[0];
     const bannerFile = files?.banner?.[0];
     const logoFile = files?.logo?.[0];
+    const biographyPhotoFile = files?.biographyPhoto?.[0];
 
     const allowedMimes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
     const maxSize = 5_000_000;
 
-    for (const [label, file] of [['avatar', avatarFile], ['banner', bannerFile], ['logo', logoFile]] as [string, Express.Multer.File | undefined][]) {
+    for (const [label, file] of [['avatar', avatarFile], ['banner', bannerFile], ['logo', logoFile], ['biographyPhoto', biographyPhotoFile]] as [string, Express.Multer.File | undefined][]) {
       if (!file) continue;
       if (file.size > maxSize) {
         throw new BadRequestException(`${label}: arquivo excede 5 MB`);
@@ -234,6 +247,7 @@ export class CabinetsController {
       avatarFile,
       bannerFile,
       logoFile,
+      biographyPhotoFile,
     );
     return this.toCabinetDto(updated);
   }
@@ -269,6 +283,73 @@ export class CabinetsController {
   btn.onclick=function(){window.open(url+'?nova-demanda=1','_blank','noopener,noreferrer');};
   document.body.appendChild(btn);
 })();`;
+  }
+
+  @Get(':slug/sections')
+  @ApiOperation({ summary: 'Get landing page sections for a cabinet' })
+  @ApiResponse({ status: 200, description: 'List of enabled sections' })
+  async getSections(@Param('slug') slug: string) {
+    const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
+    return this.cabinetSectionsRepository.findEnabledByCabinetId(cabinet.id);
+  }
+
+  @Get(':slug/testimonials')
+  @ApiOperation({ summary: 'Get visible testimonials for a cabinet (public)' })
+  @ApiResponse({ status: 200, description: 'List of testimonials' })
+  async getTestimonials(@Param('slug') slug: string) {
+    const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
+    return this.getCabinetTestimonialsUseCase.execute(cabinet.id);
+  }
+
+  @Get(':slug/testimonials/all')
+  @UseGuards(JwtAuthGuard, CabinetRolesGuard)
+  @CabinetRoles(CabinetRole.OWNER, CabinetRole.STAFF)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get all testimonials (incl. hidden) for cabinet owner' })
+  async getAllTestimonials(@Param('slug') slug: string) {
+    const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
+    return this.getCabinetTestimonialsUseCase.executeAll(cabinet.id);
+  }
+
+  @Patch(':slug/testimonials/:demandId/hide')
+  @UseGuards(JwtAuthGuard, CabinetRolesGuard)
+  @CabinetRoles(CabinetRole.OWNER, CabinetRole.STAFF)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Hide a testimonial from public page' })
+  async hideTestimonial(
+    @Param('slug') slug: string,
+    @Param('demandId') demandId: string,
+  ): Promise<void> {
+    const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
+    await this.toggleTestimonialVisibilityUseCase.execute(demandId, cabinet.id, true);
+  }
+
+  @Patch(':slug/testimonials/:demandId/show')
+  @UseGuards(JwtAuthGuard, CabinetRolesGuard)
+  @CabinetRoles(CabinetRole.OWNER, CabinetRole.STAFF)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Show a previously hidden testimonial' })
+  async showTestimonial(
+    @Param('slug') slug: string,
+    @Param('demandId') demandId: string,
+  ): Promise<void> {
+    const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
+    await this.toggleTestimonialVisibilityUseCase.execute(demandId, cabinet.id, false);
+  }
+
+  @Put(':slug/sections')
+  @UseGuards(JwtAuthGuard, CabinetRolesGuard)
+  @CabinetRoles(CabinetRole.OWNER)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update all landing page sections (bulk upsert)' })
+  async upsertSections(
+    @Param('slug') slug: string,
+    @Body() body: UpsertCabinetSectionsDto,
+  ) {
+    const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
+    return this.upsertCabinetSectionsUseCase.execute(cabinet.id, body.sections);
   }
 
   @Delete(':slug')
@@ -434,6 +515,14 @@ export class CabinetsController {
     dto.websiteUrl = entity.websiteUrl ?? null;
     dto.twitterUrl = entity.twitterUrl ?? null;
     dto.email = entity.email;
+    dto.heroTitle = entity.heroTitle ?? null;
+    dto.heroSubtitle = entity.heroSubtitle ?? null;
+    dto.heroVideoUrl = entity.heroVideoUrl ?? null;
+    dto.biographyContent = entity.biographyContent ?? null;
+    dto.biographyPhotoUrl = entity.biographyPhotoUrl ?? null;
+    dto.whatsappUrl = entity.whatsappUrl ?? null;
+    dto.youtubeUrl = entity.youtubeUrl ?? null;
+    dto.tiktokUrl = entity.tiktokUrl ?? null;
     dto.score = entity.score ?? 0;
     dto.demand_count = entity.demand_count ?? 0;
     dto.in_progress_count = entity.in_progress_count ?? 0;

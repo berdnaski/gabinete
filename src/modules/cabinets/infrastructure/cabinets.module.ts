@@ -25,6 +25,10 @@ import { CabinetScoringListener } from '../application/cabinet-scoring.listener'
 import { CabinetInvitationsRepository } from './invitations.repository';
 import { UsersModule } from '../../users/infrastructure/users.module';
 import { PlansModule } from '../../plans/infrastructure/plans.module';
+import { CabinetSectionsRepository } from './cabinet-sections.repository';
+import { UpsertCabinetSectionsUseCase } from '../application/upsert-cabinet-sections.use-case';
+import { GetCabinetTestimonialsUseCase } from '../application/get-cabinet-testimonials.use-case';
+import { ToggleTestimonialVisibilityUseCase } from '../application/toggle-testimonial-visibility.use-case';
 
 @Module({
   imports: [UsersModule, PlansModule],
@@ -52,6 +56,10 @@ import { PlansModule } from '../../plans/infrastructure/plans.module';
     RemoveCabinetMemberUseCase,
     GetCurrentUserCabinetsUseCase,
     CabinetScoringListener,
+    CabinetSectionsRepository,
+    UpsertCabinetSectionsUseCase,
+    GetCabinetTestimonialsUseCase,
+    ToggleTestimonialVisibilityUseCase,
   ],
   controllers: [CabinetsController],
   exports: [

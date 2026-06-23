@@ -18,6 +18,13 @@ export interface UpdateCabinetInput {
   websiteUrl?: string;
   twitterUrl?: string;
   logoUrl?: string;
+  heroTitle?: string;
+  heroSubtitle?: string;
+  heroVideoUrl?: string;
+  biographyContent?: string;
+  whatsappUrl?: string;
+  youtubeUrl?: string;
+  tiktokUrl?: string;
 }
 
 @Injectable()
@@ -32,6 +39,7 @@ export class UpdateCabinetUseCase {
     avatarFile?: Express.Multer.File,
     bannerFile?: Express.Multer.File,
     logoFile?: Express.Multer.File,
+    biographyPhotoFile?: Express.Multer.File,
   ): Promise<CabinetEntity> {
     const existing = await this.cabinetsRepository.findById(input.id);
     if (!existing) {
@@ -82,6 +90,20 @@ export class UpdateCabinetUseCase {
       updatedLogoUrl = generated.signedUrl;
     }
 
+    let updatedBiographyPhotoUrl: string | undefined;
+    let updatedBiographyPhotoKey: string | undefined;
+    if (biographyPhotoFile) {
+      const uploaded = await this.storageService.upload({
+        buffer: biographyPhotoFile.buffer,
+        filename: biographyPhotoFile.originalname,
+        mimetype: biographyPhotoFile.mimetype,
+        folder: `cabinets/${existing.id}/biography`,
+      });
+      const generated = await this.storageService.getUrl(uploaded.path);
+      updatedBiographyPhotoUrl = generated.signedUrl;
+      updatedBiographyPhotoKey = uploaded.path;
+    }
+
     return this.cabinetsRepository.update(input.id, {
       name: input.name,
       slug,
@@ -97,6 +119,15 @@ export class UpdateCabinetUseCase {
       facebookUrl: input.facebookUrl !== undefined ? (input.facebookUrl || null) : undefined,
       websiteUrl: input.websiteUrl !== undefined ? (input.websiteUrl || null) : undefined,
       twitterUrl: input.twitterUrl !== undefined ? (input.twitterUrl || null) : undefined,
+      heroTitle: input.heroTitle !== undefined ? (input.heroTitle || null) : undefined,
+      heroSubtitle: input.heroSubtitle !== undefined ? (input.heroSubtitle || null) : undefined,
+      heroVideoUrl: input.heroVideoUrl !== undefined ? (input.heroVideoUrl || null) : undefined,
+      biographyContent: input.biographyContent !== undefined ? (input.biographyContent || null) : undefined,
+      biographyPhotoUrl: updatedBiographyPhotoUrl,
+      biographyPhotoKey: updatedBiographyPhotoKey,
+      whatsappUrl: input.whatsappUrl !== undefined ? (input.whatsappUrl || null) : undefined,
+      youtubeUrl: input.youtubeUrl !== undefined ? (input.youtubeUrl || null) : undefined,
+      tiktokUrl: input.tiktokUrl !== undefined ? (input.tiktokUrl || null) : undefined,
     });
   }
 }

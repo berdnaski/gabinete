@@ -45,6 +45,7 @@ import { GetNeighborhoodDashboardUseCase } from '../application/get-neighborhood
 import { ResultDeletedListener } from '../application/result-deleted.listener';
 import { PlansModule } from '../../plans/infrastructure/plans.module';
 import { FeatureGuard } from '../../../shared/guards/feature.guard';
+import { GetCabinetTestimonialsUseCase } from '../application/get-cabinet-testimonials.use-case';
 
 @Module({
   imports: [AuthModule, CabinetsModule, UsersModule, ResultsModule, PlansModule],
@@ -89,6 +90,7 @@ import { FeatureGuard } from '../../../shared/guards/feature.guard';
     GetCabinetOpenDataUseCase,
     GetNeighborhoodDashboardUseCase,
     ResultDeletedListener,
+    GetCabinetTestimonialsUseCase,
     DemandAccessGuard,
     FeatureGuard,
   ],

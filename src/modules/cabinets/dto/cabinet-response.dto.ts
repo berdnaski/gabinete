@@ -43,6 +43,30 @@ export class CabinetResponseDto {
   @ApiPropertyOptional({ nullable: true })
   twitterUrl: string | null;
 
+  @ApiPropertyOptional({ nullable: true })
+  heroTitle: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  heroSubtitle: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  heroVideoUrl: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  biographyContent: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  biographyPhotoUrl: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  whatsappUrl: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  youtubeUrl: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  tiktokUrl: string | null;
+
   @ApiPropertyOptional({ nullable: true, example: 'contato@gabinete.gov.br' })
   email: string | null;
 

@@ -14,6 +14,15 @@ export class CabinetEntity {
   facebookUrl: string | null;
   websiteUrl: string | null;
   twitterUrl: string | null;
+  heroTitle: string | null;
+  heroSubtitle: string | null;
+  heroVideoUrl: string | null;
+  biographyContent: string | null;
+  biographyPhotoUrl: string | null;
+  biographyPhotoKey: string | null;
+  whatsappUrl: string | null;
+  youtubeUrl: string | null;
+  tiktokUrl: string | null;
   disabledAt: Date | null;
   score: number;
   demand_count: number;

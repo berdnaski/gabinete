@@ -53,4 +53,50 @@ export class UpdateCabinetDto extends UpdateCabinetBaseDto {
   @IsUrl({}, { message: 'twitterUrl must be a valid URL' })
   @MaxLength(500)
   twitterUrl?: string;
+
+  @ApiPropertyOptional({ maxLength: 120 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  heroTitle?: string;
+
+  @ApiPropertyOptional({ maxLength: 300 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  heroSubtitle?: string;
+
+  @ApiPropertyOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
+  @IsOptional()
+  @IsUrl({}, { message: 'heroVideoUrl must be a valid URL' })
+  @MaxLength(500)
+  heroVideoUrl?: string;
+
+  @ApiPropertyOptional({ maxLength: 5000 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(5000)
+  biographyContent?: string;
+
+  @ApiPropertyOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
+  @IsOptional()
+  @IsUrl({}, { message: 'whatsappUrl must be a valid URL' })
+  @MaxLength(500)
+  whatsappUrl?: string;
+
+  @ApiPropertyOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
+  @IsOptional()
+  @IsUrl({}, { message: 'youtubeUrl must be a valid URL' })
+  @MaxLength(500)
+  youtubeUrl?: string;
+
+  @ApiPropertyOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
+  @IsOptional()
+  @IsUrl({}, { message: 'tiktokUrl must be a valid URL' })
+  @MaxLength(500)
+  tiktokUrl?: string;
 }

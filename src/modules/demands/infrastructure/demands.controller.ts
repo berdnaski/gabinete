@@ -75,6 +75,7 @@ import { GetDemandHeatmapQueryDto } from '../dto/get-demand-heatmap-query.dto';
 import { FeatureGuard } from '../../../shared/guards/feature.guard';
 import { RequireFeature } from '../../../shared/decorators/require-feature.decorator';
 import { FEATURES } from '../../../shared/constants/features';
+import { GetCabinetTestimonialsUseCase } from '../application/get-cabinet-testimonials.use-case';
 
 @ApiTags('demands')
 @Controller('demands')
@@ -109,6 +110,7 @@ export class DemandsController {
     private readonly getReporterSummaryUseCase: GetReporterSummaryUseCase,
     private readonly getCabinetOpenDataUseCase: GetCabinetOpenDataUseCase,
     private readonly getNeighborhoodDashboardUseCase: GetNeighborhoodDashboardUseCase,
+    private readonly getCabinetTestimonialsUseCase: GetCabinetTestimonialsUseCase,
   ) {}
 
   @Post()
@@ -176,6 +178,12 @@ export class DemandsController {
     @Param('slug') slug: string,
   ): Promise<CabinetOpenDataResponseDto> {
     return this.getCabinetOpenDataUseCase.execute(slug);
+  }
+
+  @Get('cabinet/:slug/testimonials')
+  @ApiOperation({ summary: 'Get positive testimonials for a cabinet' })
+  async getCabinetTestimonials(@Param('slug') slug: string) {
+    return this.getCabinetTestimonialsUseCase.execute(slug);
   }
 
   @Get('cabinet/:slug/metrics')
