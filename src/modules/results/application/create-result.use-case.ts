@@ -10,6 +10,7 @@ import { ICabinetsRepository } from '../../cabinets/domain/cabinets.repository.i
 import { IResultsRepository } from '../domain/results.repository.interface';
 import { ResultEntity } from '../domain/result.entity';
 import { CheckStorageLimitUseCase } from '../../plans/application/check-storage-limit.use-case';
+import { CheckActiveSubscriptionUseCase } from '../../plans/application/check-active-subscription.use-case';
 import sharp from 'sharp';
 
 export interface CreateResultInput {
@@ -28,6 +29,7 @@ export class CreateResultUseCase {
     private readonly cabinetMembersRepository: ICabinetMembersRepository,
     private readonly storageService: StorageService,
     private readonly checkStorageLimitUseCase: CheckStorageLimitUseCase,
+    private readonly checkActiveSubscriptionUseCase: CheckActiveSubscriptionUseCase,
   ) {}
 
   async execute(
@@ -49,6 +51,8 @@ export class CreateResultUseCase {
     if (!membership) {
       throw new ForbiddenException('Você não é membro deste gabinete');
     }
+
+    await this.checkActiveSubscriptionUseCase.execute(cabinet.id);
 
     const uploadedImages = await Promise.all(
       imageFiles.map(async (file) => {

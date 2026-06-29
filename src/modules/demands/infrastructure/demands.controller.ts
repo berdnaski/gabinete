@@ -16,6 +16,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
+import { ActiveSubscriptionGuard } from '../../../shared/guards/active-subscription.guard';
 import { DemandAccessGuard } from '../../../shared/guards/demand-access.guard';
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../../../shared/guards/optional-jwt-auth.guard';
@@ -282,7 +283,7 @@ export class DemandsController {
   }
 
   @Get('cabinet/:slug/report')
-  @UseGuards(JwtAuthGuard, FeatureGuard)
+  @UseGuards(JwtAuthGuard, FeatureGuard, ActiveSubscriptionGuard)
   @RequireFeature(FEATURES.CSV_EXPORT)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Generate a comprehensive demand report for a cabinet' })
@@ -409,7 +410,7 @@ export class DemandsController {
   }
 
   @Post(':id/claim')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ActiveSubscriptionGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Claim a global demand for your cabinet' })
   @ApiResponse({
@@ -561,7 +562,7 @@ export class DemandsController {
   }
 
   @Patch(':id/progress')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ActiveSubscriptionGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update demand progress — status + optional note in one action' })
   @ApiResponse({ status: 200, type: DemandEntity })

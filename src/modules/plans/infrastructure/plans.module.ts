@@ -4,6 +4,7 @@ import { GetCabinetPlanUseCase } from '../application/get-cabinet-plan.use-case'
 import { CheckMemberLimitUseCase } from '../application/check-member-limit.use-case'
 import { CheckDemandLimitUseCase } from '../application/check-demand-limit.use-case'
 import { CheckStorageLimitUseCase } from '../application/check-storage-limit.use-case'
+import { CheckActiveSubscriptionUseCase } from '../application/check-active-subscription.use-case'
 import { PlansRepository } from './plans.repository'
 import { PlansAdminController } from './plans-admin.controller'
 
@@ -15,7 +16,15 @@ import { PlansAdminController } from './plans-admin.controller'
     CheckMemberLimitUseCase,
     CheckDemandLimitUseCase,
     CheckStorageLimitUseCase,
+    CheckActiveSubscriptionUseCase,
   ],
-  exports: [IPlansRepository, GetCabinetPlanUseCase, CheckMemberLimitUseCase, CheckDemandLimitUseCase, CheckStorageLimitUseCase],
+  exports: [
+    IPlansRepository,
+    GetCabinetPlanUseCase,
+    CheckMemberLimitUseCase,
+    CheckDemandLimitUseCase,
+    CheckStorageLimitUseCase,
+    CheckActiveSubscriptionUseCase,
+  ],
 })
 export class PlansModule {}

@@ -40,6 +40,10 @@ export class GetCabinetPlanUseCase {
         maxDemands: subscription?.plan.maxDemands ?? null,
         maxStorageBytes: subscription?.plan.maxStorageBytes ?? null,
       },
+      subscription: {
+        hasActiveSubscription: subscription !== null,
+        currentPeriodEnd: subscription?.currentPeriodEnd ?? null,
+      },
     }
   }
 }

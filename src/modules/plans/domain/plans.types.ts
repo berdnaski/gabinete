@@ -17,7 +17,13 @@ export interface CabinetUsage {
   storageUsedBytes: number
 }
 
+export interface CabinetSubscriptionStatus {
+  hasActiveSubscription: boolean
+  currentPeriodEnd: Date | null
+}
+
 export interface CabinetEntitlements {
   features: FeatureSlug[]
   limits: PlanLimits
+  subscription: CabinetSubscriptionStatus
 }

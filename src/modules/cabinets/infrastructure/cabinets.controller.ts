@@ -7,6 +7,7 @@ import {
   Header,
   HttpCode,
   HttpStatus,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -29,6 +30,7 @@ import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../shared/guards/roles.guard';
 import { CabinetRolesGuard } from '../../../shared/guards/cabinet-roles.guard';
+import { ActiveSubscriptionGuard } from '../../../shared/guards/active-subscription.guard';
 import { CabinetRoles } from '../../../shared/decorators/cabinet-roles.decorator';
 import { Roles } from '../../../shared/decorators/roles.decorator';
 import { UserRole, UserEntity } from '../../users/domain/user.entity';
@@ -177,11 +179,17 @@ export class CabinetsController {
   @ApiResponse({ status: 404, description: 'Cabinet not found' })
   async findOne(@Param('slug') slug: string): Promise<CabinetResponseDto> {
     const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
+    const subscription = await this.plansRepository.getActiveSubscription(
+      cabinet.id,
+    );
+    if (!subscription) {
+      throw new NotFoundException('Gabinete não encontrado');
+    }
     return this.toCabinetDto(cabinet);
   }
 
   @Patch(':slug')
-  @UseGuards(JwtAuthGuard, CabinetRolesGuard)
+  @UseGuards(JwtAuthGuard, CabinetRolesGuard, ActiveSubscriptionGuard)
   @CabinetRoles(CabinetRole.OWNER)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update cabinet by slug' })
@@ -366,7 +374,7 @@ export class CabinetsController {
   }
 
   @Post(':slug/invites')
-  @UseGuards(JwtAuthGuard, CabinetRolesGuard)
+  @UseGuards(JwtAuthGuard, CabinetRolesGuard, ActiveSubscriptionGuard)
   @CabinetRoles(CabinetRole.OWNER)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Invite a member to a cabinet by email' })

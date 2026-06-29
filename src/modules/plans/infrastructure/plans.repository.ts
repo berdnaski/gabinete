@@ -45,9 +45,10 @@ export class PlansRepository implements IPlansRepository {
     })
 
     if (!sub) return null
-
+    
     return {
       createdAt: sub.createdAt,
+      currentPeriodEnd: sub.currentPeriodEnd,
       plan: {
         maxMembers: sub.maxMembers ?? sub.plan.maxMembers,
         maxDemands: sub.maxDemands ?? sub.plan.maxDemands,

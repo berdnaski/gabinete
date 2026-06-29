@@ -8,6 +8,7 @@ import { CreateDemandDto } from '../dto/create-demand.dto';
 import { DemandPriority } from '@prisma/client';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CheckDemandLimitUseCase } from '../../plans/application/check-demand-limit.use-case';
+import { CheckActiveSubscriptionUseCase } from '../../plans/application/check-active-subscription.use-case';
 
 @Injectable()
 export class CreateDemandUseCase {
@@ -15,6 +16,7 @@ export class CreateDemandUseCase {
     private readonly demandsRepository: IDemandsRepository,
     private readonly eventEmitter: EventEmitter2,
     private readonly checkDemandLimitUseCase: CheckDemandLimitUseCase,
+    private readonly checkActiveSubscriptionUseCase: CheckActiveSubscriptionUseCase,
   ) {}
 
   async execute(dto: CreateDemandDto, userId?: string): Promise<DemandEntity> {
@@ -31,6 +33,7 @@ export class CreateDemandUseCase {
     }
 
     if (dto.cabinetId) {
+      await this.checkActiveSubscriptionUseCase.execute(dto.cabinetId);
       const currentCount = await this.demandsRepository.countByCabinet(dto.cabinetId);
       await this.checkDemandLimitUseCase.execute(dto.cabinetId, currentCount);
     }

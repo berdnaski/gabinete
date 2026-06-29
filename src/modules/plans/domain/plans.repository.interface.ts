@@ -3,6 +3,7 @@ import { OverrideType } from './plans.types'
 
 export interface ActiveSubscription {
   createdAt: Date
+  currentPeriodEnd: Date | null
   plan: {
     maxMembers: number | null
     maxDemands: number | null
