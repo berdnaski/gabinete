@@ -29,6 +29,7 @@ import { CabinetSectionsRepository } from './cabinet-sections.repository';
 import { UpsertCabinetSectionsUseCase } from '../application/upsert-cabinet-sections.use-case';
 import { GetCabinetTestimonialsUseCase } from '../application/get-cabinet-testimonials.use-case';
 import { ToggleTestimonialVisibilityUseCase } from '../application/toggle-testimonial-visibility.use-case';
+import { FeatureGuard } from '../../../shared/guards/feature.guard';
 
 @Module({
   imports: [UsersModule, PlansModule],
@@ -60,6 +61,7 @@ import { ToggleTestimonialVisibilityUseCase } from '../application/toggle-testim
     UpsertCabinetSectionsUseCase,
     GetCabinetTestimonialsUseCase,
     ToggleTestimonialVisibilityUseCase,
+    FeatureGuard,
   ],
   controllers: [CabinetsController],
   exports: [

@@ -31,8 +31,11 @@ import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../shared/guards/roles.guard';
 import { CabinetRolesGuard } from '../../../shared/guards/cabinet-roles.guard';
 import { ActiveSubscriptionGuard } from '../../../shared/guards/active-subscription.guard';
+import { FeatureGuard } from '../../../shared/guards/feature.guard';
 import { CabinetRoles } from '../../../shared/decorators/cabinet-roles.decorator';
 import { Roles } from '../../../shared/decorators/roles.decorator';
+import { RequireFeature } from '../../../shared/decorators/require-feature.decorator';
+import { FEATURES } from '../../../shared/constants/features';
 import { UserRole, UserEntity } from '../../users/domain/user.entity';
 import { CabinetRole } from '../domain/cabinet-role.enum';
 import { CreateCabinetUseCase } from '../application/create-cabinet.use-case';
@@ -156,7 +159,9 @@ export class CabinetsController {
   @Get(':slug/plans')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get active plan and feature entitlements for a cabinet' })
+  @ApiOperation({
+    summary: 'Get active plan and feature entitlements for a cabinet',
+  })
   @ApiResponse({ status: 200, description: 'Plan entitlements returned' })
   async getPlans(@Param('slug') slug: string) {
     const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
@@ -166,7 +171,10 @@ export class CabinetsController {
   @Get(':slug/usage')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get current resource usage counts for a cabinet (members, demands)' })
+  @ApiOperation({
+    summary:
+      'Get current resource usage counts for a cabinet (members, demands)',
+  })
   @ApiResponse({ status: 200, description: 'Usage counts returned' })
   async getUsage(@Param('slug') slug: string) {
     const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
@@ -212,8 +220,16 @@ export class CabinetsController {
         twitterUrl: { type: 'string' },
         avatar: { type: 'string', format: 'binary' },
         banner: { type: 'string', format: 'binary' },
-        logo: { type: 'string', format: 'binary', description: 'Cabinet white-label logo' },
-        biographyPhoto: { type: 'string', format: 'binary', description: 'Biography photo' },
+        logo: {
+          type: 'string',
+          format: 'binary',
+          description: 'Cabinet white-label logo',
+        },
+        biographyPhoto: {
+          type: 'string',
+          format: 'binary',
+          description: 'Biography photo',
+        },
       },
     },
   })
@@ -229,7 +245,12 @@ export class CabinetsController {
     @Param('slug') slug: string,
     @Body() dto: UpdateCabinetDto,
     @UploadedFiles()
-    files?: { avatar?: Express.Multer.File[]; banner?: Express.Multer.File[]; logo?: Express.Multer.File[]; biographyPhoto?: Express.Multer.File[] },
+    files?: {
+      avatar?: Express.Multer.File[];
+      banner?: Express.Multer.File[];
+      logo?: Express.Multer.File[];
+      biographyPhoto?: Express.Multer.File[];
+    },
   ): Promise<CabinetResponseDto> {
     const avatarFile = files?.avatar?.[0];
     const bannerFile = files?.banner?.[0];
@@ -239,13 +260,20 @@ export class CabinetsController {
     const allowedMimes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
     const maxSize = 5_000_000;
 
-    for (const [label, file] of [['avatar', avatarFile], ['banner', bannerFile], ['logo', logoFile], ['biographyPhoto', biographyPhotoFile]] as [string, Express.Multer.File | undefined][]) {
+    for (const [label, file] of [
+      ['avatar', avatarFile],
+      ['banner', bannerFile],
+      ['logo', logoFile],
+      ['biographyPhoto', biographyPhotoFile],
+    ] as [string, Express.Multer.File | undefined][]) {
       if (!file) continue;
       if (file.size > maxSize) {
         throw new BadRequestException(`${label}: arquivo excede 5 MB`);
       }
       if (!allowedMimes.includes(file.mimetype)) {
-        throw new BadRequestException(`${label}: formato não permitido (use PNG, JPG ou WebP)`);
+        throw new BadRequestException(
+          `${label}: formato não permitido (use PNG, JPG ou WebP)`,
+        );
       }
     }
 
@@ -261,10 +289,20 @@ export class CabinetsController {
   }
 
   @Get(':slug/widget.js')
+  @UseGuards(FeatureGuard)
+  @RequireFeature(FEATURES.WIDGET)
   @Header('Content-Type', 'application/javascript; charset=utf-8')
   @Header('Cache-Control', 'public, max-age=3600')
+  @Header('Cross-Origin-Resource-Policy', 'cross-origin')
   @ApiOperation({ summary: 'Embeddable widget script for a cabinet' })
-  @ApiResponse({ status: 200, description: 'Returns a JavaScript embed snippet' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns a JavaScript embed snippet',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Cabinet plan does not include the widget feature',
+  })
   async getWidget(@Param('slug') slug: string): Promise<string> {
     const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
     const accent = cabinet.accentColor ?? '#0058F3';
@@ -274,7 +312,7 @@ export class CabinetsController {
       'https://gabineteapp.com.br',
     );
     const profileUrl = `${frontendUrl.replace(/\/$/, '')}/${cabinet.slug}`;
-
+    console.log({ profileUrl });
     return `(function(){
   if(document.getElementById('gd-widget-${cabinet.slug}'))return;
   var accent='${accent}';
@@ -313,7 +351,9 @@ export class CabinetsController {
   @UseGuards(JwtAuthGuard, CabinetRolesGuard)
   @CabinetRoles(CabinetRole.OWNER, CabinetRole.STAFF)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get all testimonials (incl. hidden) for cabinet owner' })
+  @ApiOperation({
+    summary: 'Get all testimonials (incl. hidden) for cabinet owner',
+  })
   async getAllTestimonials(@Param('slug') slug: string) {
     const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
     return this.getCabinetTestimonialsUseCase.executeAll(cabinet.id);
@@ -330,7 +370,11 @@ export class CabinetsController {
     @Param('demandId') demandId: string,
   ): Promise<void> {
     const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
-    await this.toggleTestimonialVisibilityUseCase.execute(demandId, cabinet.id, true);
+    await this.toggleTestimonialVisibilityUseCase.execute(
+      demandId,
+      cabinet.id,
+      true,
+    );
   }
 
   @Patch(':slug/testimonials/:demandId/show')
@@ -344,7 +388,11 @@ export class CabinetsController {
     @Param('demandId') demandId: string,
   ): Promise<void> {
     const cabinet = await this.findCabinetBySlugUseCase.execute(slug);
-    await this.toggleTestimonialVisibilityUseCase.execute(demandId, cabinet.id, false);
+    await this.toggleTestimonialVisibilityUseCase.execute(
+      demandId,
+      cabinet.id,
+      false,
+    );
   }
 
   @Put(':slug/sections')
